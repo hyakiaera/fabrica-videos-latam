@@ -44,7 +44,8 @@ Para sumar un estilo nuevo: agrega una entrada en `fabrica/estilos.py`.
 |---|---|---|
 | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | Sí (o Groq) |
 | `GROQ_API_KEY` | https://console.groq.com/keys | Respaldo recomendado |
-| `PEXELS_API_KEY` | https://www.pexels.com/api/ | Recomendada |
+| `PEXELS_API_KEY` | https://www.pexels.com/api/ | Opcional (estilo `realista` y fotos de respaldo) |
+| `PIXABAY_API_KEY` | https://pixabay.com/api/docs/ (inicia sesión y aparece tu clave) | Opcional, reemplaza a Pexels |
 | `POLLINATIONS_TOKEN` | https://enter.pollinations.ai | Opcional (más rápido, menos límites) |
 | `UPLOAD_POST_API_KEY` y `UPLOAD_POST_USERNAME` | https://upload-post.com | Solo si quieres publicar automático |
 

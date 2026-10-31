@@ -53,10 +53,15 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo:
     )
     if "stock_video" in estilo.fuentes:
         from fabrica.config import secreto
-        if secreto("PEXELS_API_KEY") and not mpt_config.app.get("pexels_api_keys"):
-            mpt_config.app["pexels_api_keys"] = [secreto("PEXELS_API_KEY")]
+        claves = {"pexels": secreto("PEXELS_API_KEY"), "pixabay": secreto("PIXABAY_API_KEY")}
+        for fuente, clave in claves.items():
+            if clave and not mpt_config.app.get(f"{fuente}_api_keys"):
+                mpt_config.app[f"{fuente}_api_keys"] = [clave]
+        fuente = v.get("fuente_stock", "pexels")
+        if not claves.get(fuente):
+            fuente = "pixabay" if claves["pixabay"] else "pexels"
         params.update(
-            video_source=v.get("fuente_stock", "pexels"),
+            video_source=fuente,
             video_terms=[e.get("busqueda_foto", "") for e in datos["escenas"] if e.get("busqueda_foto")],
             video_clip_duration=int(v.get("duracion_clip_stock", 4)),
         )

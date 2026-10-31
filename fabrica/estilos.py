@@ -123,9 +123,19 @@ def prompt_imagen(estilo: Estilo, escena: str) -> str:
     return f"{estilo.plantilla.replace('{escena}', escena)}, {REGLAS_IMAGEN}"
 
 
+def hay_stock() -> bool:
+    """El estilo "realista" necesita clave de Pexels o de Pixabay."""
+    from fabrica.config import secreto
+    return bool(secreto("PEXELS_API_KEY") or secreto("PIXABAY_API_KEY"))
+
+
+def disponible(estilo: Estilo) -> bool:
+    return "stock_video" not in estilo.fuentes or hay_stock()
+
+
 def resumen_para_ia() -> str:
     """Lista corta que se le pasa a la IA para que elija el estilo de cada tema."""
     return "\n".join(
         f"- {clave}: {e.descripcion} Ideal para: {', '.join(e.temas_ideales)}"
-        for clave, e in ESTILOS.items()
+        for clave, e in ESTILOS.items() if disponible(e)
     )

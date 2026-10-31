@@ -78,6 +78,14 @@ class TestEstilosYSalidas(unittest.TestCase):
         self.assertIn("a soccer stadium", p)
         self.assertIn("no recognizable real people", p)
 
+    def test_realista_requiere_clave_de_stock(self):
+        realista = estilos.obtener("realista")
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertFalse(estilos.disponible(realista))
+            self.assertNotIn("- realista:", estilos.resumen_para_ia())
+        with mock.patch.dict("os.environ", {"PIXABAY_API_KEY": "x"}, clear=True):
+            self.assertTrue(estilos.disponible(realista))
+
     def test_estilo_desconocido(self):
         with self.assertRaises(ValueError):
             estilos.obtener("nada")
