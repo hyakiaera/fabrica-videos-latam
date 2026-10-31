@@ -155,3 +155,33 @@ def pedir_json(cfg: dict, sistema: str, usuario: str, temperatura: float = 0.7):
             if siguiente_proveedor:
                 break
     raise RuntimeError("Todas las IA fallaron:\n" + "\n".join(errores[-12:]))
+
+
+def imagen_encaja(cfg: dict, ruta, descripcion: str) -> bool | None:
+    """Gemini mira la imagen y dice si muestra lo que pide el guion.
+    Devuelve None si no se pudo revisar (sin clave, sin cuota): la imagen se acepta."""
+    import base64
+
+    clave = secreto("GEMINI_API_KEY")
+    if not clave:
+        return None
+    modelo = cfg.get("imagenes", {}).get("modelo_revision", "gemini-flash-lite-latest")
+    datos = base64.b64encode(open(ruta, "rb").read()).decode()
+    try:
+        r = requests.post(
+            "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+            headers={"Authorization": f"Bearer {clave}"}, timeout=60,
+            json={"model": modelo, "temperature": 0, "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "Does this image clearly show the MAIN subject and place of this "
+                 f"description? Ignore art style. Description: {descripcion}\n"
+                 'Answer only JSON: {"ok": true} or {"ok": false, "why": "..."}'},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{datos}"}},
+            ]}]})
+        if not r.ok:
+            return None
+        respuesta = extraer_json(r.json()["choices"][0]["message"]["content"] or "")
+        if not respuesta.get("ok", True):
+            logger.info(f"Revisión de imagen: no encaja ({respuesta.get('why', '')[:120]})")
+        return bool(respuesta.get("ok", True))
+    except Exception:
+        return None

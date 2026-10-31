@@ -16,6 +16,7 @@ from urllib.parse import quote
 import requests
 from loguru import logger
 
+from fabrica import ia
 from fabrica.config import secreto
 from fabrica.estilos import Estilo, prompt_imagen
 
@@ -167,24 +168,35 @@ def _sin_html(texto: str) -> str:
 
 
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
-                 carpeta: Path) -> tuple[list[Path], list[str]]:
+                 carpeta: Path, visual_global: str = "", tema: str = "") -> tuple[list[Path], list[str]]:
     """Devuelve las imágenes en el orden de las escenas y los créditos de fotos.
     Se piden varias a la vez para que el video tarde menos."""
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
+    revisar = bool(cfg.get("imagenes", {}).get("revisar", True))
 
     def una(indice_escena):
         i, escena = indice_escena
         nombre = f"escena-{i:02d}"
+        descripcion = escena.get("imagen", "") or tema
+        busqueda = escena.get("busqueda_foto", "") or tema
         for fuente in estilo.fuentes:
             if fuente == "ia":
-                prompt = prompt_imagen(estilo, escena.get("imagen", ""))
+                # El contexto global va al principio: el generador da más peso a lo primero.
+                escena_completa = f"{visual_global}. Scene: {descripcion}" if visual_global else descripcion
+                prompt = prompt_imagen(estilo, escena_completa)
                 ruta = (pollinations(cfg, prompt, aspecto, carpeta, nombre)
                         or cloudflare(prompt, carpeta, nombre))
+                if ruta and revisar and not ia.imagen_encaja(cfg, ruta, escena_completa):
+                    logger.info(f"Escena {i}: la imagen no encaja con el guion, se genera otra")
+                    otra = (pollinations(cfg, prompt, aspecto, carpeta, nombre + "b")
+                            or cloudflare(prompt, carpeta, nombre + "b"))
+                    if otra and ia.imagen_encaja(cfg, otra, escena_completa) is not False:
+                        ruta = otra
                 if ruta:
                     return ruta, None
             elif fuente == "wikimedia":
-                hallado = wikimedia(escena.get("busqueda_foto", ""), carpeta, nombre)
+                hallado = wikimedia(busqueda, carpeta, nombre)
                 if hallado:
                     huella = hashlib.md5(hallado[0].read_bytes()).hexdigest()
                     with candado:
@@ -193,8 +205,8 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                     if not repetida:
                         return hallado
             elif fuente == "pexels":
-                ruta = (pexels_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre)
-                        or pixabay_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre))
+                ruta = (pexels_foto(busqueda, aspecto, carpeta, nombre)
+                        or pixabay_foto(busqueda, aspecto, carpeta, nombre))
                 if ruta:
                     return ruta, None
         logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")

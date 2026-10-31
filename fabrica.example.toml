@@ -63,6 +63,8 @@ instrucciones_extra = "Al final invita a seguir el canal."
 modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
 simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
+revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
+modelo_revision = "gemini-flash-lite-latest"
 
 [voz]
 # "hombre" o "mujer". Voces gratis de Edge en español latino neutro (México,

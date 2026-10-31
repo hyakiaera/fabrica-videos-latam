@@ -71,7 +71,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos = [], []
     if "stock_video" not in estilo.fuentes:
-        fotos, creditos = imagenes.para_escenas(cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes")
+        fotos, creditos = imagenes.para_escenas(cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
+                                                visual_global=datos.get("visual_global", ""), tema=tema["tema"])
 
     crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")

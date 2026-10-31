@@ -43,10 +43,22 @@ Devuelve este JSON:
  "guion": "texto narrado completo, unas {palabras} palabras, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
+ "visual_global": "en INGLÉS: el tema principal y el lugar/país, descrito para un generador de imágenes (ej. 'Salvadoran pupusas, thick griddled corn cakes stuffed with cheese and beans, in El Salvador')",
  "escenas": [{{"texto": "parte del guion que se narra en esta escena",
-   "imagen": "descripción visual en INGLÉS de la escena para generar una imagen; describe objetos, lugares y acciones genéricas, sin nombres de personas reales ni marcas",
-   "busqueda_foto": "2-4 palabras en inglés para buscar una foto real con licencia libre (puede incluir equipo, estadio o lugar)"}}]}}
-Usa exactamente {escenas} escenas, en el mismo orden que el guion."""
+   "imagen": "descripción visual en INGLÉS de LO QUE SE DICE en esta escena, concreta y autosuficiente (el generador no conoce el resto del guion)",
+   "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')"}}]}}
+Usa exactamente {escenas} escenas, en el mismo orden que el guion.
+
+REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
+- Cada "imagen" nombra SIEMPRE el tema concreto (la comida, el lugar, el objeto exacto) con sus
+  rasgos visibles. Ej.: no "food on a table" sino "Salvadoran pupusas, round thick corn cakes
+  stuffed with cheese, with curtido cabbage slaw, on a clay plate".
+- Si se habla de un lugar (Guadalajara, El Salvador, Bogotá...), escribe el lugar y elementos
+  típicos reconocibles de ese lugar (arquitectura, paisaje, colores). Nunca otro país o ciudad.
+- Si el tema es algo poco conocido, describe cómo se ve, no solo su nombre.
+- No confundas cosas parecidas (pupusas no son tacos ni arepas; un estadio de béisbol no es de fútbol).
+- Sí puedes nombrar lugares, comidas, equipos y objetos. No nombres personas reales ni marcas
+  comerciales; las personas que aparezcan son genéricas (fans, cocineros, gente en la calle)."""
     datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)
     if not datos.get("guion") or not datos.get("escenas"):
         raise ValueError("La IA devolvió un guion incompleto")

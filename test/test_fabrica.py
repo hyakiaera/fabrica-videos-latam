@@ -162,6 +162,24 @@ class TestImagenesYRespaldo(unittest.TestCase):
         self.assertEqual(usados, ["llama-3.3-70b-versatile", "openai/gpt-oss-20b"])
         ia._DISPONIBLES.clear()
 
+    def test_contexto_global_y_rehacer_imagen_que_no_encaja(self):
+        prompts = []
+
+        def generar(prompt, carpeta, nombre):
+            prompts.append(prompt)
+            ruta = carpeta / f"{nombre}.jpg"
+            ruta.write_bytes(b"x")
+            return ruta
+
+        imagenes._SIN_SERVICIO.add("pollinations")
+        escenas = [{"imagen": "a plate on a table"}]
+        with mock.patch.object(imagenes, "cloudflare", side_effect=generar), \
+             mock.patch.object(ia, "imagen_encaja", side_effect=[False, True]):
+            rutas, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16",
+                                             self.carpeta, visual_global="Salvadoran pupusas in El Salvador")
+        self.assertEqual(rutas[0].name, "escena-00b.jpg")
+        self.assertTrue(prompts[0].startswith("cartoon caricature illustration of Salvadoran pupusas"))
+
     def test_ia_no_reintenta_si_pide_pago(self):
         cobro = mock.Mock(status_code=402, text="pay")
         with mock.patch.dict("os.environ", {}, clear=True), \
