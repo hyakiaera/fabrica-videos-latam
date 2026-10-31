@@ -82,7 +82,18 @@ jobs:
         run: |
           if [ -z "$RCLONE_DRIVE_TOKEN" ]; then echo "Sin RCLONE_DRIVE_TOKEN: no se subirá a Drive"; exit 0; fi
           mkdir -p ~/.config/rclone
-          printf '[drive]\ntype = drive\nscope = drive\ntoken = %s\n' "$RCLONE_DRIVE_TOKEN" > ~/.config/rclone/rclone.conf
+          # Acepta el token como JSON ({"access_token"...}) o en el formato nuevo
+          # de "rclone authorize" (texto largo que empieza con eyJ...).
+          TOKEN=$(python3 -c '
+          import base64, json, os
+          t = os.environ["RCLONE_DRIVE_TOKEN"].strip()
+          t = t.split("--->")[-1].split("<---")[0].strip()
+          if not t.startswith("{"):
+              t = json.loads(base64.b64decode(t + "=" * (-len(t) % 4)).decode())["token"]
+          print(json.dumps(json.loads(t)))
+          ')
+          printf '[drive]\ntype = drive\nscope = drive\ntoken = %s\n' "$TOKEN" > ~/.config/rclone/rclone.conf
+          rclone lsd drive: --max-depth 1 > /dev/null && echo "Google Drive conectado"
 
       - name: Hacer videos
         env:
