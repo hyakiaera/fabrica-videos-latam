@@ -62,6 +62,7 @@ instrucciones_extra = "Al final invita a seguir el canal."
 [imagenes]
 modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
+simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
 
 [voz]
 # "hombre" o "mujer". Voces gratis de Edge en español latino neutro (México,
@@ -98,7 +99,7 @@ altura_subtitulos = 72      # % desde arriba
 transicion = "FadeIn"       # "", FadeIn, FadeOut, SlideIn, SlideOut, Shuffle
 fuente_stock = "pexels"     # para el estilo "realista"
 duracion_clip_stock = 4
-hilos = 2
+hilos = 4                   # GitHub da 4 núcleos
 
 [logo]
 activo = true

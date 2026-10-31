@@ -157,4 +157,11 @@ jobs:
           git config user.name "fabrica-bot"
           git config user.email "fabrica-bot@users.noreply.github.com"
           git add estado/historial.json 2>/dev/null || exit 0
-          git diff --cached --quiet || (git commit -m "Historial de temas" && git push)
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Historial de temas"
+          # Si mientras tanto se subió otro cambio, se junta y se reintenta.
+          for intento in 1 2 3 4; do
+            git pull -q --rebase origin main && git push -q && exit 0
+            sleep $((intento * 5))
+          done
+          echo "::warning::No se pudo guardar el historial (el video sí se hizo)"

@@ -7,7 +7,9 @@ Si una fuente falla se prueba la siguiente del estilo."""
 import base64
 import hashlib
 import random
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote
 
@@ -166,32 +168,41 @@ def _sin_html(texto: str) -> str:
 
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                  carpeta: Path) -> tuple[list[Path], list[str]]:
-    """Devuelve las imágenes en el orden de las escenas y los créditos de fotos."""
-    imagenes, creditos = [], []
-    usadas_wiki = set()
-    for i, escena in enumerate(escenas):
+    """Devuelve las imágenes en el orden de las escenas y los créditos de fotos.
+    Se piden varias a la vez para que el video tarde menos."""
+    usadas_wiki: set[str] = set()
+    candado = threading.Lock()
+
+    def una(indice_escena):
+        i, escena = indice_escena
         nombre = f"escena-{i:02d}"
-        resultado = None
         for fuente in estilo.fuentes:
             if fuente == "ia":
                 prompt = prompt_imagen(estilo, escena.get("imagen", ""))
-                resultado = (pollinations(cfg, prompt, aspecto, carpeta, nombre)
-                             or cloudflare(prompt, carpeta, nombre))
+                ruta = (pollinations(cfg, prompt, aspecto, carpeta, nombre)
+                        or cloudflare(prompt, carpeta, nombre))
+                if ruta:
+                    return ruta, None
             elif fuente == "wikimedia":
                 hallado = wikimedia(escena.get("busqueda_foto", ""), carpeta, nombre)
                 if hallado:
                     huella = hashlib.md5(hallado[0].read_bytes()).hexdigest()
-                    if huella not in usadas_wiki:
+                    with candado:
+                        repetida = huella in usadas_wiki
                         usadas_wiki.add(huella)
-                        resultado = hallado[0]
-                        creditos.append(hallado[1])
+                    if not repetida:
+                        return hallado
             elif fuente == "pexels":
-                resultado = (pexels_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre)
-                             or pixabay_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre))
-            if resultado:
-                break
-        if resultado:
-            imagenes.append(resultado)
-        else:
-            logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")
+                ruta = (pexels_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre)
+                        or pixabay_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre))
+                if ruta:
+                    return ruta, None
+        logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")
+        return None, None
+
+    simultaneas = int(cfg.get("imagenes", {}).get("simultaneas", 3))
+    with ThreadPoolExecutor(max_workers=max(1, simultaneas)) as grupo:
+        resultados = list(grupo.map(una, enumerate(escenas)))
+    imagenes = [ruta for ruta, _ in resultados if ruta]
+    creditos = [credito for _, credito in resultados if credito]
     return imagenes, creditos
