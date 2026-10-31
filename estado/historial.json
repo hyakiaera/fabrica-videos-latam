@@ -58,5 +58,14 @@
   "estilo": "caricatura",
   "titulo": "¿Cuáles son las series coreanas más vistas y comentadas de la semana?",
   "archivo": "salida/2026-10-31/entretenimiento/top-series-coreanas-mas-vistas-de-la-semana #007.mp4"
+ },
+ {
+  "numero": 8,
+  "fecha": "2026-10-31T20:36",
+  "tema": "El fin de San Siro: Milan e Inter revelan su nuevo estadio",
+  "categoria": "deportes",
+  "estilo": "noticiero",
+  "titulo": "El fin de San Siro: Milan e Inter revelan su nuevo estadio",
+  "archivo": "salida/2026-10-31/deportes/el-fin-de-san-siro-milan-e-inter-revelan-su-nuevo-estadio #008.mp4"
  }
 ]
