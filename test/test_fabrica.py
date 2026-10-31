@@ -319,5 +319,59 @@ class TestMovimientoYGraficas(unittest.TestCase):
         self.assertTrue(all(c.exists() and c.stat().st_size > 1000 for c in clips))
 
 
+class TestMisFotos(unittest.TestCase):
+    def test_carpeta_local_describe_una_vez(self):
+        from PIL import Image
+        from fabrica import mis_fotos
+        raiz = Path(tempfile.mkdtemp())
+        (raiz / "muebles").mkdir()
+        Image.new("RGB", (900, 1600), (120, 80, 40)).save(raiz / "muebles" / "sofa.jpg")
+        trabajo = Path(tempfile.mkdtemp())
+        with mock.patch.object(mis_fotos, "_local", return_value=raiz), \
+             mock.patch.object(mis_fotos, "_remoto", return_value=None), \
+             mock.patch.object(ia, "describir_imagen", return_value="sofá café de tela") as desc:
+            self.assertEqual(mis_fotos.categorias({}), ["muebles"])
+            fotos = mis_fotos.preparar({}, ["muebles"], trabajo)
+        self.assertEqual(fotos["muebles/sofa.jpg"][1], "sofá café de tela")
+        desc.assert_called_once()
+
+    def test_escena_con_foto_propia_no_gasta_ia(self):
+        from PIL import Image
+        carpeta = Path(tempfile.mkdtemp())
+        foto = carpeta / "sofa.jpg"
+        Image.new("RGB", (900, 1600), (120, 80, 40)).save(foto)
+        propias = {"muebles/sofa.jpg": (foto, "sofá")}
+        escenas = [{"imagen": "x", "foto_propia": "muebles/sofa.jpg"}, {"imagen": "living room"}]
+        with mock.patch.object(imagenes, "cloudflare", return_value=None) as cf, \
+             mock.patch.object(imagenes, "pollinations", return_value=None), \
+             mock.patch.object(imagenes, "pexels_foto", return_value=None), \
+             mock.patch.object(imagenes, "pixabay_foto", return_value=None), \
+             mock.patch.object(imagenes, "wikimedia", return_value=None):
+            rutas, _, conteo = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16",
+                                                     carpeta, fotos_propias=propias)
+        self.assertEqual(conteo["propias"], 1)
+        self.assertEqual(Image.open(rutas[0]).size, (1080, 1920))
+        self.assertIsNone(rutas[1])
+        self.assertEqual(cf.call_count, 1)  # solo la escena sin foto propia pidió imagen IA
+
+    def test_pedido_de_negocio_elige_carpeta_existente(self):
+        from fabrica import mis_fotos
+        respuesta = {"tema": "Promo mueblería", "consulta": "x", "categoria": "general", "estilo": "comic",
+                     "carpetas_fotos": ["muebles", "no-existe"], "es_negocio": True}
+        with mock.patch.object(mis_fotos, "categorias", return_value=["muebles", "comida"]), \
+             mock.patch.object(ia, "pedir_json", return_value=respuesta), \
+             mock.patch.object(tendencias, "buscar_noticias") as bn:
+            tema = pedidos.preparar({}, "video de mi mueblería, cojines 30% off", "auto")
+        self.assertEqual(tema["carpetas_fotos"], ["muebles"])
+        self.assertTrue(tema["es_negocio"])
+        bn.assert_not_called()
+
+    def test_tarjeta_de_negocio(self):
+        from fabrica import graficas
+        salida = Path(tempfile.mkdtemp()) / "t.mp4"
+        graficas.clip({"tipo": "tarjeta", "titulo": "Tienda", "lineas": ["30% OFF", "Calle 1"]}, 1, "9:16", "", salida)
+        self.assertGreater(salida.stat().st_size, 1000)
+
+
 if __name__ == "__main__":
     unittest.main()

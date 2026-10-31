@@ -4,7 +4,7 @@ from fabrica import ia
 from fabrica.estilos import Estilo
 
 
-def escribir(cfg: dict, tema: dict, estilo: Estilo) -> dict:
+def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None = None) -> dict:
     g = cfg.get("guion", {})
     segundos = int(g.get("duracion_segundos", 60))
     palabras = int(segundos * 2.5)  # ~2.5 palabras por segundo en español
@@ -22,6 +22,15 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo) -> dict:
         extra += f"\nContenido del link de referencia (úsalo como fuente; NO lo copies, cuéntalo con tus palabras):\n{contexto}\n"
     if tema.get("indicaciones"):
         extra += f"\nLo que pidió el dueño del canal (respétalo): {tema['indicaciones']}\n"
+    if fotos_propias:
+        lista = "\n".join(f"- {nombre}: {desc}" for nombre, (_, desc) in fotos_propias.items())
+        extra += ("\nFOTOS PROPIAS del usuario (úsalas en todas las escenas donde encajen, poniendo el "
+                  f"nombre exacto en \"foto_propia\"; no repitas la misma foto seguida):\n{lista}\n")
+    if tema.get("es_negocio"):
+        extra += ("\nEs un ANUNCIO del negocio del usuario: tono vendedor y cercano, menciona ofertas y "
+                  "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
+                  "ninguno. La última escena lleva una grafica tipo \"tarjeta\" con el nombre del negocio, "
+                  "la oferta y cómo llegar o contactar.\n")
     sistema = (
         "Eres guionista de videos cortos virales en español latino neutro. Escribes con gancho "
         "fuerte en los primeros 3 segundos, frases cortas, tono cercano y cierre con pregunta o "
@@ -49,12 +58,14 @@ Devuelve este JSON:
    "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')",
    "foto_real": "SOLO si en esta escena es clave una marca, logo, equipo, producto, lugar famoso o persona real: su nombre exacto para buscar su foto/logo real (ej. 'Binance logo', 'Club América', 'Estadio Azteca', 'iPhone 17'). Si no, vacío",
    "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios",
+   "foto_propia": "nombre exacto de una foto propia si encaja, si no vacío",
    "grafica": null}}]}}
 
 GRÁFICAS: cuando una escena da CIFRAS que están en los titulares o el contenido (precios, %,
 goles, récords, rankings), pon en "grafica" en vez de null:
  - barras: {{"tipo": "barras", "titulo": "máx 30 letras", "datos": [["Intel", -29], ["Nasdaq", -2.4]], "unidad": "%", "fuente": "medio"}}
  - una cifra grande: {{"tipo": "cifra", "titulo": "máx 30 letras", "valor": -29, "unidad": "%", "detalle": "texto corto"}}
+ - una tarjeta de texto (ofertas, datos de contacto, conclusión): {{"tipo": "tarjeta", "titulo": "máx 24 letras", "lineas": ["máx 5 líneas cortas"]}}
  Solo números reales de las fuentes (nunca inventados). Máximo una gráfica cada 3 escenas.
  En temas de finanzas, economía o deportes con datos, úsalas siempre que haya números.
 Usa exactamente {escenas} escenas, en el mismo orden que el guion.

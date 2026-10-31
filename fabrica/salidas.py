@@ -22,7 +22,7 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
     ]
     if conteo:
         graficas = sum(1 for e in datos.get("escenas", []) if e.get("grafica"))
-        lineas += ["", f"IMÁGENES: {conteo.get('ia', 0)} con IA, {conteo.get('real', 0)} fotos/logos reales, "
+        lineas += ["", f"IMÁGENES: {conteo.get('propias', 0)} tuyas, {conteo.get('ia', 0)} con IA, {conteo.get('real', 0)} fotos/logos reales, "
                        f"{conteo.get('stock', 0)} de stock, {graficas} gráficas, "
                        f"{conteo.get('rechazadas', 0)} rechazadas por no encajar"]
     if creditos:

@@ -178,7 +178,7 @@ def _sin_html(texto: str) -> str:
 TAMANOS_PIXELES = TAMANOS
 
 
-def encuadrar(ruta: Path, aspecto: str) -> Path:
+def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     """Pone una foto o logo real dentro del formato del video sin recortarlo:
     al centro, sobre un fondo hecho con la misma imagen difuminada."""
     from PIL import Image, ImageFilter
@@ -188,6 +188,14 @@ def encuadrar(ruta: Path, aspecto: str) -> Path:
     img.load()
     transparente = img.mode in ("RGBA", "LA", "P")
     img = img.convert("RGBA")
+    if rellenar and not transparente and abs(img.width / img.height - ancho / alto) < 0.2:
+        # Foto con forma parecida al video: llena toda la pantalla (se recorta un poco).
+        cubre = max(ancho / img.width, alto / img.height)
+        img = img.convert("RGB").resize((int(img.width * cubre) + 1, int(img.height * cubre) + 1))
+        x, y = (img.width - ancho) // 2, (img.height - alto) // 2
+        salida = ruta.with_name(ruta.stem + "-encuadre.jpg")
+        img.crop((x, y, x + ancho, y + alto)).save(salida, quality=92)
+        return salida
     if transparente:  # logos: fondo claro para que se vean
         fondo = Image.new("RGB", (ancho, alto), (245, 245, 245))
         escala = min(ancho * 0.7 / img.width, alto * 0.45 / img.height)
@@ -204,19 +212,22 @@ def encuadrar(ruta: Path, aspecto: str) -> Path:
     return salida
 
 
-def _elegir_escenas(escenas: list[dict], maximo: int) -> set[int]:
+def _elegir_escenas(escenas: list[dict], maximo: int, propias: dict | None = None) -> set[int]:
     """Qué escenas llevan imagen nueva. Las gráficas no necesitan imagen; si hay más
     escenas que el máximo, se reparten parejo y las demás reutilizan la anterior
     (con otro movimiento). Así no se gasta la cuota diaria gratis de imágenes."""
-    candidatas = [i for i, e in enumerate(escenas) if not e.get("grafica")]
+    propias = propias or {}
+    con_foto_propia = {i for i, e in enumerate(escenas) if e.get("foto_propia") in propias}
+    candidatas = [i for i, e in enumerate(escenas) if not e.get("grafica") and i not in con_foto_propia]
     if len(candidatas) <= maximo:
-        return set(candidatas)
+        return set(candidatas) | con_foto_propia
     paso = len(candidatas) / maximo
-    return {candidatas[int(k * paso)] for k in range(maximo)}
+    return {candidatas[int(k * paso)] for k in range(maximo)} | con_foto_propia
 
 
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
-                 carpeta: Path, visual_global: str = "", tema: str = "") -> tuple[list, list[str], dict]:
+                 carpeta: Path, visual_global: str = "", tema: str = "",
+                 fotos_propias: dict | None = None) -> tuple[list, list[str], dict]:
     """Imagen de cada escena (None = reutilizar la anterior o es una gráfica),
     créditos de fotos y un conteo de dónde salió cada imagen.
     Se piden varias a la vez para que el video tarde menos."""
@@ -224,7 +235,8 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
     revisar = bool(im.get("revisar", True))
-    conteo = {"ia": 0, "real": 0, "stock": 0, "rechazadas": 0}
+    conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0}
+    fotos_propias = fotos_propias or {}
 
     def sumar(clave):
         with candado:
@@ -244,6 +256,11 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         descripcion = escena.get("imagen", "") or tema
         busqueda = escena.get("busqueda_foto", "") or tema
         escena_completa = f"{visual_global}. Scene: {descripcion}" if visual_global else descripcion
+        propia = escena.get("foto_propia")
+        if propia in fotos_propias:
+            from fabrica import mis_fotos
+            sumar("propias")
+            return encuadrar(mis_fotos.mejorar(fotos_propias[propia][0]), aspecto, rellenar=True), None
         real = (escena.get("foto_real") or "").strip()
         if real and im.get("fotos_reales", True):
             # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
@@ -284,7 +301,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         logger.warning(f"Sin imagen que encaje para la escena {i}; se reutilizará otra")
         return None, None
 
-    elegidas = _elegir_escenas(escenas, int(im.get("max_imagenes", 10)))
+    elegidas = _elegir_escenas(escenas, int(im.get("max_imagenes", 10)), fotos_propias)
     simultaneas = int(im.get("simultaneas", 3))
     with ThreadPoolExecutor(max_workers=max(1, simultaneas)) as grupo:
         resultados = dict(zip(sorted(elegidas), grupo.map(una, [(i, escenas[i]) for i in sorted(elegidas)])))
@@ -293,6 +310,6 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     if not any(imagenes) and not any(e.get("grafica") for e in escenas):
         raise RuntimeError("No se consiguió ninguna imagen que encaje (¿se acabó la cuota diaria de "
                            "Cloudflare?). Prueba más tarde o agrega POLLINATIONS_TOKEN.")
-    logger.info(f"Imágenes: {conteo['ia']} IA, {conteo['real']} reales, {conteo['stock']} stock, "
+    logger.info(f"Imágenes: {conteo['propias']} tuyas, {conteo['ia']} IA, {conteo['real']} reales, {conteo['stock']} stock, "
                 f"{conteo['rechazadas']} rechazadas por no encajar")
     return imagenes, creditos, conteo

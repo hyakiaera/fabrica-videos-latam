@@ -75,13 +75,17 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     trabajo = config.RAIZ / "storage" / "fabrica" / nombre
     logger.info(f"=== {tema['tema']} | {tema['categoria']} | estilo {estilo.nombre} ===")
 
-    datos = guion.escribir(cfg, tema, estilo)
+    fotos_propias = {}
+    if tema.get("carpetas_fotos"):
+        from fabrica import mis_fotos
+        fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo)
+    datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}
     if "stock_video" not in estilo.fuentes:
         fotos, creditos, conteo = imagenes.para_escenas(
             cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
-            visual_global=datos.get("visual_global", ""), tema=tema["tema"])
+            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias)
 
     crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")

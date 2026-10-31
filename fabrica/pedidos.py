@@ -95,16 +95,24 @@ def preparar(cfg: dict, pedido: str, estilo: str, categoria: str = "") -> dict:
         fuentes.append((datos["titulo"] or url, datos["autor"], url))
         logger.info(f"Pedido: link leído → '{datos['titulo']}' ({len(contexto)} caracteres de contenido)")
 
+    from fabrica import mis_fotos
+    try:
+        carpetas = mis_fotos.categorias(cfg)
+    except Exception:
+        carpetas = []
     sistema = ("Eres productor de un canal de videos cortos para público latino. Conviertes pedidos "
                "en un tema concreto. Respondes SOLO JSON válido.")
     usuario = f"""Pedido del usuario: {indicaciones or '(sin texto, solo el link)'}
 Título del link: {fuentes[0][0] if fuentes else '(sin link)'}
 Contenido del link (resumen): {contexto[:1500] or '(nada)'}
 Estilos: {resumen_para_ia()}
+Carpetas de fotos propias del usuario: {', '.join(carpetas) or '(ninguna)'}
 
 Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para buscar noticias",
 "categoria": "deportes|entretenimiento|tecnologia|economia|mundo|ciencia|general",
-"estilo": "clave del estilo más adecuado"}}"""
+"estilo": "clave del estilo más adecuado",
+"carpetas_fotos": ["carpetas de fotos propias que encajan con el pedido (ej. si habla de su mueblería y existe 'muebles'); [] si ninguna"],
+"es_negocio": true si es un anuncio/promoción de un negocio del usuario, si no false}}"""
     try:
         d = ia.pedir_json(cfg, sistema, usuario, temperatura=0.3)
     except Exception as e:
@@ -112,7 +120,10 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
         d = {}
     tema = d.get("tema") or (fuentes[0][0] if fuentes else indicaciones)[:80]
     consulta = d.get("consulta") or tema
-    fuentes += tendencias.buscar_noticias(consulta)
+    es_negocio = bool(d.get("es_negocio"))
+    if not es_negocio:  # un anuncio de tu negocio no necesita noticias
+        fuentes += tendencias.buscar_noticias(consulta)
+    elegidas = [c for c in d.get("carpetas_fotos", []) if c in carpetas]
     elegido = estilo if estilo != ESTILO_AUTOMATICO else d.get("estilo", "")
     return {
         "tema": tema,
@@ -122,4 +133,6 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
         "fuentes": fuentes[:10],
         "contexto": contexto,
         "indicaciones": indicaciones,
+        "carpetas_fotos": elegidas,
+        "es_negocio": es_negocio,
     }

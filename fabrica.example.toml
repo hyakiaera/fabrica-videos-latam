@@ -64,6 +64,7 @@ modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
 simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
+max_fotos_propias = 40      # fotos de "mis fotos" que se consideran por categoría
 max_imagenes = 10           # imágenes nuevas por video (cuida la cuota diaria gratis);
                             # las demás escenas reutilizan una con otro movimiento
 modelo_revision = "gemini-flash-lite-latest"
@@ -127,6 +128,7 @@ carpeta = "salida"          # aquí quedan los videos para descargar
 [drive]
 remoto = "drive"            # nombre del remoto de rclone
 carpeta = "Fabrica de Videos"
+carpeta_fotos = "mis fotos"  # dentro de la carpeta anterior, una subcarpeta por categoría
 
 [publicar]
 # Usa Upload-Post (integración que ya trae MoneyPrinterTurbo).

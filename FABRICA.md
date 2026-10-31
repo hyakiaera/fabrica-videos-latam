@@ -176,6 +176,23 @@ Para que salga siempre, también en las rondas automáticas: **Settings → Secr
 Actions → pestaña Variables → New repository variable**, con nombre `TEXTO_MARCA` y tu texto.
 Si subes `marca/logo.png`, se usa el logo en lugar del texto.
 
+## 9. Tus propias fotos (negocios, productos, lugares)
+
+En tu Drive: `Mi unidad › Fabrica de Videos › mis fotos › <categoría>` (ej. `muebles`,
+`promociones`, `local`). Sube ahí todas las fotos que quieras, con o sin nombre.
+
+Luego pide en **Tema** algo como:
+`video de mi mueblería Resale Shop: cojines baratos, 30% off en muchos artículos, estamos en (dirección)`
+
+La fábrica:
+1. Ve que existe la carpeta `muebles` y baja esas fotos.
+2. Gemini describe cada foto (solo la primera vez; guarda `descripciones.json` en esa carpeta).
+3. El guion usa tus fotos en las escenas donde encajan (retocadas: contraste, color y nitidez).
+4. Lo que no esté en tus fotos lo genera con IA.
+5. Al final pone una tarjeta con el nombre, la oferta y la dirección, tal como los escribiste.
+
+En la PC también funciona con una carpeta `mis fotos/<categoría>` dentro del proyecto.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

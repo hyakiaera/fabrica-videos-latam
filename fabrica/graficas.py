@@ -75,15 +75,31 @@ def _cifra(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, letra
         d.text((cx, cy + 150), str(g["detalle"])[:40], font=letras["fila"], fill=texto, anchor="mm")
 
 
+def _tarjeta(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, letras):
+    _, _, texto, _, _, acento = paleta
+    x0, y0, x1, y1 = caja
+    lineas = [str(l)[:34] for l in (g.get("lineas") or [])][:5]
+    alto_linea = min(110, (y1 - y0) / max(1, len(lineas)))
+    for k, linea in enumerate(lineas):
+        aparece = _suave(progreso * 2.2 - k * 0.25)  # una línea tras otra
+        if aparece <= 0:
+            continue
+        y = y0 + alto_linea * (k + 0.5) + (1 - aparece) * 30
+        letra = letras["cifra_media"] if k == 0 and len(linea) <= 12 else letras["fila"]
+        color = acento if k == 0 else texto
+        d.text(((x0 + x1) / 2, y), linea, font=letra, fill=color, anchor="mm")
+
+
 def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> Path:
-    if g.get("tipo") not in ("barras", "cifra") or (g["tipo"] == "barras" and not g.get("datos")):
+    if g.get("tipo") not in ("barras", "cifra", "tarjeta") or (g["tipo"] == "barras" and not g.get("datos")):
         raise ValueError("gráfica sin datos")
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
     paleta = PALETAS.get(estilo, OSCURA)
     fondo, tarjeta, texto, _, _, acento = paleta
     letras = {"titulo": ImageFont.truetype(str(NEGRITA), 64), "fila": ImageFont.truetype(str(NEGRITA), 46),
               "valor": ImageFont.truetype(str(NORMAL), 44), "cifra": ImageFont.truetype(str(NEGRITA), 230),
-              "fuente": ImageFont.truetype(str(NORMAL), 30)}
+              "fuente": ImageFont.truetype(str(NORMAL), 30),
+              "cifra_media": ImageFont.truetype(str(NEGRITA), 120)}
     # La tarjeta queda en la parte de arriba para no chocar con los subtítulos.
     tarjeta_caja = (60, alto * 0.12, ancho - 60, alto * 0.58)
     caja = (tarjeta_caja[0] + 50, tarjeta_caja[1] + 170, tarjeta_caja[2] - 50, tarjeta_caja[3] - 90)
@@ -104,7 +120,7 @@ def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> P
         d.text((x0 + 95, y0 + 95 + desplazamiento), str(g.get("titulo", ""))[:30], font=letras["titulo"],
                fill=texto, anchor="lm")
         progreso = max(0.0, (t - 0.4) / max(0.6, segundos * 0.6))
-        dibujo = _barras if g["tipo"] == "barras" else _cifra
+        dibujo = {"barras": _barras, "cifra": _cifra, "tarjeta": _tarjeta}[g["tipo"]]
         dibujo(d, g, progreso, (caja[0], caja[1] + desplazamiento, caja[2], caja[3] + desplazamiento),
                paleta, letras)
         if g.get("fuente"):

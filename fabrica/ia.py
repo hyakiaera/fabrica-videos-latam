@@ -185,3 +185,33 @@ def imagen_encaja(cfg: dict, ruta, descripcion: str) -> bool | None:
         return bool(respuesta.get("ok", True))
     except Exception:
         return None
+
+
+def describir_imagen(cfg: dict, ruta) -> str:
+    """Descripción corta de una foto propia (qué se ve, colores, tipo de producto)."""
+    import base64
+
+    clave = secreto("GEMINI_API_KEY")
+    if not clave:
+        return ""
+    modelo = cfg.get("imagenes", {}).get("modelo_revision", "gemini-flash-lite-latest")
+    from PIL import Image
+    import io
+
+    img = Image.open(ruta).convert("RGB")
+    img.thumbnail((768, 768))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85)
+    try:
+        r = requests.post(
+            "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+            headers={"Authorization": f"Bearer {clave}"}, timeout=60,
+            json={"model": modelo, "temperature": 0, "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "Describe en español, en máximo 20 palabras, qué se ve en esta "
+                 "foto (producto, color, material, lugar). Solo la descripción."},
+                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,"
+                                                    + base64.b64encode(buf.getvalue()).decode()}},
+            ]}]})
+        return (r.json()["choices"][0]["message"]["content"] or "").strip()[:200] if r.ok else ""
+    except Exception:
+        return ""
