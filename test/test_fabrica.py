@@ -455,5 +455,38 @@ class TestFotosWeb(unittest.TestCase):
         self.assertEqual(Image.open(logo).size, (1080, 1920))  # el logo sí se centra
 
 
+class TestDetallesYListas(unittest.TestCase):
+    def test_fotos_propias_se_asignan_por_nombre(self):
+        propias = {"Series/Amor Disfrazado.jpg": (Path("a.jpg"), "póster"),
+                   "Series/Donde termina la mascara1.webp": (Path("b.webp"), "póster"),
+                   "Series/Otra cosa.jpg": (Path("c.jpg"), "x")}
+        escenas = [{"texto": "En el puesto uno está Donde termina la máscara"},
+                   {"texto": "Y en el dos, Amor disfrazado conquista a todos"},
+                   {"texto": "Cierre del video"}]
+        guion.asignar_fotos_propias(escenas, propias)
+        self.assertEqual(escenas[0]["foto_propia"], "Series/Donde termina la mascara1.webp")
+        self.assertEqual(escenas[1]["foto_propia"], "Series/Amor Disfrazado.jpg")
+        self.assertNotIn("foto_propia", escenas[2])
+
+    def test_detalles_obligatorios_en_el_guion(self):
+        datos = {"guion": "g", "escenas": [{}], "hashtags": []}
+        tema = {"tema": "T", "fuentes": [], "obligatorio": "decir el top 3 en orden", "contexto": "1. A 2. B"}
+        with mock.patch.object(ia, "pedir_json", return_value=datos) as pj:
+            guion.escribir({}, tema, estilos.obtener("comic"))
+        prompt = pj.call_args.args[2]
+        self.assertIn("OBLIGATORIO", prompt)
+        self.assertIn("decir el top 3 en orden", prompt)
+        self.assertIn("RANKING", prompt)
+
+    def test_pagina_de_lista_se_lee_completa(self):
+        html = ("<html><head><script>var x=1;</script></head><body><h1>Top 10 series</h1>"
+                "<ol><li>1. Donde termina la máscara</li><li>2. Amor disfrazado</li></ol></body></html>")
+        with mock.patch("trafilatura.fetch_url", return_value=html):
+            d = pedidos.leer_articulo("https://www.netflix.com/tudum/top10")
+        self.assertIn("1. Donde termina la máscara", d["texto"])
+        self.assertIn("2. Amor disfrazado", d["texto"])
+        self.assertNotIn("var x", d["texto"])
+
+
 if __name__ == "__main__":
     unittest.main()

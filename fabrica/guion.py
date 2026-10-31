@@ -1,5 +1,9 @@
 """Escribe el guion del video a partir de un tema y sus titulares de noticias."""
 
+import re
+import unicodedata
+from pathlib import Path
+
 from fabrica import ia
 from fabrica.estilos import Estilo
 
@@ -22,11 +26,19 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
         extra += f"\nContenido del link de referencia (úsalo como fuente; NO lo copies, cuéntalo con tus palabras):\n{contexto}\n"
     if tema.get("indicaciones"):
         extra += f"\nLo que pidió el dueño del canal (respétalo): {tema['indicaciones']}\n"
+    if tema.get("obligatorio"):
+        extra += ("\nOBLIGATORIO (el video DEBE decir y mostrar esto, tal cual, sin cambiar datos; si no "
+                  f"cabe, acorta otras partes): {tema['obligatorio']}\n")
+    if contexto:
+        extra += ("\nSi el contenido del link trae una LISTA o RANKING (top 10, posiciones, precios), el video "
+                  "la recorre EN ORDEN diciendo el puesto y el nombre de cada uno, una escena por elemento.\n")
     if fotos_propias:
         lista = "\n".join(f"- {nombre}: {desc}" for nombre, (_, desc) in fotos_propias.items())
         extra += ("\nFOTOS PROPIAS del usuario (logos, equipos, productos, lugares). Úsalas en todas las "
                   "escenas donde encajen, poniendo el nombre exacto en \"foto_propia\"; tienen prioridad "
-                  f"sobre generar imágenes. No repitas la misma foto seguida:\n{lista}\n")
+                  "sobre generar imágenes. Usa TODAS las que tengan que ver con el tema (si una foto es de "
+                  "algo que se menciona, la escena que lo menciona lleva esa foto). No repitas la misma "
+                  f"foto seguida:\n{lista}\n")
     if tema.get("es_negocio"):
         extra += ("\nEs un ANUNCIO del negocio del usuario: tono vendedor y cercano, menciona ofertas y "
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
@@ -87,4 +99,34 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
     if not datos.get("guion") or not datos.get("escenas"):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
+    if fotos_propias:
+        asignar_fotos_propias(datos["escenas"], fotos_propias)
     return datos
+
+
+def _palabras(texto: str) -> set[str]:
+    texto = unicodedata.normalize("NFKD", texto.lower()).encode("ascii", "ignore").decode()
+    return {p for p in re.findall(r"[a-z0-9]+", texto) if len(p) > 2 and not p.isdigit()}
+
+
+def asignar_fotos_propias(escenas: list[dict], fotos_propias: dict):
+    """Si una escena menciona algo que tiene foto propia (por el nombre del archivo o su
+    descripción) y la IA no se la puso, se la pone. Así se usan todas las fotos que encajan."""
+    usadas = {e.get("foto_propia") for e in escenas if e.get("foto_propia") in fotos_propias}
+    for nombre, (ruta, descripcion) in fotos_propias.items():
+        if nombre in usadas:
+            continue
+        claves = _palabras(Path(nombre).stem.split("/")[-1])
+        if not claves:
+            continue
+        mejor, puntaje = None, 0.0
+        for e in escenas:
+            if e.get("foto_propia") in fotos_propias or e.get("grafica"):
+                continue
+            dicho = _palabras(f"{e.get('texto', '')} {e.get('foto_real', '')}")
+            coincide = len(claves & dicho) / len(claves)
+            if coincide > puntaje:
+                mejor, puntaje = e, coincide
+        if mejor is not None and puntaje >= 0.6:
+            mejor["foto_propia"] = nombre
+            usadas.add(nombre)

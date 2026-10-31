@@ -139,8 +139,8 @@ En `fabrica.toml`, sección `[logo]`, eliges la posición:
 `abajo_izquierda`, o `personalizada` con `x` / `y` en porcentaje. También se ajustan el tamaño y
 la transparencia.
 
-**Para ver cómo queda sin hacer un video:** *Run workflow* con la casilla **Solo crear imagen de
-prueba del logo**, o `python -m fabrica --probar-logo` en tu PC. La imagen muestra tu logo, los
+**Para ver cómo queda sin hacer un video:** *Run workflow* escribiendo `probar logo` en **Tema**,
+o `python -m fabrica --probar-logo` en tu PC. La imagen muestra tu logo, los
 subtítulos y en rojo las zonas que tapan los botones de TikTok/Reels/Shorts.
 
 ## 7. Videos a pedido (link o texto)
@@ -155,6 +155,12 @@ En **Run workflow**, el campo **Tema** acepta tres cosas:
 La fábrica lee el link (título, descripción y lo que se dice en el video, o el texto de la noticia),
 busca más noticias del tema y escribe **su propio guion** con tus estilos. No reutiliza el video
 original: así evitas reclamos de derechos de autor. En la ficha `.txt` queda el link como fuente.
+
+## 7b. Detalles obligatorios
+
+En **Run workflow**, la casilla **Detalles** es para lo que SÍ tiene que salir o decirse, tal cual:
+`decir el top 10 en orden`, `precio $199, envío gratis`, `el partido es el sábado 8pm`.
+La fábrica lo pone como obligatorio en el guion.
 
 ## 8. Logo, duración y voz desde Run workflow
 

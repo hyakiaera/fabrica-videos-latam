@@ -74,7 +74,16 @@ def leer_articulo(url: str) -> dict:
         import trafilatura
 
         html = trafilatura.fetch_url(url)
-        texto = trafilatura.extract(html) or "" if html else ""
+        if not html:
+            r = requests.get(url, headers=CABECERAS, timeout=30)
+            html = r.text if r.ok else ""
+        texto = (trafilatura.extract(html, include_tables=True, favor_recall=True) or "") if html else ""
+        if len(texto) < 400 and html:
+            # Páginas de listas o rankings (ej. Top 10): se toma todo el texto visible.
+            limpio = re.sub(r"<(script|style|noscript)[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
+            limpio = re.sub(r"<[^>]+>", "\n", limpio)
+            lineas = [l.strip() for l in limpio.splitlines() if 2 < len(l.strip()) < 200]
+            texto = "\n".join(dict.fromkeys(lineas))
         meta = trafilatura.extract_metadata(html) if html else None
         return {"titulo": getattr(meta, "title", "") or "", "autor": getattr(meta, "sitename", "") or "",
                 "texto": texto}

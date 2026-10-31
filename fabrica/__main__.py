@@ -141,6 +141,9 @@ def una_ronda(cfg: dict, args) -> int:
         recientes = [e["tema"] for e in _historial()]
         temas = tendencias.elegir_temas(cfg, candidatos, cantidad, recientes, estilo)
 
+    if args.detalles:
+        for t in temas:
+            t["obligatorio"] = args.detalles
     for t in temas:
         logger.info(f"Tema elegido: {t['tema']} [{t['categoria']} / {t['estilo']}] — {t['por_que']}")
     if args.solo_tendencias:
@@ -164,6 +167,7 @@ def main(argv=None) -> int:
     p.add_argument("--estilo", help="auto o uno de: " + ", ".join(estilos.ESTILOS))
     p.add_argument("--tema", help="tema, pedido libre o link (YouTube, TikTok, noticia) en vez de tendencias")
     p.add_argument("--categoria", help="categoría del tema manual")
+    p.add_argument("--detalles", help="datos que SÍ tienen que salir o decirse en el video")
     p.add_argument("--salidas", help="combinación de: descargar,drive,publicar")
     p.add_argument("--voz", choices=["hombre", "mujer"], help="voz de Edge (por defecto hombre)")
     p.add_argument("--clonar-voz", choices=["si", "no"], help="convertir la voz a tu voz (StudioVoz)")
