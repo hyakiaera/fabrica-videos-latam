@@ -114,11 +114,16 @@ def pixabay_foto(busqueda: str, aspecto: str, carpeta: Path, nombre: str) -> Pat
         return None
 
 
-def wikimedia(busqueda: str, carpeta: Path, nombre: str) -> tuple[Path, str] | None:
+def wikimedia(busqueda: str, carpeta: Path, nombre: str,
+              incluir_logos: bool = False) -> tuple[Path, str] | None:
+    """Foto (o logo, si incluir_logos) real con licencia libre de Wikimedia Commons."""
+    if not busqueda:
+        return None
+    tipo = "filetype:bitmap|drawing" if incluir_logos else "filetype:bitmap"
     try:
         r = requests.get("https://commons.wikimedia.org/w/api.php", headers=CABECERAS, timeout=30, params={
             "action": "query", "format": "json", "generator": "search", "gsrnamespace": 6,
-            "gsrsearch": f"{busqueda} filetype:bitmap", "gsrlimit": 10,
+            "gsrsearch": f"{busqueda} {tipo}", "gsrlimit": 10,
             "prop": "imageinfo", "iiprop": "url|extmetadata|size", "iiurlwidth": 1600,
         })
         paginas = r.json().get("query", {}).get("pages", {}).values()
@@ -129,7 +134,10 @@ def wikimedia(busqueda: str, carpeta: Path, nombre: str) -> tuple[Path, str] | N
         info = (pagina.get("imageinfo") or [{}])[0]
         meta = info.get("extmetadata", {})
         licencia = meta.get("LicenseShortName", {}).get("value", "")
-        if not licencia.lower().startswith(LICENCIAS_LIBRES) or info.get("width", 0) < 800:
+        es_dibujo = info.get("url", "").lower().endswith(".svg")
+        if not licencia.lower().startswith(LICENCIAS_LIBRES):
+            continue
+        if not es_dibujo and info.get("width", 0) < 800:
             continue
         url = info.get("thumburl") or info.get("url")
         try:
@@ -167,6 +175,35 @@ def _sin_html(texto: str) -> str:
     return re.sub(r"<[^>]+>", "", texto).strip()[:120]
 
 
+TAMANOS_PIXELES = TAMANOS
+
+
+def encuadrar(ruta: Path, aspecto: str) -> Path:
+    """Pone una foto o logo real dentro del formato del video sin recortarlo:
+    al centro, sobre un fondo hecho con la misma imagen difuminada."""
+    from PIL import Image, ImageFilter
+
+    ancho, alto = TAMANOS_PIXELES.get(aspecto, TAMANOS_PIXELES["9:16"])
+    img = Image.open(ruta)
+    img.load()
+    transparente = img.mode in ("RGBA", "LA", "P")
+    img = img.convert("RGBA")
+    if transparente:  # logos: fondo claro para que se vean
+        fondo = Image.new("RGB", (ancho, alto), (245, 245, 245))
+        escala = min(ancho * 0.7 / img.width, alto * 0.45 / img.height)
+    else:
+        cubre = max(ancho / img.width, alto / img.height)
+        fondo = img.convert("RGB").resize((int(img.width * cubre) + 1, int(img.height * cubre) + 1))
+        fondo = fondo.crop((0, 0, ancho, alto)).filter(ImageFilter.GaussianBlur(40))
+        fondo = Image.eval(fondo, lambda v: int(v * 0.55))
+        escala = min(ancho * 0.94 / img.width, alto * 0.7 / img.height)
+    img = img.resize((max(1, int(img.width * escala)), max(1, int(img.height * escala))))
+    fondo.paste(img, ((ancho - img.width) // 2, (alto - img.height) // 2), img)
+    salida = ruta.with_name(ruta.stem + "-encuadre.jpg")
+    fondo.save(salida, quality=92)
+    return salida
+
+
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                  carpeta: Path, visual_global: str = "", tema: str = "") -> tuple[list[Path], list[str]]:
     """Devuelve las imágenes en el orden de las escenas y los créditos de fotos.
@@ -180,6 +217,12 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         nombre = f"escena-{i:02d}"
         descripcion = escena.get("imagen", "") or tema
         busqueda = escena.get("busqueda_foto", "") or tema
+        real = (escena.get("foto_real") or "").strip()
+        if real and cfg.get("imagenes", {}).get("fotos_reales", True):
+            # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
+            hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
+            if hallado and (not revisar or ia.imagen_encaja(cfg, hallado[0], real) is not False):
+                return encuadrar(hallado[0], aspecto), hallado[1]
         for fuente in estilo.fuentes:
             if fuente == "ia":
                 # El contexto global va al principio: el generador da más peso a lo primero.
@@ -203,7 +246,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         repetida = huella in usadas_wiki
                         usadas_wiki.add(huella)
                     if not repetida:
-                        return hallado
+                        return encuadrar(hallado[0], aspecto), hallado[1]
             elif fuente == "pexels":
                 ruta = (pexels_foto(busqueda, aspecto, carpeta, nombre)
                         or pixabay_foto(busqueda, aspecto, carpeta, nombre))

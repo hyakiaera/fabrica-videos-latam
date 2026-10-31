@@ -51,6 +51,13 @@ def _historial() -> list[dict]:
     return []
 
 
+def _siguiente_numero() -> int:
+    """Número consecutivo del video (va al final del nombre: "tema #012")."""
+    entradas = _historial()
+    return max((e.get("numero", 0) for e in entradas), default=0) + 1 if any(
+        "numero" in e for e in entradas) else len(entradas) + 1
+
+
 def _guardar_historial(entradas: list[dict]):
     HISTORIAL.parent.mkdir(parents=True, exist_ok=True)
     HISTORIAL.write_text(json.dumps(entradas[-500:], ensure_ascii=False, indent=1), encoding="utf-8")
@@ -63,7 +70,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         tema["estilo"] = "cinematografico"
     estilo = estilos.obtener(tema["estilo"])
     hoy = datetime.now().strftime("%Y-%m-%d")
-    nombre = f"{datetime.now():%H%M}-{_slug(tema['tema'])}"
+    numero = _siguiente_numero()
+    nombre = f"{_slug(tema['tema'])} #{numero:03d}"
     trabajo = config.RAIZ / "storage" / "fabrica" / nombre
     logger.info(f"=== {tema['tema']} | {tema['categoria']} | estilo {estilo.nombre} ===")
 
@@ -99,7 +107,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         salidas.publicar(cfg, guardado, datos)
 
     entradas = _historial()
-    entradas.append({"fecha": datetime.now().isoformat(timespec="minutes"), "tema": tema["tema"],
+    entradas.append({"numero": numero, "fecha": datetime.now().isoformat(timespec="minutes"), "tema": tema["tema"],
                      "categoria": tema["categoria"], "estilo": tema["estilo"], "titulo": datos["titulo"],
                      "archivo": str(guardado.relative_to(config.RAIZ)) if guardado.is_relative_to(config.RAIZ) else str(guardado)})
     _guardar_historial(entradas)

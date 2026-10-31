@@ -46,7 +46,9 @@ Devuelve este JSON:
  "visual_global": "en INGLÉS: el tema principal y el lugar/país, descrito para un generador de imágenes (ej. 'Salvadoran pupusas, thick griddled corn cakes stuffed with cheese and beans, in El Salvador')",
  "escenas": [{{"texto": "parte del guion que se narra en esta escena",
    "imagen": "descripción visual en INGLÉS de LO QUE SE DICE en esta escena, concreta y autosuficiente (el generador no conoce el resto del guion)",
-   "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')"}}]}}
+   "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')",
+   "foto_real": "SOLO si en esta escena es clave una marca, logo, equipo, producto, lugar famoso o persona real: su nombre exacto para buscar su foto/logo real (ej. 'Binance logo', 'Club América', 'Estadio Azteca', 'iPhone 17'). Si no, vacío",
+   "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios"}}]}}
 Usa exactamente {escenas} escenas, en el mismo orden que el guion.
 
 REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
@@ -57,8 +59,10 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
   típicos reconocibles de ese lugar (arquitectura, paisaje, colores). Nunca otro país o ciudad.
 - Si el tema es algo poco conocido, describe cómo se ve, no solo su nombre.
 - No confundas cosas parecidas (pupusas no son tacos ni arepas; un estadio de béisbol no es de fútbol).
-- Sí puedes nombrar lugares, comidas, equipos y objetos. No nombres personas reales ni marcas
-  comerciales; las personas que aparezcan son genéricas (fans, cocineros, gente en la calle)."""
+- SÍ usa marcas, logos, equipos, productos y lugares por su nombre (Binance, Club América, FC
+  Barcelona, Toyota, iPhone, La Selecta...) con sus colores y rasgos, adaptados al estilo.
+- Personas reales famosas: en "imagen" no describas su cara (descríbelas de espaldas, de lejos o
+  por su camiseta/uniforme); pon su nombre en "foto_real" para usar una foto real con licencia."""
     datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)
     if not datos.get("guion") or not datos.get("escenas"):
         raise ValueError("La IA devolvió un guion incompleto")

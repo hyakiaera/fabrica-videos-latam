@@ -62,7 +62,10 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo:
             fuente = "pixabay" if claves["pixabay"] else "pexels"
         params.update(
             video_source=fuente,
-            video_terms=[e.get("busqueda_foto", "") for e in datos["escenas"] if e.get("busqueda_foto")],
+            # Los bancos de videos no tienen marcas ni nombres propios: se buscan ideas comunes.
+            video_terms=list(dict.fromkeys(
+                e.get("busqueda_stock") or e.get("busqueda_foto", "") for e in datos["escenas"]
+                if e.get("busqueda_stock") or e.get("busqueda_foto"))),
             video_clip_duration=int(v.get("duracion_clip_stock", 4)),
         )
     else:

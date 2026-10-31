@@ -80,7 +80,8 @@ class TestEstilosYSalidas(unittest.TestCase):
     def test_prompt_incluye_reglas(self):
         p = estilos.prompt_imagen(estilos.obtener("caricatura"), "a soccer stadium")
         self.assertIn("a soccer stadium", p)
-        self.assertIn("no recognizable real people", p)
+        self.assertIn("no realistic faces of real famous people", p)
+        self.assertNotIn("no logos", p)
 
     def test_realista_requiere_clave_de_stock(self):
         realista = estilos.obtener("realista")
@@ -254,6 +255,40 @@ class TestOpcionesNuevas(unittest.TestCase):
         (carpeta / "zip" / "mi.index").write_bytes(b"x")
         pth, idx = voz_applio._archivos_modelo_recursivo(carpeta)
         self.assertEqual((pth.name, idx.name), ("mi.pth", "mi.index"))
+
+
+class TestMarcasYNumeros(unittest.TestCase):
+    def test_encuadrar_logo_y_foto(self):
+        from PIL import Image
+        carpeta = Path(tempfile.mkdtemp())
+        Image.new("RGBA", (300, 300), (255, 0, 0, 255)).save(carpeta / "logo.png")
+        Image.new("RGB", (1600, 900), (0, 0, 255)).save(carpeta / "foto.jpg")
+        for nombre in ("logo.png", "foto.jpg"):
+            salida = imagenes.encuadrar(carpeta / nombre, "9:16")
+            self.assertEqual(Image.open(salida).size, (1080, 1920))
+
+    def test_foto_real_va_primero(self):
+        carpeta = Path(tempfile.mkdtemp())
+        logo = carpeta / "b.png"
+        from PIL import Image
+        Image.new("RGBA", (200, 200), (0, 0, 0, 255)).save(logo)
+        with mock.patch.object(imagenes, "wikimedia", return_value=(logo, "Logo: Wikimedia")) as wm, \
+             mock.patch.object(imagenes, "cloudflare") as cf, \
+             mock.patch.object(ia, "imagen_encaja", return_value=True):
+            rutas, creditos = imagenes.para_escenas(
+                {}, [{"imagen": "x", "foto_real": "Binance logo"}], estilos.obtener("comic"), "9:16", carpeta)
+        wm.assert_called_once()
+        self.assertTrue(wm.call_args.kwargs["incluir_logos"])
+        cf.assert_not_called()
+        self.assertEqual(creditos, ["Logo: Wikimedia"])
+        self.assertTrue(rutas[0].name.endswith("-encuadre.jpg"))
+
+    def test_numero_consecutivo(self):
+        from fabrica import __main__ as m
+        with mock.patch.object(m, "_historial", return_value=[{"numero": 7}, {"numero": 12}]):
+            self.assertEqual(m._siguiente_numero(), 13)
+        with mock.patch.object(m, "_historial", return_value=[{}, {}]):
+            self.assertEqual(m._siguiente_numero(), 3)
 
 
 if __name__ == "__main__":

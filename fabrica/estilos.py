@@ -4,9 +4,10 @@ una entrada a ESTILOS."""
 
 from dataclasses import dataclass, field
 
-# Se agrega a todas las imágenes generadas con IA para evitar caras reales,
-# marcas registradas y texto deformado dentro de la imagen.
-REGLAS_IMAGEN = "no text, no letters, no logos, no watermark, no recognizable real people"
+# Se agrega a todas las imágenes generadas con IA. Marcas, equipos y lugares sí
+# se pueden mostrar; lo que se evita es inventar la cara de personas reales
+# (para eso se usan fotos reales con licencia) y letras deformadas.
+REGLAS_IMAGEN = "no watermark, no garbled text, no realistic faces of real famous people"
 
 
 @dataclass(frozen=True)
