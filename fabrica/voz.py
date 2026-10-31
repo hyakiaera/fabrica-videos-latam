@@ -63,3 +63,29 @@ def generar_y_clonar(cfg: dict, texto: str, carpeta: Path) -> Path:
         logger.error("Voz: no se creó el audio clonado; se usa la voz de Edge")
         return base
     return salida
+
+
+def duracion_audio(cfg: dict, texto: str, carpeta: Path) -> float:
+    """Duración exacta de la narración (se genera la voz de prueba con Edge, que es
+    gratis y rápida) para que cada imagen dure lo mismo que su parte del guion."""
+    v = cfg.get("voz", {})
+    velocidad = float(v.get("velocidad", 1.0))
+    try:
+        from moviepy import AudioFileClip
+
+        carpeta.mkdir(parents=True, exist_ok=True)
+        prueba = carpeta / "voz-medida.mp3"
+        voz = voz_edge(cfg).removesuffix("-Male").removesuffix("-Female")
+        asyncio.run(edge_tts.Communicate(texto, voz, rate=f"{round((velocidad - 1) * 100):+d}%").save(str(prueba)))
+        with AudioFileClip(str(prueba)) as audio:
+            return float(audio.duration)
+    except Exception as e:
+        logger.warning(f"Voz: no se pudo medir la narración ({e}); se estima")
+        return len(texto.split()) / (2.5 * velocidad)
+
+
+def duracion_archivo(ruta: Path) -> float:
+    from moviepy import AudioFileClip
+
+    with AudioFileClip(str(ruta)) as audio:
+        return float(audio.duration)

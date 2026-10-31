@@ -141,7 +141,7 @@ class TestImagenesYRespaldo(unittest.TestCase):
         with mock.patch.dict("os.environ", env, clear=True), \
              mock.patch("requests.get", return_value=cobro) as get, \
              mock.patch("requests.post", return_value=cf), mock.patch("time.sleep"):
-            rutas, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16", self.carpeta)
+            rutas, _, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16", self.carpeta)
         self.assertEqual(len(rutas), 2)
         self.assertEqual(rutas[0].read_bytes(), jpg)
         self.assertLessEqual(get.call_count, 2)  # tras el 402 no se insiste en cada escena
@@ -176,7 +176,7 @@ class TestImagenesYRespaldo(unittest.TestCase):
         escenas = [{"imagen": "a plate on a table"}]
         with mock.patch.object(imagenes, "cloudflare", side_effect=generar), \
              mock.patch.object(ia, "imagen_encaja", side_effect=[False, True]):
-            rutas, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16",
+            rutas, _, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16",
                                              self.carpeta, visual_global="Salvadoran pupusas in El Salvador")
         self.assertEqual(rutas[0].name, "escena-00b.jpg")
         self.assertTrue(prompts[0].startswith("cartoon caricature illustration of Salvadoran pupusas"))
@@ -275,7 +275,7 @@ class TestMarcasYNumeros(unittest.TestCase):
         with mock.patch.object(imagenes, "wikimedia", return_value=(logo, "Logo: Wikimedia")) as wm, \
              mock.patch.object(imagenes, "cloudflare") as cf, \
              mock.patch.object(ia, "imagen_encaja", return_value=True):
-            rutas, creditos = imagenes.para_escenas(
+            rutas, creditos, _ = imagenes.para_escenas(
                 {}, [{"imagen": "x", "foto_real": "Binance logo"}], estilos.obtener("comic"), "9:16", carpeta)
         wm.assert_called_once()
         self.assertTrue(wm.call_args.kwargs["incluir_logos"])
@@ -289,6 +289,34 @@ class TestMarcasYNumeros(unittest.TestCase):
             self.assertEqual(m._siguiente_numero(), 13)
         with mock.patch.object(m, "_historial", return_value=[{}, {}]):
             self.assertEqual(m._siguiente_numero(), 3)
+
+
+class TestMovimientoYGraficas(unittest.TestCase):
+    def test_presupuesto_de_imagenes(self):
+        escenas = [{} for _ in range(20)]
+        escenas[3]["grafica"] = {"tipo": "cifra", "valor": 1}
+        elegidas = imagenes._elegir_escenas(escenas, 10)
+        self.assertEqual(len(elegidas), 10)
+        self.assertNotIn(3, elegidas)
+        self.assertIn(0, elegidas)
+
+    def test_duraciones_segun_texto(self):
+        from fabrica import movimiento
+        d = movimiento.duraciones([{"texto": "a" * 10}, {"texto": "a" * 30}], 8)
+        self.assertAlmostEqual(d[0], 2.0)
+        self.assertAlmostEqual(d[1], 6.0)
+
+    def test_clips_reutilizan_y_dibujan_graficas(self):
+        from PIL import Image
+        from fabrica import movimiento
+        carpeta = Path(tempfile.mkdtemp())
+        img = carpeta / "a.jpg"
+        Image.new("RGB", (540, 960), (200, 50, 50)).save(img)
+        escenas = [{"texto": "uno"}, {"texto": "dos"},
+                   {"texto": "tres", "grafica": {"tipo": "barras", "titulo": "T", "datos": [["A", -3], ["B", 2]]}}]
+        clips = movimiento.clips_de_escenas({}, escenas, [img, None, None], "explicativo", 3, carpeta / "c")
+        self.assertEqual(len(clips), 3)
+        self.assertTrue(all(c.exists() and c.stat().st_size > 1000 for c in clips))
 
 
 if __name__ == "__main__":

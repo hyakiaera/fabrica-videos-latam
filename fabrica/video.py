@@ -14,18 +14,20 @@ from fabrica.estilos import Estilo
 ANCHOS = {"9:16": 1080, "16:9": 1920, "1:1": 1080}
 
 
-def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo: Path) -> Path:
+def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path) -> Path:
+    """Arma el video. 'imagenes' trae una imagen (o None) por escena."""
     # Se importa aquí porque cargar MoneyPrinterTurbo es lento y lee su config.toml.
     from app.config import config as mpt_config
     from app.models.schema import MaterialInfo, VideoAspect, VideoParams
     from app.services import task as tm
     from app.utils import utils
 
+    from fabrica import movimiento
+
     v = cfg.get("video", {})
     vz = cfg.get("voz", {})
     aspecto = v.get("aspecto", "9:16")
     task_id = str(uuid.uuid4())
-    duracion_estimada = max(15, len(datos["guion"].split()) / 2.5)
 
     params = dict(
         video_subject=datos["titulo"],
@@ -51,6 +53,11 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo:
         video_transition_mode=v.get("transicion") or None,
         n_threads=int(v.get("hilos", 2)),
     )
+
+    audio_propio = None
+    if voz.clonar_activo(cfg):
+        audio_propio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
+
     if "stock_video" in estilo.fuentes:
         from fabrica.config import secreto
         claves = {"pexels": secreto("PEXELS_API_KEY"), "pixabay": secreto("PIXABAY_API_KEY")}
@@ -69,25 +76,27 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo:
             video_clip_duration=int(v.get("duracion_clip_stock", 4)),
         )
     else:
-        if not imagenes:
-            raise RuntimeError("No se consiguió ninguna imagen para el video")
+        # Cada escena dura lo mismo que su parte de la narración, con movimiento de cámara.
+        total = (voz.duracion_archivo(audio_propio) if audio_propio
+                 else voz.duracion_audio(cfg, datos["guion"], trabajo / "voz"))
+        clips = movimiento.clips_de_escenas(cfg, datos["escenas"], imagenes, estilo_clave(estilo),
+                                            total + 0.6, trabajo / "clips")
         # MoneyPrinterTurbo solo acepta materiales locales dentro de storage/local_videos.
         permitidas = Path(utils.storage_dir("local_videos", create=True)) / "fabrica" / task_id
         permitidas.mkdir(parents=True, exist_ok=True)
-        copias = [Path(shutil.copy(p, permitidas / p.name)) for p in imagenes]
+        copias = [Path(shutil.copy(c, permitidas / c.name)) for c in clips]
         params.update(
             video_source="local",
-            video_materials=[MaterialInfo(provider="local", url=str(p), duration=0) for p in copias],
+            video_materials=[MaterialInfo(provider="local", url=str(c), duration=0) for c in copias],
             video_concat_mode="sequential",
-            video_clip_duration=max(2, round(duracion_estimada / len(imagenes))),
-            image_motion="zoom",
+            # Más largo que cualquier escena: así cada clip se usa completo y en orden.
+            video_clip_duration=int(max(movimiento.duraciones(datos["escenas"], total))) + 2,
         )
 
     proveedor_subs_original = mpt_config.app.get("subtitle_provider", "edge")
-    if voz.clonar_activo(cfg):
-        audio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
-        destino = Path(utils.task_dir(task_id)) / audio.name
-        shutil.copy(audio, destino)
+    if audio_propio:
+        destino = Path(utils.task_dir(task_id)) / audio_propio.name
+        shutil.copy(audio_propio, destino)
         params["custom_audio_file"] = str(destino)
         # Sin TTS no hay tiempos de palabras: Whisper saca los subtítulos del audio.
         mpt_config.app["subtitle_provider"] = "whisper"
@@ -101,6 +110,11 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list[Path], trabajo:
     if not videos:
         raise RuntimeError(f"MoneyPrinterTurbo no produjo el video (tarea {task_id})")
     return Path(videos[0])
+
+
+def estilo_clave(estilo: Estilo) -> str:
+    from fabrica.estilos import ESTILOS
+    return next((k for k, e in ESTILOS.items() if e is estilo), "")
 
 
 # Posiciones listas, en % del ancho/alto. Quedan fuera de la zona de los

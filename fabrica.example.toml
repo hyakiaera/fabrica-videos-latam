@@ -64,6 +64,8 @@ modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
 simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
+max_imagenes = 10           # imágenes nuevas por video (cuida la cuota diaria gratis);
+                            # las demás escenas reutilizan una con otro movimiento
 modelo_revision = "gemini-flash-lite-latest"
 
 [voz]
@@ -98,7 +100,7 @@ tamano_letra = 70
 grosor_borde = 2.5
 posicion_subtitulos = "custom"
 altura_subtitulos = 72      # % desde arriba
-transicion = "FadeIn"       # "", FadeIn, FadeOut, SlideIn, SlideOut, Shuffle
+transicion = "Shuffle"      # Shuffle (variadas), FadeIn, FadeOut, SlideIn, SlideOut, ZoomIn, ZoomOut, ""
 fuente_stock = "pexels"     # para el estilo "realista"
 duracion_clip_stock = 4
 hilos = 4                   # GitHub da 4 núcleos

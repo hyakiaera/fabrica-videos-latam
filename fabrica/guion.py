@@ -48,7 +48,15 @@ Devuelve este JSON:
    "imagen": "descripción visual en INGLÉS de LO QUE SE DICE en esta escena, concreta y autosuficiente (el generador no conoce el resto del guion)",
    "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')",
    "foto_real": "SOLO si en esta escena es clave una marca, logo, equipo, producto, lugar famoso o persona real: su nombre exacto para buscar su foto/logo real (ej. 'Binance logo', 'Club América', 'Estadio Azteca', 'iPhone 17'). Si no, vacío",
-   "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios"}}]}}
+   "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios",
+   "grafica": null}}]}}
+
+GRÁFICAS: cuando una escena da CIFRAS que están en los titulares o el contenido (precios, %,
+goles, récords, rankings), pon en "grafica" en vez de null:
+ - barras: {{"tipo": "barras", "titulo": "máx 30 letras", "datos": [["Intel", -29], ["Nasdaq", -2.4]], "unidad": "%", "fuente": "medio"}}
+ - una cifra grande: {{"tipo": "cifra", "titulo": "máx 30 letras", "valor": -29, "unidad": "%", "detalle": "texto corto"}}
+ Solo números reales de las fuentes (nunca inventados). Máximo una gráfica cada 3 escenas.
+ En temas de finanzas, economía o deportes con datos, úsalas siempre que haya números.
 Usa exactamente {escenas} escenas, en el mismo orden que el guion.
 
 REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):

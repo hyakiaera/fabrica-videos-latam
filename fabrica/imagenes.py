@@ -204,40 +204,66 @@ def encuadrar(ruta: Path, aspecto: str) -> Path:
     return salida
 
 
+def _elegir_escenas(escenas: list[dict], maximo: int) -> set[int]:
+    """Qué escenas llevan imagen nueva. Las gráficas no necesitan imagen; si hay más
+    escenas que el máximo, se reparten parejo y las demás reutilizan la anterior
+    (con otro movimiento). Así no se gasta la cuota diaria gratis de imágenes."""
+    candidatas = [i for i, e in enumerate(escenas) if not e.get("grafica")]
+    if len(candidatas) <= maximo:
+        return set(candidatas)
+    paso = len(candidatas) / maximo
+    return {candidatas[int(k * paso)] for k in range(maximo)}
+
+
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
-                 carpeta: Path, visual_global: str = "", tema: str = "") -> tuple[list[Path], list[str]]:
-    """Devuelve las imágenes en el orden de las escenas y los créditos de fotos.
+                 carpeta: Path, visual_global: str = "", tema: str = "") -> tuple[list, list[str], dict]:
+    """Imagen de cada escena (None = reutilizar la anterior o es una gráfica),
+    créditos de fotos y un conteo de dónde salió cada imagen.
     Se piden varias a la vez para que el video tarde menos."""
+    im = cfg.get("imagenes", {})
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
-    revisar = bool(cfg.get("imagenes", {}).get("revisar", True))
+    revisar = bool(im.get("revisar", True))
+    conteo = {"ia": 0, "real": 0, "stock": 0, "rechazadas": 0}
+
+    def sumar(clave):
+        with candado:
+            conteo[clave] += 1
+
+    def encaja(ruta, descripcion) -> bool:
+        if not revisar:
+            return True
+        if ia.imagen_encaja(cfg, ruta, descripcion) is False:
+            sumar("rechazadas")
+            return False
+        return True
 
     def una(indice_escena):
         i, escena = indice_escena
         nombre = f"escena-{i:02d}"
         descripcion = escena.get("imagen", "") or tema
         busqueda = escena.get("busqueda_foto", "") or tema
+        escena_completa = f"{visual_global}. Scene: {descripcion}" if visual_global else descripcion
         real = (escena.get("foto_real") or "").strip()
-        if real and cfg.get("imagenes", {}).get("fotos_reales", True):
+        if real and im.get("fotos_reales", True):
             # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
             hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
-            if hallado and (not revisar or ia.imagen_encaja(cfg, hallado[0], real) is not False):
+            if hallado and encaja(hallado[0], real):
+                sumar("real")
                 return encuadrar(hallado[0], aspecto), hallado[1]
         for fuente in estilo.fuentes:
             if fuente == "ia":
                 # El contexto global va al principio: el generador da más peso a lo primero.
-                escena_completa = f"{visual_global}. Scene: {descripcion}" if visual_global else descripcion
                 prompt = prompt_imagen(estilo, escena_completa)
-                ruta = (pollinations(cfg, prompt, aspecto, carpeta, nombre)
-                        or cloudflare(prompt, carpeta, nombre))
-                if ruta and revisar and not ia.imagen_encaja(cfg, ruta, escena_completa):
-                    logger.info(f"Escena {i}: la imagen no encaja con el guion, se genera otra")
-                    otra = (pollinations(cfg, prompt, aspecto, carpeta, nombre + "b")
-                            or cloudflare(prompt, carpeta, nombre + "b"))
-                    if otra and ia.imagen_encaja(cfg, otra, escena_completa) is not False:
-                        ruta = otra
-                if ruta:
-                    return ruta, None
+                for intento in ("", "b"):
+                    ruta = (pollinations(cfg, prompt, aspecto, carpeta, nombre + intento)
+                            or cloudflare(prompt, carpeta, nombre + intento))
+                    if not ruta:
+                        break  # sin cuota o sin servicio: no insistir
+                    if encaja(ruta, escena_completa):
+                        sumar("ia")
+                        return ruta, None
+                    logger.info(f"Escena {i}: la imagen no encaja con el guion, se intenta otra")
             elif fuente == "wikimedia":
                 hallado = wikimedia(busqueda, carpeta, nombre)
                 if hallado:
@@ -245,19 +271,28 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                     with candado:
                         repetida = huella in usadas_wiki
                         usadas_wiki.add(huella)
-                    if not repetida:
+                    if not repetida and encaja(hallado[0], escena_completa):
+                        sumar("real")
                         return encuadrar(hallado[0], aspecto), hallado[1]
             elif fuente == "pexels":
                 ruta = (pexels_foto(busqueda, aspecto, carpeta, nombre)
                         or pixabay_foto(busqueda, aspecto, carpeta, nombre))
-                if ruta:
+                # Una foto de stock que no tiene que ver es peor que repetir una buena.
+                if ruta and encaja(ruta, escena_completa):
+                    sumar("stock")
                     return ruta, None
-        logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")
+        logger.warning(f"Sin imagen que encaje para la escena {i}; se reutilizará otra")
         return None, None
 
-    simultaneas = int(cfg.get("imagenes", {}).get("simultaneas", 3))
+    elegidas = _elegir_escenas(escenas, int(im.get("max_imagenes", 10)))
+    simultaneas = int(im.get("simultaneas", 3))
     with ThreadPoolExecutor(max_workers=max(1, simultaneas)) as grupo:
-        resultados = list(grupo.map(una, enumerate(escenas)))
-    imagenes = [ruta for ruta, _ in resultados if ruta]
-    creditos = [credito for _, credito in resultados if credito]
-    return imagenes, creditos
+        resultados = dict(zip(sorted(elegidas), grupo.map(una, [(i, escenas[i]) for i in sorted(elegidas)])))
+    imagenes = [resultados.get(i, (None, None))[0] for i in range(len(escenas))]
+    creditos = [c for _, c in resultados.values() if c]
+    if not any(imagenes) and not any(e.get("grafica") for e in escenas):
+        raise RuntimeError("No se consiguió ninguna imagen que encaje (¿se acabó la cuota diaria de "
+                           "Cloudflare?). Prueba más tarde o agrega POLLINATIONS_TOKEN.")
+    logger.info(f"Imágenes: {conteo['ia']} IA, {conteo['real']} reales, {conteo['stock']} stock, "
+                f"{conteo['rechazadas']} rechazadas por no encajar")
+    return imagenes, creditos, conteo

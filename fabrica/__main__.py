@@ -77,15 +77,16 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
 
     datos = guion.escribir(cfg, tema, estilo)
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
-    fotos, creditos = [], []
+    fotos, creditos, conteo = [], [], {}
     if "stock_video" not in estilo.fuentes:
-        fotos, creditos = imagenes.para_escenas(cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
-                                                visual_global=datos.get("visual_global", ""), tema=tema["tema"])
+        fotos, creditos, conteo = imagenes.para_escenas(
+            cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
+            visual_global=datos.get("visual_global", ""), tema=tema["tema"])
 
     crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
-    ficha = salidas.ficha_texto(datos, tema, creditos)
+    ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
 
     ruta_relativa = f"{hoy}/{_slug(tema['categoria'])}"
     carpeta_dia = Path(cfg.get("salida", {}).get("carpeta", "salida"))

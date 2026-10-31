@@ -10,7 +10,7 @@ from loguru import logger
 from fabrica.config import secreto
 
 
-def ficha_texto(datos: dict, tema: dict, creditos: list[str]) -> str:
+def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | None = None) -> str:
     """Texto listo para copiar y pegar al publicar a mano."""
     lineas = [
         f"TÍTULO:\n{datos['titulo']}\n",
@@ -20,6 +20,11 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str]) -> str:
         "FUENTES (verifica los datos antes de publicar):",
         *[f"- {t} ({f}) {u}" for t, f, u in tema.get("fuentes", [])],
     ]
+    if conteo:
+        graficas = sum(1 for e in datos.get("escenas", []) if e.get("grafica"))
+        lineas += ["", f"IMÁGENES: {conteo.get('ia', 0)} con IA, {conteo.get('real', 0)} fotos/logos reales, "
+                       f"{conteo.get('stock', 0)} de stock, {graficas} gráficas, "
+                       f"{conteo.get('rechazadas', 0)} rechazadas por no encajar"]
     if creditos:
         lineas += ["", "CRÉDITOS DE FOTOS (pégalos en la descripción):", *creditos]
     lineas += ["", "GUION:", datos["guion"]]
