@@ -32,3 +32,12 @@ def cargar(ruta: Path | None = None) -> dict:
 
 def secreto(nombre: str) -> str:
     return os.environ.get(nombre, "").strip()
+
+
+CLAVES = ("GEMINI_API_KEY", "GROQ_API_KEY", "PEXELS_API_KEY", "PIXABAY_API_KEY",
+          "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN", "POLLINATIONS_TOKEN", "UPLOAD_POST_API_KEY")
+
+
+def resumen_claves() -> str:
+    """Qué claves están puestas (nunca muestra su valor)."""
+    return "  ".join(f"{c}: {'✅' if secreto(c) else '—'}" for c in CLAVES)

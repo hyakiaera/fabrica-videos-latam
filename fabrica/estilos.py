@@ -17,7 +17,7 @@ class Estilo:
     # Orden de fuentes de imagen: "ia" (Pollinations), "wikimedia" (fotos con
     # licencia libre), "pexels" (fotos de stock), "stock_video" (videos de
     # stock con el buscador original de MoneyPrinterTurbo).
-    fuentes: tuple = ("ia", "pexels")
+    fuentes: tuple = ("ia", "pexels", "wikimedia")
     color_texto: str = "#FFFFFF"
     color_borde: str = "#000000"
     fondo_subtitulo: str | bool = False

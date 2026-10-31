@@ -163,6 +163,7 @@ def main(argv=None) -> int:
         return cfg
 
     cfg = cargar_cfg()
+    logger.info("Claves encontradas → " + config.resumen_claves())
     if args.probar_logo:
         from fabrica import vista_logo
         ruta = vista_logo.generar(cfg, config.RAIZ / "salida" / "prueba-logo.jpg")

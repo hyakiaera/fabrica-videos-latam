@@ -46,10 +46,15 @@ Para sumar un estilo nuevo: agrega una entrada en `fabrica/estilos.py`.
 | `GROQ_API_KEY` | https://console.groq.com/keys | Respaldo recomendado |
 | `PEXELS_API_KEY` | https://www.pexels.com/api/ | Opcional (estilo `realista` y fotos de respaldo) |
 | `PIXABAY_API_KEY` | https://pixabay.com/api/docs/ (inicia sesión y aparece tu clave) | Opcional, reemplaza a Pexels |
+| `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` | https://dash.cloudflare.com → Workers AI (ver abajo) | Recomendada: imágenes IA gratis de respaldo |
 | `POLLINATIONS_TOKEN` | https://enter.pollinations.ai | Opcional (más rápido, menos límites) |
 | `UPLOAD_POST_API_KEY` y `UPLOAD_POST_USERNAME` | https://upload-post.com | Solo si quieres publicar automático |
 
 **Nunca pegues las claves en el código ni en un chat.**
+
+**Cloudflare (imágenes IA gratis):** crea una cuenta gratis en https://dash.cloudflare.com →
+menú **AI → Workers AI** → **Use REST API** → **Create a Workers AI API Token**. En esa misma
+página aparece tu **Account ID**. Guarda los dos como secretos.
 
 ## 2. Modo GitHub (automático, 5 veces al día)
 

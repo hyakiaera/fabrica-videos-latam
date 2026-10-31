@@ -1,7 +1,11 @@
 import unittest
 from unittest import mock
 
-from fabrica import estilos, ia, salidas, tendencias, video, voz
+import base64
+import tempfile
+from pathlib import Path
+
+from fabrica import estilos, ia, imagenes, salidas, tendencias, video, voz
 
 TRENDS_RSS = b"""<?xml version="1.0"?>
 <rss xmlns:ht="https://trends.google.com/trending/rss" version="2.0"><channel>
@@ -119,6 +123,35 @@ class TestVozYLogo(unittest.TestCase):
 
     def test_logo_centro_se_centra(self):
         self.assertIn("overlay=W*0.5000-w/2", video.filtro_logo({"logo": {"posicion": "arriba_centro"}}))
+
+
+class TestImagenesYRespaldo(unittest.TestCase):
+    def setUp(self):
+        imagenes._SIN_SERVICIO.clear()
+        self.carpeta = Path(tempfile.mkdtemp())
+
+    def test_pollinations_402_pasa_a_cloudflare(self):
+        cobro = mock.Mock(status_code=402, ok=False, headers={}, content=b"")
+        jpg = b"\xff\xd8" + b"0" * 6000
+        cf = mock.Mock(ok=True, status_code=200)
+        cf.json.return_value = {"result": {"image": base64.b64encode(jpg).decode()}}
+        env = {"CLOUDFLARE_ACCOUNT_ID": "a", "CLOUDFLARE_API_TOKEN": "t"}
+        escenas = [{"imagen": "stadium"}, {"imagen": "ball"}]
+        with mock.patch.dict("os.environ", env, clear=True), \
+             mock.patch("requests.get", return_value=cobro) as get, \
+             mock.patch("requests.post", return_value=cf), mock.patch("time.sleep"):
+            rutas, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16", self.carpeta)
+        self.assertEqual(len(rutas), 2)
+        self.assertEqual(rutas[0].read_bytes(), jpg)
+        self.assertEqual(get.call_count, 1)  # tras el 402 no se vuelve a pedir a Pollinations
+
+    def test_ia_no_reintenta_si_pide_pago(self):
+        cobro = mock.Mock(status_code=402, text="pay")
+        with mock.patch.dict("os.environ", {}, clear=True), \
+             mock.patch("requests.post", return_value=cobro) as post, mock.patch("time.sleep"):
+            with self.assertRaises(RuntimeError):
+                ia.pedir_json({}, "s", "u")
+        self.assertEqual(post.call_count, 1)
 
 
 if __name__ == "__main__":

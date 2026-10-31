@@ -1,9 +1,10 @@
 """Consigue una imagen por escena según el estilo:
-- "ia": imagen original generada gratis con Pollinations (FLUX)
+- "ia": imagen original generada gratis (Pollinations o Cloudflare, ambos FLUX)
 - "wikimedia": foto real con licencia libre (se guarda el crédito)
-- "pexels": foto de stock gratis
+- "pexels": foto de stock gratis (Pexels o Pixabay)
 Si una fuente falla se prueba la siguiente del estilo."""
 
+import base64
 import hashlib
 import random
 import time
@@ -32,7 +33,12 @@ def _guardar(contenido: bytes, carpeta: Path, nombre: str, ext: str = ".jpg") ->
     return ruta
 
 
+_SIN_SERVICIO: set[str] = set()  # servicios que ya pidieron pago en esta ronda
+
+
 def pollinations(cfg: dict, prompt: str, aspecto: str, carpeta: Path, nombre: str) -> Path | None:
+    if "pollinations" in _SIN_SERVICIO:
+        return None
     im = cfg.get("imagenes", {})
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
     params = {
@@ -49,11 +55,60 @@ def pollinations(cfg: dict, prompt: str, aspecto: str, carpeta: Path, nombre: st
             r = requests.get(base + quote(prompt[:900]), params=params, headers=cabeceras, timeout=180)
             if _es_imagen(r):
                 return _guardar(r.content, carpeta, nombre)
+            if r.status_code in (401, 402, 403):
+                logger.warning(f"Pollinations pide pago o clave (HTTP {r.status_code}); se usan otras fuentes")
+                _SIN_SERVICIO.add("pollinations")
+                return None
             logger.warning(f"Pollinations HTTP {r.status_code} (intento {intento + 1})")
         except requests.RequestException as e:
             logger.warning(f"Pollinations error (intento {intento + 1}): {e}")
         time.sleep(8 * (intento + 1))
     return None
+
+
+def cloudflare(prompt: str, carpeta: Path, nombre: str) -> Path | None:
+    """FLUX gratis en Cloudflare Workers AI (cuota diaria gratis)."""
+    cuenta, token = secreto("CLOUDFLARE_ACCOUNT_ID"), secreto("CLOUDFLARE_API_TOKEN")
+    if not (cuenta and token) or "cloudflare" in _SIN_SERVICIO:
+        return None
+    url = f"https://api.cloudflare.com/client/v4/accounts/{cuenta}/ai/run/@cf/black-forest-labs/flux-1-schnell"
+    for intento in range(2):
+        try:
+            r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=120,
+                              json={"prompt": prompt[:2000], "steps": 6})
+            if r.ok:
+                imagen = r.json().get("result", {}).get("image")
+                if imagen:
+                    return _guardar(base64.b64decode(imagen), carpeta, nombre)
+            if r.status_code in (401, 402, 403, 429):
+                logger.warning(f"Cloudflare HTTP {r.status_code}: {r.text[:200]}")
+                _SIN_SERVICIO.add("cloudflare")
+                return None
+            logger.warning(f"Cloudflare HTTP {r.status_code} (intento {intento + 1})")
+        except requests.RequestException as e:
+            logger.warning(f"Cloudflare error (intento {intento + 1}): {e}")
+        time.sleep(5)
+    return None
+
+
+def pixabay_foto(busqueda: str, aspecto: str, carpeta: Path, nombre: str) -> Path | None:
+    clave = secreto("PIXABAY_API_KEY")
+    if not clave or not busqueda:
+        return None
+    orientacion = {"9:16": "vertical", "16:9": "horizontal"}.get(aspecto, "all")
+    try:
+        r = requests.get("https://pixabay.com/api/", timeout=30, params={
+            "key": clave, "q": busqueda[:100], "image_type": "photo", "orientation": orientacion,
+            "per_page": 10, "safesearch": "true"})
+        fotos = r.json().get("hits", []) if r.ok else []
+        if not fotos:
+            return None
+        foto = random.choice(fotos[:5])
+        img = requests.get(foto["largeImageURL"], timeout=60)
+        return _guardar(img.content, carpeta, nombre) if _es_imagen(img) else None
+    except Exception as e:
+        logger.warning(f"Pixabay fotos falló: {e}")
+        return None
 
 
 def wikimedia(busqueda: str, carpeta: Path, nombre: str) -> tuple[Path, str] | None:
@@ -119,8 +174,9 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         resultado = None
         for fuente in estilo.fuentes:
             if fuente == "ia":
-                resultado = pollinations(cfg, prompt_imagen(estilo, escena.get("imagen", "")),
-                                         aspecto, carpeta, nombre)
+                prompt = prompt_imagen(estilo, escena.get("imagen", ""))
+                resultado = (pollinations(cfg, prompt, aspecto, carpeta, nombre)
+                             or cloudflare(prompt, carpeta, nombre))
             elif fuente == "wikimedia":
                 hallado = wikimedia(escena.get("busqueda_foto", ""), carpeta, nombre)
                 if hallado:
@@ -130,7 +186,8 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         resultado = hallado[0]
                         creditos.append(hallado[1])
             elif fuente == "pexels":
-                resultado = pexels_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre)
+                resultado = (pexels_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre)
+                             or pixabay_foto(escena.get("busqueda_foto", ""), aspecto, carpeta, nombre))
             if resultado:
                 break
         if resultado:

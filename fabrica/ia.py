@@ -55,6 +55,9 @@ def extraer_json(texto: str):
 
 def pedir_json(cfg: dict, sistema: str, usuario: str, temperatura: float = 0.7):
     proveedores = _proveedores(cfg)
+    if not any(p["nombre"] in ("gemini", "groq") for p in proveedores):
+        logger.warning("No hay GEMINI_API_KEY ni GROQ_API_KEY: se intenta solo con Pollinations, "
+                       "que puede pedir pago. Revisa los Secrets del repositorio.")
     if not proveedores:
         raise RuntimeError("No hay ninguna IA configurada. Agrega GEMINI_API_KEY o GROQ_API_KEY.")
     errores = []
@@ -77,6 +80,11 @@ def pedir_json(cfg: dict, sistema: str, usuario: str, temperatura: float = 0.7):
                     },
                     timeout=120,
                 )
+                if r.status_code in (401, 402, 403):
+                    # Clave inválida o servicio que ahora cobra: no sirve reintentar.
+                    errores.append(f"{p['nombre']}: HTTP {r.status_code} {r.text[:200]}")
+                    logger.warning(f"IA {p['nombre']} rechazó la petición (HTTP {r.status_code})")
+                    break
                 if r.status_code == 429 or r.status_code >= 500:
                     raise RuntimeError(f"HTTP {r.status_code}")
                 r.raise_for_status()
