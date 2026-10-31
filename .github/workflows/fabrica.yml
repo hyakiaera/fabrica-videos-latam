@@ -78,7 +78,7 @@ jobs:
 
       - name: Configurar Google Drive (rclone)
         env:
-          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN || secrets.RCLONE }}
         run: |
           if [ -z "$RCLONE_DRIVE_TOKEN" ]; then echo "Sin RCLONE_DRIVE_TOKEN: no se subirá a Drive"; exit 0; fi
           mkdir -p ~/.config/rclone
