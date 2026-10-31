@@ -488,5 +488,32 @@ class TestDetallesYListas(unittest.TestCase):
         self.assertNotIn("var x", d["texto"])
 
 
+class TestRespaldoStock(unittest.TestCase):
+    def test_si_falla_el_stock_se_rehace_con_imagenes(self):
+        from fabrica import __main__ as m
+        datos = {"titulo": "T", "guion": "g", "escenas": [{"texto": "a"}], "hashtags": []}
+        tema = {"tema": "Pupusas", "categoria": "comida", "estilo": "realista", "fuentes": []}
+        carpeta = Path(tempfile.mkdtemp())
+        armados = []
+
+        def armar(cfg, d, estilo, fotos, trabajo):
+            armados.append(estilo.nombre)
+            if "stock_video" in estilo.fuentes:
+                raise RuntimeError("429")
+            return carpeta / "v.mp4"
+
+        with mock.patch.dict("os.environ", {"PIXABAY_API_KEY": "k"}), \
+             mock.patch.object(m.guion, "escribir", return_value=datos), \
+             mock.patch.object(m.imagenes, "para_escenas", return_value=([None], [], {})), \
+             mock.patch.object(m.video, "armar", side_effect=armar), \
+             mock.patch.object(m.video, "poner_logo", return_value=carpeta / "f.mp4"), \
+             mock.patch.object(m.video, "miniatura", return_value=None), \
+             mock.patch.object(m.salidas, "guardar_local", return_value=carpeta / "f.mp4"), \
+             mock.patch.object(m, "HISTORIAL", carpeta / "h.json"):
+            m.hacer_video({}, tema, {"descargar"})
+        self.assertEqual(len(armados), 2)
+        self.assertEqual(tema["estilo"], "cinematografico")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -67,6 +67,8 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         fuente = v.get("fuente_stock", "pexels")
         if not claves.get(fuente):
             fuente = "pixabay" if claves["pixabay"] else "pexels"
+        # Pixabay/Pexels bloquean (error 429) si se bajan muchos videos a la vez.
+        mpt_config.app["material_concurrency"] = int(v.get("descargas_simultaneas_stock", 2))
         params.update(
             video_source=fuente,
             # Los bancos de videos no tienen marcas ni nombres propios: se buscan ideas comunes.

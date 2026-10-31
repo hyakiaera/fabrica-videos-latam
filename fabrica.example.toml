@@ -105,6 +105,7 @@ altura_subtitulos = 72      # % desde arriba
 transicion = "Shuffle"      # Shuffle (variadas), FadeIn, FadeOut, SlideIn, SlideOut, ZoomIn, ZoomOut, ""
 fuente_stock = "pexels"     # para el estilo "realista"
 duracion_clip_stock = 4
+descargas_simultaneas_stock = 2  # más alto = Pixabay/Pexels pueden bloquear (error 429)
 hilos = 4                   # GitHub da 4 núcleos
 
 [logo]

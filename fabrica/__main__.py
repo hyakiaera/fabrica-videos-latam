@@ -87,7 +87,20 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias)
 
-    crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
+    try:
+        crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
+    except RuntimeError as e:
+        if "stock_video" not in estilo.fuentes:
+            raise
+        # El banco de videos falló (límite de descargas, nada encontrado...): mismo guion,
+        # pero con imágenes, para no perder el video.
+        logger.warning(f"Los videos de stock fallaron ({e}); se rehace con estilo cinematográfico")
+        estilo = estilos.obtener("cinematografico")
+        tema["estilo"] = "cinematografico"
+        fotos, creditos, conteo = imagenes.para_escenas(
+            cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
+            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias)
+        crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
