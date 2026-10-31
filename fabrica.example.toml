@@ -49,8 +49,9 @@ ceid = "US:en"
 peso = 0.7
 
 [ia]
+# Si un modelo deja de existir, la fábrica prueba otros solos.
 modelo_gemini = "gemini-flash-latest"
-modelo_groq = "llama-3.3-70b-versatile"
+modelo_groq = "openai/gpt-oss-120b"
 usar_pollinations_texto = true   # tercer respaldo gratis, sin clave
 
 [guion]

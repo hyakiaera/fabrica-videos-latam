@@ -145,6 +145,23 @@ class TestImagenesYRespaldo(unittest.TestCase):
         self.assertEqual(rutas[0].read_bytes(), jpg)
         self.assertEqual(get.call_count, 1)  # tras el 402 no se vuelve a pedir a Pollinations
 
+    def test_modelo_retirado_pasa_al_siguiente(self):
+        ia._DISPONIBLES.clear()
+        modelos = mock.Mock(ok=True)
+        modelos.json.return_value = {"data": [{"id": "llama-3.3-70b-versatile"}, {"id": "whisper-large-v3"},
+                                              {"id": "openai/gpt-oss-20b"}]}
+        no_existe = mock.Mock(status_code=404, text="model not found")
+        bien = mock.Mock(status_code=200)
+        bien.json.return_value = {"choices": [{"message": {"content": "<think>x{</think>{\"ok\": 1}"}}]}
+        cfg = {"ia": {"usar_pollinations_texto": False}}
+        with mock.patch.dict("os.environ", {"GROQ_API_KEY": "k"}, clear=True), \
+             mock.patch("requests.get", return_value=modelos), \
+             mock.patch("requests.post", side_effect=[no_existe, bien]) as post:
+            self.assertEqual(ia.pedir_json(cfg, "s", "u"), {"ok": 1})
+        usados = [c.kwargs["json"]["model"] for c in post.call_args_list]
+        self.assertEqual(usados, ["llama-3.3-70b-versatile", "openai/gpt-oss-20b"])
+        ia._DISPONIBLES.clear()
+
     def test_ia_no_reintenta_si_pide_pago(self):
         cobro = mock.Mock(status_code=402, text="pay")
         with mock.patch.dict("os.environ", {}, clear=True), \
