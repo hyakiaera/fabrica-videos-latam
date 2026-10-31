@@ -39,6 +39,9 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
                   "sobre generar imágenes. Usa TODAS las que tengan que ver con el tema (si una foto es de "
                   "algo que se menciona, la escena que lo menciona lleva esa foto). No repitas la misma "
                   f"foto seguida:\n{lista}\n")
+    if tema.get("prioridad_fotos_propias"):
+        extra += ("\nEl usuario pidió usar SUS FOTOS: el video debe apoyarse en ellas; cuenta la historia "
+                  "alrededor de lo que se ve en sus fotos.\n")
     if tema.get("es_negocio"):
         extra += ("\nEs un ANUNCIO del negocio del usuario: tono vendedor y cercano, menciona ofertas y "
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
@@ -100,7 +103,7 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
     if fotos_propias:
-        asignar_fotos_propias(datos["escenas"], fotos_propias)
+        asignar_fotos_propias(datos["escenas"], fotos_propias, llenar=tema.get("prioridad_fotos_propias", False))
     return datos
 
 
@@ -109,14 +112,16 @@ def _palabras(texto: str) -> set[str]:
     return {p for p in re.findall(r"[a-z0-9]+", texto) if len(p) > 2 and not p.isdigit()}
 
 
-def asignar_fotos_propias(escenas: list[dict], fotos_propias: dict):
+def asignar_fotos_propias(escenas: list[dict], fotos_propias: dict, llenar: bool = False):
     """Si una escena menciona algo que tiene foto propia (por el nombre del archivo o su
-    descripción) y la IA no se la puso, se la pone. Así se usan todas las fotos que encajan."""
+    descripción) y la IA no se la puso, se la pone. Así se usan todas las fotos que encajan.
+    Con llenar=True (pediste usar tus fotos), las que sobren van a las escenas que no tienen
+    foto propia, en orden: primero tus fotos y solo se genera lo que falte."""
     usadas = {e.get("foto_propia") for e in escenas if e.get("foto_propia") in fotos_propias}
     for nombre, (ruta, descripcion) in fotos_propias.items():
         if nombre in usadas:
             continue
-        claves = _palabras(Path(nombre).stem.split("/")[-1])
+        claves = _palabras(Path(nombre).stem)
         if not claves:
             continue
         mejor, puntaje = None, 0.0
@@ -130,3 +135,10 @@ def asignar_fotos_propias(escenas: list[dict], fotos_propias: dict):
         if mejor is not None and puntaje >= 0.6:
             mejor["foto_propia"] = nombre
             usadas.add(nombre)
+    if llenar:
+        libres = [n for n in fotos_propias if n not in usadas]
+        for e in escenas:
+            if not libres:
+                break
+            if not e.get("grafica") and e.get("foto_propia") not in fotos_propias:
+                e["foto_propia"] = libres.pop(0)

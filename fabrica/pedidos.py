@@ -133,6 +133,15 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
     if not es_negocio:  # un anuncio de tu negocio no necesita noticias
         fuentes += tendencias.buscar_noticias(consulta)
     elegidas = [c for c in d.get("carpetas_fotos", []) if c in carpetas]
+    # "fotos en drive", "drive", "mis fotos"...: primero tus fotos, luego generar.
+    pide_fotos = bool(re.search(r"\b(drive|drives|driver|drivers|mis fotos|fotos)\b", pedido, re.I))
+    from fabrica import mis_fotos as _mf
+    nombradas = _mf.mencionadas(indicaciones, carpetas)
+    if nombradas:
+        elegidas = nombradas
+    elegidas = _mf.quitar_repetidas(elegidas)
+    if pide_fotos and not elegidas:
+        logger.warning(f"Pediste usar tus fotos pero ninguna carpeta coincide. Tienes: {', '.join(carpetas)}")
     elegido = estilo if estilo != ESTILO_AUTOMATICO else d.get("estilo", "")
     return {
         "tema": tema,
@@ -143,5 +152,6 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
         "contexto": contexto,
         "indicaciones": indicaciones,
         "carpetas_fotos": elegidas,
+        "prioridad_fotos_propias": pide_fotos and bool(elegidas),
         "es_negocio": es_negocio,
     }

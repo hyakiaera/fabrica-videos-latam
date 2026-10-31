@@ -79,6 +79,10 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     if tema.get("carpetas_fotos"):
         from fabrica import mis_fotos
         fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo)
+    if fotos_propias and "stock_video" in estilo.fuentes:
+        # El estilo de videos de stock no usa fotos: con tus fotos se usa uno de imágenes.
+        estilo = estilos.obtener("cinematografico")
+        tema["estilo"] = "cinematografico"
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}

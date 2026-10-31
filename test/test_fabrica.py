@@ -515,5 +515,46 @@ class TestRespaldoStock(unittest.TestCase):
         self.assertEqual(tema["estilo"], "cinematografico")
 
 
+class TestCarpetasAnidadas(unittest.TestCase):
+    def test_carpeta_mencionada_con_acentos_y_anidada(self):
+        from fabrica import mis_fotos
+        cats = ["Comida", "Comida/Comida salvadoreña", "Series", "muebles"]
+        self.assertEqual(mis_fotos.mencionadas("video de pupusas, fotos en drive comida salvadorena", cats),
+                         ["Comida"])  # la de afuera ya incluye la de adentro
+        self.assertEqual(mis_fotos.mencionadas("usa la carpeta comida salvadoreña", cats[1:]),
+                         ["Comida/Comida salvadoreña"])
+
+    def test_fotos_en_subcarpetas(self):
+        from PIL import Image
+        from fabrica import mis_fotos
+        raiz = Path(tempfile.mkdtemp())
+        (raiz / "Comida" / "Comida salvadoreña").mkdir(parents=True)
+        Image.new("RGB", (800, 800)).save(raiz / "Comida" / "Comida salvadoreña" / "pupusas.jpg")
+        with mock.patch.object(mis_fotos, "_local", return_value=raiz), \
+             mock.patch.object(mis_fotos, "_remoto", return_value=None), \
+             mock.patch.object(ia, "describir_imagen", return_value="pupusas"):
+            self.assertIn("Comida/Comida salvadoreña", mis_fotos.categorias({}))
+            fotos = mis_fotos.preparar({}, ["Comida"], Path(tempfile.mkdtemp()))
+        self.assertEqual(list(fotos), ["Comida/Comida salvadoreña/pupusas.jpg"])
+
+    def test_pedir_fotos_llena_escenas_primero(self):
+        propias = {f"Comida/f{i}.jpg": (Path(f"f{i}.jpg"), "comida") for i in range(3)}
+        escenas = [{"texto": "intro"}, {"texto": "a"}, {"texto": "b", "grafica": {"tipo": "cifra"}},
+                   {"texto": "c"}, {"texto": "d"}]
+        guion.asignar_fotos_propias(escenas, propias, llenar=True)
+        self.assertEqual([e.get("foto_propia") for e in escenas],
+                         ["Comida/f0.jpg", "Comida/f1.jpg", None, "Comida/f2.jpg", None])
+
+    def test_palabra_drive_activa_prioridad(self):
+        from fabrica import mis_fotos
+        respuesta = {"tema": "Comida salvadoreña", "consulta": "x", "estilo": "realista", "carpetas_fotos": []}
+        with mock.patch.object(mis_fotos, "categorias", return_value=["Comida", "Comida/Comida salvadoreña"]), \
+             mock.patch.object(ia, "pedir_json", return_value=respuesta), \
+             mock.patch.object(tendencias, "buscar_noticias", return_value=[]):
+            tema = pedidos.preparar({}, "platos típicos de El Salvador (fotos en el drive comida)", "auto")
+        self.assertEqual(tema["carpetas_fotos"], ["Comida"])
+        self.assertTrue(tema["prioridad_fotos_propias"])
+
+
 if __name__ == "__main__":
     unittest.main()

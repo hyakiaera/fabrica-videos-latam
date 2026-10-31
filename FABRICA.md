@@ -197,6 +197,12 @@ La fábrica:
 4. Lo que no esté en tus fotos lo genera con IA.
 5. Al final pone una tarjeta con el nombre, la oferta y la dirección, tal como los escribiste.
 
+Se pueden usar carpetas dentro de carpetas (ej. `Comida › Comida salvadoreña`).
+
+**Para que use tus fotos primero**, escribe en el pedido `drive`, `fotos en drive` o `mis fotos` y
+el nombre de la carpeta, por ejemplo: `platos típicos de El Salvador (fotos en drive: comida)`.
+Así pone tus fotos en las escenas y solo genera con IA las que falten.
+
 En la PC también funciona con una carpeta `mis fotos/<categoría>` dentro del proyecto.
 
 ## Recomendaciones
