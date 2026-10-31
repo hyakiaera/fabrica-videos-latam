@@ -103,6 +103,9 @@ hilos = 2
 [logo]
 activo = true
 archivo = "marca/logo.png"  # sube tu PNG con fondo transparente con este nombre
+# Si no hay logo.png, se usa este texto como logo (ej. "@MiCanal"). Vacío = sin logo.
+texto = ""
+tamano_texto = 0.34         # ancho del texto de marca (fracción del video)
 # Posiciones listas (fuera de subtítulos y botones de las apps):
 # arriba_izquierda, arriba_centro, arriba_derecha, centro_izquierda,
 # abajo_izquierda, o "personalizada" usando x / y

@@ -45,8 +45,8 @@ def generar(cfg: dict, salida: Path) -> Path:
     salida.parent.mkdir(parents=True, exist_ok=True)
     temporal = salida.with_suffix(".fondo.png")
     fondo.save(temporal)
-    logo = video.ruta_logo(cfg)
-    if not logo.is_file():  # logo de ejemplo si todavía no subiste el tuyo
+    logo = video.obtener_logo(cfg, salida.parent)
+    if not logo:  # logo de ejemplo si todavía no subiste el tuyo
         logo = salida.with_suffix(".logo.png")
         ejemplo = Image.new("RGBA", (500, 200), (0, 0, 0, 0))
         de = ImageDraw.Draw(ejemplo)
@@ -54,7 +54,7 @@ def generar(cfg: dict, salida: Path) -> Path:
         de.text((70, 55), "TU LOGO", font=ImageFont.truetype(str(FUENTE), 80), fill="black")
         ejemplo.save(logo)
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(temporal),
-                    "-i", str(logo), "-filter_complex", video.filtro_logo(cfg), "-frames:v", "1",
+                    "-i", str(logo), "-filter_complex", video.filtro_logo(cfg, logo.name == "logo-texto.png"), "-frames:v", "1",
                     "-q:v", "2", str(salida)], check=True)
     temporal.unlink()
     return salida

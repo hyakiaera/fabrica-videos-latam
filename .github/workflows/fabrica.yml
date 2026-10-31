@@ -19,7 +19,10 @@ on:
         default: auto
         options: [auto, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista]
       tema:
-        description: "Tema a mano (vacío = buscar tendencias)"
+        description: "Tema, pedido o link de YouTube/TikTok/noticia (vacío = tendencias)"
+        default: ""
+      texto_marca:
+        description: "Texto como logo si no subiste marca/logo.png (ej. @MiCanal)"
         default: ""
       drive:
         description: "Subir a Google Drive"
@@ -67,6 +70,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
           pip install -q -r requirements.txt
+          pip install -q -U yt-dlp trafilatura
 
       - name: Recordar el motor de voz clonada (StudioVoz/Applio)
         uses: actions/cache@v4
@@ -119,9 +123,12 @@ jobs:
           IN_VOZ: ${{ inputs.voz || '' }}
           IN_CLONAR: ${{ inputs.clonar_voz }}
           IN_PROBAR_LOGO: ${{ inputs.probar_logo }}
+          IN_TEXTO_MARCA: ${{ inputs.texto_marca || vars.TEXTO_MARCA }}
         run: |
           cp config.example.toml config.toml
-          if [ "$IN_PROBAR_LOGO" = "true" ]; then python -m fabrica --probar-logo; exit 0; fi
+          MARCA=()
+          if [ -n "$IN_TEXTO_MARCA" ]; then MARCA=(--texto-marca "$IN_TEXTO_MARCA"); fi
+          if [ "$IN_PROBAR_LOGO" = "true" ]; then python -m fabrica --probar-logo "${MARCA[@]}"; exit 0; fi
           SALIDAS="descargar"
           if [ "$EVENTO" = "schedule" ] || [ "$IN_DRIVE" = "true" ]; then SALIDAS="$SALIDAS,drive"; fi
           if [ "$IN_PUBLICAR" = "true" ]; then SALIDAS="$SALIDAS,publicar"; fi
@@ -129,7 +136,7 @@ jobs:
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_VOZ" ]; then ARGS+=(--voz "$IN_VOZ"); fi
           if [ "$IN_CLONAR" = "true" ]; then ARGS+=(--clonar-voz si); fi
-          python -m fabrica "${ARGS[@]}"
+          python -m fabrica "${ARGS[@]}" "${MARCA[@]}"
 
       - name: Dejar los videos para descargar
         if: always()

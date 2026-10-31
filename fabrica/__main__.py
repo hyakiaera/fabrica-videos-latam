@@ -3,6 +3,8 @@
   python -m fabrica                         # usa las perillas de fabrica.toml
   python -m fabrica --cantidad 2 --estilo caricatura
   python -m fabrica --tema "Final de la Copa" --estilo comic --salidas descargar
+  python -m fabrica --tema "quiero un video sobre el nuevo estadio del Barcelona, tono divertido"
+  python -m fabrica --tema "https://www.youtube.com/watch?v=..."
   python -m fabrica --solo-tendencias       # ver qué temas elegiría, sin hacer videos
   python -m fabrica --repetir-cada 4        # modo PC: trabaja cada 4 horas mientras esté prendida
   python -m fabrica --estilos               # lista los estilos disponibles
@@ -104,10 +106,8 @@ def una_ronda(cfg: dict, args) -> int:
         estilos.obtener(estilo)
 
     if args.tema:
-        temas = [{"tema": args.tema, "categoria": args.categoria or "general",
-                  "estilo": estilo if estilo != estilos.ESTILO_AUTOMATICO else "caricatura",
-                  "por_que": "elegido a mano",
-                  "fuentes": tendencias.buscar_noticias(args.tema)}]
+        from fabrica import pedidos
+        temas = [pedidos.preparar(cfg, args.tema, estilo, args.categoria or "")]
     else:
         candidatos = tendencias.recolectar(cfg)
         if not candidatos:
@@ -137,11 +137,12 @@ def main(argv=None) -> int:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--cantidad", type=int, help="videos por ronda")
     p.add_argument("--estilo", help="auto o uno de: " + ", ".join(estilos.ESTILOS))
-    p.add_argument("--tema", help="hacer un video de este tema en vez de buscar tendencias")
+    p.add_argument("--tema", help="tema, pedido libre o link (YouTube, TikTok, noticia) en vez de tendencias")
     p.add_argument("--categoria", help="categoría del tema manual")
     p.add_argument("--salidas", help="combinación de: descargar,drive,publicar")
     p.add_argument("--voz", choices=["hombre", "mujer"], help="voz de Edge (por defecto hombre)")
     p.add_argument("--clonar-voz", choices=["si", "no"], help="convertir la voz a tu voz (StudioVoz)")
+    p.add_argument("--texto-marca", help='texto que va como logo si no hay marca/logo.png (ej. "@MiCanal")')
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
     p.add_argument("--repetir-cada", type=float, metavar="HORAS", help="modo PC: repetir cada N horas")
@@ -160,6 +161,8 @@ def main(argv=None) -> int:
             cfg.setdefault("voz", {})["clonar"] = args.clonar_voz == "si"
         if args.voz:
             cfg.setdefault("voz", {})["genero"] = args.voz
+        if args.texto_marca:
+            cfg.setdefault("logo", {})["texto"] = args.texto_marca
         return cfg
 
     cfg = cargar_cfg()

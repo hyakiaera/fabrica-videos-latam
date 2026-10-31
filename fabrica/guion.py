@@ -10,18 +10,25 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo) -> dict:
     palabras = int(segundos * 2.5)  # ~2.5 palabras por segundo en español
     escenas = max(4, segundos // int(g.get("segundos_por_escena", 5)))
     fuentes = "\n".join(f"- {t} ({f})" for t, f, _ in tema.get("fuentes", [])) or "- (sin titulares)"
+    contexto = tema.get("contexto", "")
+    extra = ""
+    if contexto:
+        extra += f"\nContenido del link de referencia (úsalo como fuente; NO lo copies, cuéntalo con tus palabras):\n{contexto}\n"
+    if tema.get("indicaciones"):
+        extra += f"\nLo que pidió el dueño del canal (respétalo): {tema['indicaciones']}\n"
     sistema = (
         "Eres guionista de videos cortos virales en español latino neutro. Escribes con gancho "
         "fuerte en los primeros 3 segundos, frases cortas, tono cercano y cierre con pregunta o "
         "llamado a seguir el canal. Si la información viene en inglés, la traduces y adaptas. "
-        "REGLA DE ORO: usa solo los hechos de los titulares dados; no inventes cifras, fechas, "
-        "nombres ni declaraciones. Si falta un dato, habla en general. Respondes SOLO JSON válido."
+        "REGLA DE ORO: usa solo los hechos de los titulares y del contenido dados; no inventes "
+        "cifras, fechas, nombres, historias de fondo ni declaraciones. Si falta un dato, habla en "
+        "general o plantéalo como pregunta. Respondes SOLO JSON válido."
     )
     usuario = f"""Tema: {tema['tema']}
 Categoría: {tema.get('categoria', '')}
 Titulares de referencia:
 {fuentes}
-
+{extra}
 Estilo visual del video: {estilo.nombre} ({estilo.descripcion})
 {g.get('instrucciones_extra', '')}
 

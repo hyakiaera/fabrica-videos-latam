@@ -142,6 +142,26 @@ la transparencia.
 prueba del logo**, o `python -m fabrica --probar-logo` en tu PC. La imagen muestra tu logo, los
 subtítulos y en rojo las zonas que tapan los botones de TikTok/Reels/Shorts.
 
+## 7. Videos a pedido (link o texto)
+
+En **Run workflow**, el campo **Tema** acepta tres cosas:
+
+- **Un tema:** `Final de la Champions`
+- **Un pedido libre:** `quiero un video que explique por qué subió el dólar, tono serio`
+- **Un link:** de YouTube, TikTok, Instagram, X o una noticia, y opcionalmente lo que quieres:
+  `https://www.youtube.com/watch?v=... hazlo divertido y corto`
+
+La fábrica lee el link (título, descripción y lo que se dice en el video, o el texto de la noticia),
+busca más noticias del tema y escribe **su propio guion** con tus estilos. No reutiliza el video
+original: así evitas reclamos de derechos de autor. En la ficha `.txt` queda el link como fuente.
+
+## 8. Texto como logo
+
+Si no tienes logo, escribe tu marca (ej. `@MiCanal`) en **Texto como logo** al usar Run workflow.
+Para que salga siempre, también en las rondas automáticas: **Settings → Secrets and variables →
+Actions → pestaña Variables → New repository variable**, con nombre `TEXTO_MARCA` y tu texto.
+Si subes `marca/logo.png`, se usa el logo en lugar del texto.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

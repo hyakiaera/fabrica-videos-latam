@@ -140,8 +140,41 @@ def ruta_logo(cfg: dict) -> Path:
     return logo
 
 
-def filtro_logo(cfg: dict) -> str:
+def logo_de_texto(texto: str, salida: Path) -> Path:
+    """Convierte un texto (ej. "@MiCanal") en un logo PNG con fondo redondeado."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    from fabrica.config import RAIZ
+
+    letra = ImageFont.truetype(str(RAIZ / "resource" / "fonts" / "BeVietnamPro-Bold.ttf"), 120)
+    caja = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), texto, font=letra)
+    ancho, alto = caja[2] - caja[0] + 120, caja[3] - caja[1] + 80
+    img = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, ancho - 1, alto - 1], alto // 3, fill=(0, 0, 0, 170))
+    d.text((60 - caja[0], 40 - caja[1]), texto, font=letra, fill="white")
+    salida.parent.mkdir(parents=True, exist_ok=True)
+    img.save(salida)
+    return salida
+
+
+def obtener_logo(cfg: dict, carpeta: Path) -> Path | None:
+    """Tu logo PNG si lo subiste; si no, el texto de marca convertido en logo."""
+    lg = cfg.get("logo", {})
+    if not lg.get("activo", True):
+        return None
+    logo = ruta_logo(cfg)
+    if logo.is_file():
+        return logo
+    if lg.get("texto", "").strip():
+        return logo_de_texto(lg["texto"].strip(), carpeta / "logo-texto.png")
+    return None
+
+
+def filtro_logo(cfg: dict, es_texto: bool = False) -> str:
     x, y, ancho = ubicacion_logo(cfg)
+    if es_texto:  # un texto es más ancho que un logo: necesita más espacio para leerse
+        ancho = float(cfg.get("logo", {}).get("tamano_texto", 0.34)) * 100
     ancho_logo = int(ANCHOS.get(cfg.get("video", {}).get("aspecto", "9:16"), 1080) * ancho / 100)
     opacidad = float(cfg.get("logo", {}).get("opacidad", 0.9))
     return (f"[1:v]scale={ancho_logo}:-1,format=rgba,colorchannelmixer=aa={opacidad}[logo];"
@@ -149,16 +182,15 @@ def filtro_logo(cfg: dict) -> str:
 
 
 def poner_logo(cfg: dict, video: Path, salida: Path) -> Path:
-    lg = cfg.get("logo", {})
-    logo = ruta_logo(cfg)
-    if not lg.get("activo", True) or not logo.is_file():
-        if lg.get("activo", True):
-            logger.warning(f"Logo: no hay logo en '{logo}', el video sale sin logo")
+    logo = obtener_logo(cfg, salida.parent)
+    if not logo:
+        if cfg.get("logo", {}).get("activo", True):
+            logger.warning("Logo: no subiste marca/logo.png ni pusiste texto de marca; sale sin logo")
         shutil.copy(video, salida)
         return salida
 
     comando = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(video),
-               "-i", str(logo), "-filter_complex", filtro_logo(cfg), "-c:v", "libx264", "-preset", "veryfast",
+               "-i", str(logo), "-filter_complex", filtro_logo(cfg, logo.name == "logo-texto.png"), "-c:v", "libx264", "-preset", "veryfast",
                "-crf", "20", "-c:a", "copy", "-movflags", "+faststart", str(salida)]
     subprocess.run(comando, check=True)
     return salida

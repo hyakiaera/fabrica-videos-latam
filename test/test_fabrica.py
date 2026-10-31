@@ -5,7 +5,7 @@ import base64
 import tempfile
 from pathlib import Path
 
-from fabrica import estilos, ia, imagenes, salidas, tendencias, video, voz
+from fabrica import estilos, guion, ia, imagenes, pedidos, salidas, tendencias, video, voz
 
 TRENDS_RSS = b"""<?xml version="1.0"?>
 <rss xmlns:ht="https://trends.google.com/trending/rss" version="2.0"><channel>
@@ -169,6 +169,45 @@ class TestImagenesYRespaldo(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 ia.pedir_json({}, "s", "u")
         self.assertEqual(post.call_count, 1)
+
+
+class TestPedidosYMarca(unittest.TestCase):
+    def test_link_de_noticia_da_contexto_y_fuentes(self):
+        articulo = {"titulo": "Nuevo estadio", "autor": "Diario", "texto": "El estadio abre en 2027."}
+        respuesta = {"tema": "El nuevo estadio", "consulta": "nuevo estadio", "categoria": "deportes",
+                     "estilo": "comic"}
+        with mock.patch.object(pedidos, "leer_articulo", return_value=articulo), \
+             mock.patch.object(ia, "pedir_json", return_value=respuesta), \
+             mock.patch.object(tendencias, "buscar_noticias", return_value=[("T", "M", "u")]):
+            tema = pedidos.preparar({}, "https://diario.com/nota hazlo divertido", "auto")
+        self.assertEqual(tema["estilo"], "comic")
+        self.assertEqual(tema["contexto"], "El estadio abre en 2027.")
+        self.assertEqual(tema["indicaciones"], "hazlo divertido")
+        self.assertEqual(tema["fuentes"][0], ("Nuevo estadio", "Diario", "https://diario.com/nota"))
+
+    def test_link_de_red_social_usa_lector_de_video(self):
+        with mock.patch.object(pedidos, "leer_video", return_value={"titulo": "X", "autor": "", "texto": ""}) as lv, \
+             mock.patch.object(ia, "pedir_json", side_effect=RuntimeError), \
+             mock.patch.object(tendencias, "buscar_noticias", return_value=[]):
+            tema = pedidos.preparar({}, "https://www.tiktok.com/@a/video/1", "pizarra")
+        lv.assert_called_once()
+        self.assertEqual((tema["tema"], tema["estilo"]), ("X", "pizarra"))
+
+    def test_guion_incluye_contexto_e_indicaciones(self):
+        datos = {"guion": "g", "escenas": [{}], "hashtags": ["a"]}
+        tema = {"tema": "T", "contexto": "DATO UNICO", "indicaciones": "tono serio", "fuentes": []}
+        with mock.patch.object(ia, "pedir_json", return_value=datos) as pj:
+            guion.escribir({}, tema, estilos.obtener("comic"))
+        prompt = pj.call_args.args[2]
+        self.assertIn("DATO UNICO", prompt)
+        self.assertIn("tono serio", prompt)
+
+    def test_texto_de_marca_crea_logo(self):
+        carpeta = Path(tempfile.mkdtemp())
+        cfg = {"logo": {"archivo": str(carpeta / "no-existe.png"), "texto": "@MiCanal"}}
+        logo = video.obtener_logo(cfg, carpeta)
+        self.assertTrue(logo and logo.exists())
+        self.assertIsNone(video.obtener_logo({"logo": {"archivo": str(carpeta / "x.png")}}, carpeta))
 
 
 if __name__ == "__main__":
