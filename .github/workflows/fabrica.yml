@@ -55,9 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -91,9 +91,13 @@ jobs:
           if not t.startswith("{"):
               t = json.loads(base64.b64decode(t + "=" * (-len(t) % 4)).decode())["token"]
           print(json.dumps(json.loads(t)))
-          ')
+          ') || { echo "::warning::RCLONE_DRIVE_TOKEN no tiene el formato correcto (copia todo, de { a })"; exit 0; }
           printf '[drive]\ntype = drive\nscope = drive\ntoken = %s\n' "$TOKEN" > ~/.config/rclone/rclone.conf
-          rclone lsd drive: --max-depth 1 > /dev/null && echo "Google Drive conectado"
+          if rclone lsd drive: --max-depth 1 > /dev/null; then
+            echo "Google Drive conectado"
+          else
+            echo "::warning::No se pudo entrar a Google Drive: revisa el secreto RCLONE_DRIVE_TOKEN. Los videos quedan para descargar."
+          fi
 
       - name: Hacer videos
         env:
@@ -127,7 +131,7 @@ jobs:
 
       - name: Dejar los videos para descargar
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: videos-${{ github.run_number }}
           path: salida/
