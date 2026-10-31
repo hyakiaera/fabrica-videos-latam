@@ -1,0 +1,131 @@
+name: Fabrica de videos
+
+on:
+  schedule:
+    # 5 rondas al día, en hora de México (UTC-6): 7am, 11am, 3pm, 7pm y 10pm
+    - cron: "0 13 * * *"
+    - cron: "0 17 * * *"
+    - cron: "0 21 * * *"
+    - cron: "0 1 * * *"
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      cantidad:
+        description: "Cuántos videos"
+        default: "2"
+      estilo:
+        description: "Estilo"
+        type: choice
+        default: auto
+        options: [auto, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista]
+      tema:
+        description: "Tema a mano (vacío = buscar tendencias)"
+        default: ""
+      drive:
+        description: "Subir a Google Drive"
+        type: boolean
+        default: true
+      publicar:
+        description: "Publicar en redes (Upload-Post)"
+        type: boolean
+        default: false
+      voz:
+        description: "Voz"
+        type: choice
+        default: hombre
+        options: [hombre, mujer]
+      clonar_voz:
+        description: "Usar mi voz (modelo de StudioVoz en mi Drive)"
+        type: boolean
+        default: false
+      probar_logo:
+        description: "Solo crear imagen de prueba del logo (no hace videos)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write  # para guardar el historial de temas y no repetirlos
+
+concurrency:
+  group: fabrica
+  cancel-in-progress: false
+
+jobs:
+  videos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
+          pip install -q -r requirements.txt
+
+      - name: Recordar el motor de voz clonada (StudioVoz/Applio)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .applio
+            .applio_modelos
+          key: applio-${{ runner.os }}-v1
+
+      - name: Configurar Google Drive (rclone)
+        env:
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN }}
+        run: |
+          if [ -z "$RCLONE_DRIVE_TOKEN" ]; then echo "Sin RCLONE_DRIVE_TOKEN: no se subirá a Drive"; exit 0; fi
+          mkdir -p ~/.config/rclone
+          printf '[drive]\ntype = drive\nscope = drive\ntoken = %s\n' "$RCLONE_DRIVE_TOKEN" > ~/.config/rclone/rclone.conf
+
+      - name: Hacer videos
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          POLLINATIONS_TOKEN: ${{ secrets.POLLINATIONS_TOKEN }}
+          UPLOAD_POST_API_KEY: ${{ secrets.UPLOAD_POST_API_KEY }}
+          UPLOAD_POST_USERNAME: ${{ secrets.UPLOAD_POST_USERNAME }}
+          EVENTO: ${{ github.event_name }}
+          IN_CANTIDAD: ${{ inputs.cantidad || '2' }}
+          IN_ESTILO: ${{ inputs.estilo || 'auto' }}
+          IN_TEMA: ${{ inputs.tema }}
+          IN_DRIVE: ${{ inputs.drive }}
+          IN_PUBLICAR: ${{ inputs.publicar }}
+          IN_VOZ: ${{ inputs.voz || '' }}
+          IN_CLONAR: ${{ inputs.clonar_voz }}
+          IN_PROBAR_LOGO: ${{ inputs.probar_logo }}
+        run: |
+          cp config.example.toml config.toml
+          if [ "$IN_PROBAR_LOGO" = "true" ]; then python -m fabrica --probar-logo; exit 0; fi
+          SALIDAS="descargar"
+          if [ "$EVENTO" = "schedule" ] || [ "$IN_DRIVE" = "true" ]; then SALIDAS="$SALIDAS,drive"; fi
+          if [ "$IN_PUBLICAR" = "true" ]; then SALIDAS="$SALIDAS,publicar"; fi
+          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO")
+          if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
+          if [ -n "$IN_VOZ" ]; then ARGS+=(--voz "$IN_VOZ"); fi
+          if [ "$IN_CLONAR" = "true" ]; then ARGS+=(--clonar-voz si); fi
+          python -m fabrica "${ARGS[@]}"
+
+      - name: Dejar los videos para descargar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ github.run_number }}
+          path: salida/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Guardar historial de temas
+        if: always()
+        run: |
+          git config user.name "fabrica-bot"
+          git config user.email "fabrica-bot@users.noreply.github.com"
+          git add estado/historial.json 2>/dev/null || exit 0
+          git diff --cached --quiet || (git commit -m "Historial de temas" && git push)

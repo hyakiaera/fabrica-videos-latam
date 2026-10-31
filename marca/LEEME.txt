@@ -1,0 +1,2 @@
+Pon aquí tu logo como logo.png (PNG con fondo transparente).
+El tamaño, posición y transparencia se cambian en fabrica.toml, sección [logo].

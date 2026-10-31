@@ -1,0 +1,124 @@
+# ============================================================
+#  PERILLAS DE LA FÁBRICA DE VIDEOS
+#  Copia este archivo como fabrica.toml y cambia lo que quieras.
+#  Las CLAVES (Gemini, Groq, Pexels...) NO van aquí: van en .env
+#  (en tu PC) o en Secrets (en GitHub).
+# ============================================================
+
+[fabrica]
+videos_por_ronda = 2
+# "auto" = la IA elige el estilo según el tema. O fija uno:
+# explicativo, caricatura, comic, artistico, acuarela, pizarra, anime,
+# 3d, cinematografico, noticiero, realista
+estilo = "auto"
+# Combina las que quieras: "descargar" (siempre activa), "drive", "publicar"
+salidas = ["descargar", "drive"]
+
+[tendencias]
+categorias = ["deportes", "entretenimiento", "tecnologia", "economia", "mundo", "ciencia"]
+titulares_por_categoria = 8
+max_candidatos_ia = 90
+
+# Google Trends por país y su peso (más alto = más prioridad)
+[tendencias.trends_paises]
+MX = 1.0
+CO = 1.0
+AR = 0.95
+PE = 0.85
+CL = 0.85
+US = 0.7   # EE.UU. en inglés: lo viral que también llega a latinos
+ES = 0.6
+
+# Ediciones de Google News (español latino, latinos en EE.UU. e inglés)
+[[tendencias.news_ediciones]]
+hl = "es-419"
+gl = "MX"
+ceid = "MX:es-419"
+peso = 1.0
+
+[[tendencias.news_ediciones]]
+hl = "es-419"
+gl = "US"
+ceid = "US:es-419"
+peso = 0.95
+
+[[tendencias.news_ediciones]]
+hl = "en-US"
+gl = "US"
+ceid = "US:en"
+peso = 0.7
+
+[ia]
+modelo_gemini = "gemini-flash-latest"
+modelo_groq = "llama-3.3-70b-versatile"
+usar_pollinations_texto = true   # tercer respaldo gratis, sin clave
+
+[guion]
+duracion_segundos = 55
+segundos_por_escena = 5
+instrucciones_extra = "Al final invita a seguir el canal."
+
+[imagenes]
+modelo_pollinations = "flux"
+url_pollinations = "https://image.pollinations.ai/prompt/"
+
+[voz]
+# "hombre" o "mujer". Voces gratis de Edge en español latino neutro (México,
+# el acento más neutro para Latinoamérica; se usa en el doblaje).
+genero = "hombre"
+voz_hombre = "es-MX-JorgeNeural-Male"
+voz_mujer = "es-MX-DaliaNeural-Female"
+# Otras opciones: es-US-AlonsoNeural-Male, es-US-PalomaNeural-Female
+velocidad = 1.1
+
+# PERILLA DE VOZ CLONADA: convierte la voz de Edge a TU voz con el modelo que
+# entrenaste en tu cuaderno StudioVoz (Colab). Lo toma solo de tu Drive:
+# Mi unidad › StudioVoz › modelos › <modelo> › respaldo
+clonar = false
+motor = "applio"            # "applio" (StudioVoz) o "comando" (otro programa)
+modelo = "mi_voz"           # el NOMBRE_MODELO que usaste en StudioVoz
+carpeta_modelos_drive = "StudioVoz/modelos"
+tono = 0                    # +12 hombre→mujer, -12 mujer→hombre
+parecido = 0.5              # PARECIDO_A_LA_VOZ del cuaderno
+proteger_consonantes = 0.33
+metodo_tono = "rmvpe"
+tiempo_max_clonar = 1800
+# Solo si motor = "comando": recibe {entrada} y debe crear {salida}
+comando_clonar = ""
+
+[video]
+aspecto = "9:16"            # 9:16, 16:9 o 1:1
+musica = "random"           # "random" o "" para sin música
+volumen_musica = 0.15
+tamano_letra = 70
+grosor_borde = 2.5
+posicion_subtitulos = "custom"
+altura_subtitulos = 72      # % desde arriba
+transicion = "FadeIn"       # "", FadeIn, FadeOut, SlideIn, SlideOut, Shuffle
+fuente_stock = "pexels"     # para el estilo "realista"
+duracion_clip_stock = 4
+hilos = 2
+
+[logo]
+activo = true
+archivo = "marca/logo.png"  # sube tu PNG con fondo transparente con este nombre
+# Posiciones listas (fuera de subtítulos y botones de las apps):
+# arriba_izquierda, arriba_centro, arriba_derecha, centro_izquierda,
+# abajo_izquierda, o "personalizada" usando x / y
+posicion = "arriba_izquierda"
+x = 4                       # % desde la izquierda (solo personalizada)
+y = 7                       # % desde arriba (solo personalizada)
+tamano = 0.16               # fracción del ancho del video (0.16 = 16 %)
+opacidad = 0.9              # 1 = sólido, 0.5 = medio transparente
+# Para ver cómo queda sin hacer un video: python -m fabrica --probar-logo
+
+[salida]
+carpeta = "salida"          # aquí quedan los videos para descargar
+
+[drive]
+remoto = "drive"            # nombre del remoto de rclone
+carpeta = "Fabrica de Videos"
+
+[publicar]
+# Usa Upload-Post (integración que ya trae MoneyPrinterTurbo).
+plataformas = ["tiktok", "youtube", "instagram"]
