@@ -2,17 +2,21 @@ name: Fabrica de videos
 
 on:
   schedule:
-    # 5 rondas al día, en hora de México (UTC-6): 7am, 11am, 3pm, 7pm y 10pm
-    - cron: "0 13 * * *"
-    - cron: "0 17 * * *"
-    - cron: "0 21 * * *"
-    - cron: "0 1 * * *"
-    - cron: "0 4 * * *"
+    # Hora de México (UTC-6). 1 video por ronda.
+    # Lunes a viernes: 7am, 12pm, 4pm y 10pm (4 videos)
+    # Sábado y domingo: 7am, 11am, 3pm, 7pm y 10pm (5 videos)
+    - cron: "5 13 * * *"      # 7am todos los días
+    - cron: "5 4 * * *"       # 10pm todos los días (en UTC ya es el día siguiente)
+    - cron: "5 18 * * 1-5"    # 12pm lunes a viernes
+    - cron: "5 22 * * 1-5"    # 4pm lunes a viernes
+    - cron: "5 17 * * 0,6"    # 11am sábado y domingo
+    - cron: "5 21 * * 0,6"    # 3pm sábado y domingo
+    - cron: "5 1 * * 0,1"     # 7pm sábado y domingo (en UTC ya es domingo y lunes)
   workflow_dispatch:
     inputs:
       cantidad:
         description: "Cuántos videos"
-        default: "2"
+        default: "1"
       estilo:
         description: "Estilo"
         type: choice
@@ -115,7 +119,7 @@ jobs:
           UPLOAD_POST_API_KEY: ${{ secrets.UPLOAD_POST_API_KEY }}
           UPLOAD_POST_USERNAME: ${{ secrets.UPLOAD_POST_USERNAME }}
           EVENTO: ${{ github.event_name }}
-          IN_CANTIDAD: ${{ inputs.cantidad || '2' }}
+          IN_CANTIDAD: ${{ inputs.cantidad || '1' }}
           IN_ESTILO: ${{ inputs.estilo || 'auto' }}
           IN_TEMA: ${{ inputs.tema }}
           IN_DRIVE: ${{ inputs.drive }}

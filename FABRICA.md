@@ -62,7 +62,8 @@ página aparece tu **Account ID**. Guarda los dos como secretos.
    Crea un secreto por cada clave de la tabla.
 2. Sube tu logo como `marca/logo.png`.
 3. (Opcional) Copia `fabrica.example.toml` como `fabrica.toml` y cambia las perillas.
-4. Listo. Corre a las 7am, 11am, 3pm, 7pm y 10pm (hora de México).
+4. Listo. Hace 1 video por ronda (hora de México): lunes a viernes a las 7am, 12pm, 4pm y 10pm;
+   sábado y domingo a las 7am, 11am, 3pm, 7pm y 10pm.
    - **Para hacer uno a mano:** pestaña **Actions → Fabrica de videos → Run workflow**. Ahí eliges
      cantidad, estilo, tema, Drive (sí/no) y publicar (sí/no). Funciona desde el celular.
    - **Para descargar:** abre la ejecución en **Actions**; abajo aparece `videos-N` (dura 7 días).
