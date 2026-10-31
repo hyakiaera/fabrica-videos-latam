@@ -210,5 +210,33 @@ class TestPedidosYMarca(unittest.TestCase):
         self.assertIsNone(video.obtener_logo({"logo": {"archivo": str(carpeta / "x.png")}}, carpeta))
 
 
+class TestOpcionesNuevas(unittest.TestCase):
+    def test_duraciones(self):
+        from fabrica.__main__ import segundos
+        self.assertEqual([segundos(d) for d in ("1", "1:30", "2", "2:30", "3", "2.5")],
+                         [60, 90, 120, 150, 180, 150])
+        self.assertEqual(segundos("20"), 300)
+
+    def test_video_largo_limita_escenas(self):
+        datos = {"guion": "g", "escenas": [{}], "hashtags": []}
+        cfg = {"guion": {"duracion_segundos": 180}}
+        with mock.patch.object(ia, "pedir_json", return_value=datos) as pj:
+            guion.escribir(cfg, {"tema": "T", "fuentes": []}, estilos.obtener("comic"))
+        prompt = pj.call_args.args[2]
+        self.assertIn("exactamente 24 escenas", prompt)
+        self.assertIn("unas 450 palabras", prompt)
+        self.assertIn("video largo", prompt)
+
+    def test_modelo_por_link_busca_en_subcarpetas(self):
+        from fabrica import voz_applio
+        carpeta = Path(tempfile.mkdtemp())
+        (carpeta / "zip" / "sub").mkdir(parents=True)
+        (carpeta / "zip" / "sub" / "mi.pth").write_bytes(b"x")
+        (carpeta / "zip" / "G_100.pth").write_bytes(b"x")
+        (carpeta / "zip" / "mi.index").write_bytes(b"x")
+        pth, idx = voz_applio._archivos_modelo_recursivo(carpeta)
+        self.assertEqual((pth.name, idx.name), ("mi.pth", "mi.index"))
+
+
 if __name__ == "__main__":
     unittest.main()

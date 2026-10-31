@@ -34,3 +34,4 @@ khatt[video]==0.4.0
 # Fábrica de videos: leer links de videos y noticias
 yt-dlp
 trafilatura
+gdown

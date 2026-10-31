@@ -25,26 +25,31 @@ on:
       tema:
         description: "Tema, pedido o link de YouTube/TikTok/noticia (vacío = tendencias)"
         default: ""
-      texto_marca:
-        description: "Texto como logo si no subiste marca/logo.png (ej. @MiCanal)"
+      duracion:
+        description: "Duración del video (minutos)"
+        type: choice
+        default: "1"
+        options: ["1", "1:30", "2", "2:30", "3"]
+      logo:
+        description: "Logo: link de tu PNG (Drive compartido) o un texto como @MiCanal"
+        default: ""
+      posicion_logo:
+        description: "Posición del logo"
+        type: choice
+        default: arriba_izquierda
+        options: [arriba_izquierda, arriba_centro, arriba_derecha, centro_izquierda, abajo_izquierda]
+      voz:
+        description: "Voz"
+        type: choice
+        default: hombre
+        options: [hombre, mujer, mi voz]
+      modelo_voz_link:
+        description: "Para 'mi voz': link del modelo (.pth/.zip) o su nombre en StudioVoz (vacío = mi_voz)"
         default: ""
       drive:
         description: "Subir a Google Drive"
         type: boolean
         default: true
-      publicar:
-        description: "Publicar en redes (Upload-Post)"
-        type: boolean
-        default: false
-      voz:
-        description: "Voz"
-        type: choice
-        default: hombre
-        options: [hombre, mujer]
-      clonar_voz:
-        description: "Usar mi voz (modelo de StudioVoz en mi Drive)"
-        type: boolean
-        default: false
       probar_logo:
         description: "Solo crear imagen de prueba del logo (no hace videos)"
         type: boolean
@@ -74,7 +79,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
           pip install -q -r requirements.txt
-          pip install -q -U yt-dlp trafilatura
+          pip install -q -U yt-dlp trafilatura gdown
 
       - name: Recordar el motor de voz clonada (StudioVoz/Applio)
         uses: actions/cache@v4
@@ -122,24 +127,36 @@ jobs:
           IN_CANTIDAD: ${{ inputs.cantidad || '1' }}
           IN_ESTILO: ${{ inputs.estilo || 'auto' }}
           IN_TEMA: ${{ inputs.tema }}
+          IN_DURACION: ${{ inputs.duracion || vars.DURACION || '1' }}
+          IN_LOGO: ${{ inputs.logo || vars.LOGO_LINK || vars.TEXTO_MARCA }}
+          IN_POSICION_LOGO: ${{ inputs.posicion_logo || vars.LOGO_POSICION }}
+          IN_VOZ: ${{ inputs.voz || vars.VOZ || 'hombre' }}
+          IN_MODELO_LINK: ${{ inputs.modelo_voz_link || vars.MODELO_VOZ_LINK }}
           IN_DRIVE: ${{ inputs.drive }}
-          IN_PUBLICAR: ${{ inputs.publicar }}
-          IN_VOZ: ${{ inputs.voz || '' }}
-          IN_CLONAR: ${{ inputs.clonar_voz }}
           IN_PROBAR_LOGO: ${{ inputs.probar_logo }}
-          IN_TEXTO_MARCA: ${{ inputs.texto_marca || vars.TEXTO_MARCA }}
+          VAR_PUBLICAR: ${{ vars.PUBLICAR }}
         run: |
           cp config.example.toml config.toml
           MARCA=()
-          if [ -n "$IN_TEXTO_MARCA" ]; then MARCA=(--texto-marca "$IN_TEXTO_MARCA"); fi
+          case "$IN_LOGO" in
+            http*) MARCA+=(--logo-link "$IN_LOGO") ;;
+            "") ;;
+            *) MARCA+=(--texto-marca "$IN_LOGO") ;;
+          esac
+          if [ -n "$IN_POSICION_LOGO" ]; then MARCA+=(--posicion-logo "$IN_POSICION_LOGO"); fi
           if [ "$IN_PROBAR_LOGO" = "true" ]; then python -m fabrica --probar-logo "${MARCA[@]}"; exit 0; fi
+
           SALIDAS="descargar"
           if [ "$EVENTO" = "schedule" ] || [ "$IN_DRIVE" = "true" ]; then SALIDAS="$SALIDAS,drive"; fi
-          if [ "$IN_PUBLICAR" = "true" ]; then SALIDAS="$SALIDAS,publicar"; fi
-          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO")
+          if [ "$VAR_PUBLICAR" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
+          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION")
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
-          if [ -n "$IN_VOZ" ]; then ARGS+=(--voz "$IN_VOZ"); fi
-          if [ "$IN_CLONAR" = "true" ]; then ARGS+=(--clonar-voz si); fi
+          if [ "$IN_VOZ" = "mi voz" ]; then
+            ARGS+=(--clonar-voz si)
+            if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi
+          else
+            ARGS+=(--voz "$IN_VOZ" --clonar-voz no)
+          fi
           python -m fabrica "${ARGS[@]}" "${MARCA[@]}"
 
       - name: Dejar los videos para descargar

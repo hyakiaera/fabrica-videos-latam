@@ -34,6 +34,17 @@ def _slug(texto: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", texto.lower()).strip("-")[:60] or "video"
 
 
+def segundos(duracion: str) -> int:
+    """'1' → 60, '1:30' → 90, '2.5' → 150. Entre 30 segundos y 5 minutos."""
+    texto = str(duracion).strip().lower().replace("min", "").strip()
+    if ":" in texto:
+        minutos, seg = texto.split(":", 1)
+        total = int(minutos or 0) * 60 + int(seg or 0)
+    else:
+        total = round(float(texto.replace(",", ".")) * 60)
+    return max(30, min(300, total))
+
+
 def _historial() -> list[dict]:
     if HISTORIAL.exists():
         return json.loads(HISTORIAL.read_text(encoding="utf-8"))
@@ -143,6 +154,10 @@ def main(argv=None) -> int:
     p.add_argument("--voz", choices=["hombre", "mujer"], help="voz de Edge (por defecto hombre)")
     p.add_argument("--clonar-voz", choices=["si", "no"], help="convertir la voz a tu voz (StudioVoz)")
     p.add_argument("--texto-marca", help='texto que va como logo si no hay marca/logo.png (ej. "@MiCanal")')
+    p.add_argument("--duracion", help="duración: 1, 1:30, 2, 2:30 o 3 (minutos)")
+    p.add_argument("--logo-link", help="link a tu logo PNG (Google Drive compartido o directo)")
+    p.add_argument("--posicion-logo", help="arriba_izquierda, arriba_centro, arriba_derecha, ...")
+    p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
     p.add_argument("--repetir-cada", type=float, metavar="HORAS", help="modo PC: repetir cada N horas")
@@ -163,10 +178,23 @@ def main(argv=None) -> int:
             cfg.setdefault("voz", {})["genero"] = args.voz
         if args.texto_marca:
             cfg.setdefault("logo", {})["texto"] = args.texto_marca
+        if args.logo_link:
+            cfg.setdefault("logo", {})["link"] = args.logo_link
+        if args.posicion_logo:
+            cfg.setdefault("logo", {})["posicion"] = args.posicion_logo
+        if args.modelo_voz_link:
+            # Un link descarga el modelo; un nombre usa ese modelo de StudioVoz en tu Drive.
+            clave = "link_modelo" if args.modelo_voz_link.startswith("http") else "modelo"
+            cfg.setdefault("voz", {})[clave] = args.modelo_voz_link
+            if args.clonar_voz != "no":
+                cfg["voz"]["clonar"] = True
+        if args.duracion:
+            cfg.setdefault("guion", {})["duracion_segundos"] = segundos(args.duracion)
         return cfg
 
     cfg = cargar_cfg()
     logger.info("Claves encontradas → " + config.resumen_claves())
+    video.preparar_logo(cfg)
     if args.probar_logo:
         from fabrica import vista_logo
         ruta = vista_logo.generar(cfg, config.RAIZ / "salida" / "prueba-logo.jpg")

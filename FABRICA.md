@@ -156,7 +156,20 @@ La fábrica lee el link (título, descripción y lo que se dice en el video, o e
 busca más noticias del tema y escribe **su propio guion** con tus estilos. No reutiliza el video
 original: así evitas reclamos de derechos de autor. En la ficha `.txt` queda el link como fuente.
 
-## 8. Texto como logo
+## 8. Logo, duración y voz desde Run workflow
+
+- **Logo:** sube tu PNG a tu Google Drive en `Fabrica de Videos › marca` y la fábrica lo usa
+  sola (el más reciente). O pega en el campo **Logo** un link de Drive compartido, o un texto
+  como `@MiCanal`. La posición se elige en **Posición del logo**.
+- **Duración:** 1, 1:30, 2, 2:30 o 3 minutos. Para las rondas automáticas: variable `DURACION`.
+- **Voz:** hombre, mujer o **mi voz**. Con "mi voz" puedes pegar el link de tu modelo
+  (.pth/.index o .zip de Drive o Hugging Face) o el nombre del modelo en StudioVoz.
+
+Para que las rondas automáticas usen siempre lo mismo, crea **variables** (Settings → Secrets and
+variables → Actions → Variables): `TEXTO_MARCA` o `LOGO_LINK`, `LOGO_POSICION`, `DURACION`,
+`VOZ` (hombre/mujer/mi voz), `MODELO_VOZ_LINK`, `PUBLICAR` (si).
+
+## 8b. Texto como logo
 
 Si no tienes logo, escribe tu marca (ej. `@MiCanal`) en **Texto como logo** al usar Run workflow.
 Para que salga siempre, también en las rondas automáticas: **Settings → Secrets and variables →

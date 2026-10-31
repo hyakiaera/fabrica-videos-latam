@@ -8,7 +8,13 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo) -> dict:
     g = cfg.get("guion", {})
     segundos = int(g.get("duracion_segundos", 60))
     palabras = int(segundos * 2.5)  # ~2.5 palabras por segundo en español
-    escenas = max(4, segundos // int(g.get("segundos_por_escena", 5)))
+    # Videos largos: escenas algo más largas para no pedir demasiadas imágenes.
+    escenas = max(4, min(int(g.get("max_escenas", 24)), segundos // int(g.get("segundos_por_escena", 5))))
+    if segundos > 75:
+        extra_largo = ("\nEs un video largo: desarrolla la historia por partes (contexto, qué pasó, "
+                       "por qué importa, qué viene), con mini-ganchos para que no se vayan.")
+    else:
+        extra_largo = ""
     fuentes = "\n".join(f"- {t} ({f})" for t, f, _ in tema.get("fuentes", [])) or "- (sin titulares)"
     contexto = tema.get("contexto", "")
     extra = ""
@@ -30,7 +36,7 @@ Titulares de referencia:
 {fuentes}
 {extra}
 Estilo visual del video: {estilo.nombre} ({estilo.descripcion})
-{g.get('instrucciones_extra', '')}
+{g.get('instrucciones_extra', '')}{extra_largo}
 
 Devuelve este JSON:
 {{"titulo": "título para la plataforma, máx 80 caracteres, con gancho",

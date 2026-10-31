@@ -158,6 +158,41 @@ def logo_de_texto(texto: str, salida: Path) -> Path:
     return salida
 
 
+def preparar_logo(cfg: dict):
+    """Trae tu logo antes de empezar: desde un link, o desde la carpeta
+    'Fabrica de Videos/marca' de tu Google Drive (si existe un .png ahí)."""
+    import shutil as _sh
+    import subprocess as _sp
+    import tempfile
+
+    lg = cfg.get("logo", {})
+    destino = ruta_logo(cfg)
+    if lg.get("link"):
+        try:
+            from fabrica import descargas
+            pngs = [p for p in descargas.bajar(lg["link"], Path(tempfile.mkdtemp()))
+                    if p.suffix.lower() == ".png"]
+            if pngs:
+                destino.parent.mkdir(parents=True, exist_ok=True)
+                _sh.copy(pngs[0], destino)
+                logger.info(f"Logo: descargado desde el link ({pngs[0].name})")
+                return
+            logger.warning("Logo: el link no tiene ningún .png")
+        except Exception as e:
+            logger.warning(f"Logo: no se pudo bajar el link ({e})")
+    d = cfg.get("drive", {})
+    if _sh.which("rclone") and d.get("carpeta_marca", True):
+        temporal = Path(tempfile.mkdtemp())
+        origen = f"{d.get('remoto', 'drive')}:{d.get('carpeta', 'Fabrica de Videos')}/marca"
+        _sp.run(["rclone", "copy", origen, str(temporal), "--include", "*.png", "--include", "*.PNG"],
+                capture_output=True, timeout=300)
+        pngs = sorted(temporal.glob("*.[pP][nN][gG]"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if pngs:
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            _sh.copy(pngs[0], destino)
+            logger.info(f"Logo: tomado de tu Drive ({pngs[0].name})")
+
+
 def obtener_logo(cfg: dict, carpeta: Path) -> Path | None:
     """Tu logo PNG si lo subiste; si no, el texto de marca convertido en logo."""
     lg = cfg.get("logo", {})

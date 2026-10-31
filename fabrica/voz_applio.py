@@ -68,10 +68,28 @@ def _archivos_modelo(carpeta: Path) -> tuple[Path | None, Path | None]:
     return ultimo("*.pth"), ultimo("*.index")
 
 
+def _archivos_modelo_recursivo(carpeta: Path) -> tuple[Path | None, Path | None]:
+    pths = [p for p in carpeta.rglob("*.pth") if not p.name.startswith(("G_", "D_"))]
+    idxs = list(carpeta.rglob("*.index"))
+    ultimo = lambda lista: max(lista, key=lambda p: p.stat().st_mtime) if lista else None
+    return ultimo(pths), ultimo(idxs)
+
+
 def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
     """Busca el modelo en la carpeta local; si no está, lo baja de tu Drive con rclone."""
     v = cfg.get("voz", {})
     nombre = v.get("modelo", "mi_voz")
+    if v.get("link_modelo"):
+        local = MODELOS / "_desde_link"
+        pth, idx = _archivos_modelo_recursivo(local)
+        if not pth:
+            from fabrica import descargas
+            logger.info("Applio: bajando tu modelo de voz desde el link...")
+            descargas.bajar(v["link_modelo"], local)
+            pth, idx = _archivos_modelo_recursivo(local)
+        if pth:
+            return pth, idx
+        raise RuntimeError("El link del modelo no tiene ningún archivo .pth")
     local = MODELOS / nombre
     pth, idx = _archivos_modelo(local)
     if pth and not v.get("actualizar_modelo_siempre", True):
