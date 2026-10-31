@@ -172,8 +172,10 @@ def imagen_encaja(cfg: dict, ruta, descripcion: str) -> bool | None:
             "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
             headers={"Authorization": f"Bearer {clave}"}, timeout=60,
             json={"model": modelo, "temperature": 0, "messages": [{"role": "user", "content": [
-                {"type": "text", "text": "Does this image clearly show the MAIN subject and place of this "
-                 f"description? Ignore art style. Description: {descripcion}\n"
+                {"type": "text", "text": "Does this image fit the TOPIC of this description (same kind of "
+                 "subject, event, product or place)? Ignore art style. Do NOT require recognizing specific "
+                 "real people: generic people doing the right activity are fine. Say false only if it shows "
+                 f"something clearly unrelated. Description: {descripcion}\n"
                  'Answer only JSON: {"ok": true} or {"ok": false, "why": "..."}'},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{datos}"}},
             ]}]})

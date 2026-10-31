@@ -7,6 +7,25 @@ from pathlib import Path
 
 from fabrica import estilos, guion, ia, imagenes, pedidos, salidas, tendencias, video, voz
 
+_SIN_RED = []
+_ORIGINALES = {}
+
+
+def setUpModule():
+    # Las pruebas no deben salir a internet a buscar fotos de noticias.
+    from fabrica import fotos_web
+    for nombre in ("noticias", "openverse"):
+        _ORIGINALES[nombre] = getattr(fotos_web, nombre)
+        parche = mock.patch.object(fotos_web, nombre, return_value=[])
+        parche.start()
+        _SIN_RED.append(parche)
+
+
+def tearDownModule():
+    for parche in _SIN_RED:
+        parche.stop()
+
+
 TRENDS_RSS = b"""<?xml version="1.0"?>
 <rss xmlns:ht="https://trends.google.com/trending/rss" version="2.0"><channel>
 <item><title>america vs chivas</title><ht:approx_traffic>500K+</ht:approx_traffic>
@@ -271,7 +290,7 @@ class TestMarcasYNumeros(unittest.TestCase):
         carpeta = Path(tempfile.mkdtemp())
         logo = carpeta / "b.png"
         from PIL import Image
-        Image.new("RGBA", (200, 200), (0, 0, 0, 255)).save(logo)
+        Image.new("RGBA", (200, 200), (0, 0, 0, 0)).save(logo)  # logo con fondo transparente
         with mock.patch.object(imagenes, "wikimedia", return_value=(logo, "Logo: Wikimedia")) as wm, \
              mock.patch.object(imagenes, "cloudflare") as cf, \
              mock.patch.object(ia, "imagen_encaja", return_value=True):
@@ -381,6 +400,59 @@ class TestMisFotos(unittest.TestCase):
         salida = Path(tempfile.mkdtemp()) / "t.mp4"
         graficas.clip({"tipo": "tarjeta", "titulo": "Tienda", "lineas": ["30% OFF", "Calle 1"]}, 1, "9:16", "", salida)
         self.assertGreater(salida.stat().st_size, 1000)
+
+
+class TestFotosWeb(unittest.TestCase):
+    def test_banco_no_repite_y_filtra(self):
+        from fabrica import fotos_web
+        carpeta = Path(tempfile.mkdtemp())
+        lista = [("http://x/1.jpg", "Medio A", "http://a"), ("http://x/2.jpg", "Medio B", "http://b")]
+
+        def bajar(url, ruta):
+            ruta.write_bytes(b"x" * 30000)
+            return ruta
+
+        with mock.patch.object(fotos_web, "noticias", return_value=lista), \
+             mock.patch.object(fotos_web, "openverse", return_value=[]), \
+             mock.patch.object(fotos_web, "_bajar", side_effect=bajar):
+            banco = fotos_web.Banco(carpeta)
+            primera = banco.tomar("Canelo")
+            segunda = banco.tomar("Canelo", aceptar=lambda r: False)
+            tercera = banco.tomar("Canelo")
+        self.assertIn("Medio A", primera[1])
+        self.assertIsNone(segunda)
+        self.assertIsNone(tercera)  # la segunda ya se usó (rechazada) y no hay más
+
+    def test_bing_rss_saca_url_real_y_og_image(self):
+        from fabrica import fotos_web
+        rss = ("<rss><channel><item><title>T</title><link>http://www.bing.com/news/apiclick.aspx?"
+               "url=https%3a%2f%2fdiario.com%2fnota&amp;c=1</link><News:Source>Diario</News:Source>"
+               "</item></channel></rss>")
+        pagina = '<html><meta property="og:image" content="https://diario.com/foto.jpg"></html>'
+        respuestas = [mock.Mock(ok=True, text=rss), mock.Mock(ok=True, text=pagina)]
+        with mock.patch("requests.get", side_effect=respuestas) as get:
+            r = _ORIGINALES["noticias"]("Canelo")
+        self.assertEqual(r, [("https://diario.com/foto.jpg", "Diario", "https://diario.com/nota")])
+        self.assertEqual(get.call_args_list[1].args[0], "https://diario.com/nota")
+
+    def test_foto_ancha_usa_barrido(self):
+        from PIL import Image
+        from fabrica import movimiento
+        carpeta = Path(tempfile.mkdtemp())
+        Image.new("RGB", (1600, 800), (10, 120, 200)).save(carpeta / "ancha.jpg")
+        with mock.patch.object(movimiento, "clip_de_barrido", return_value=carpeta / "b.mp4") as barrido:
+            movimiento.clip_de_imagen(carpeta / "ancha.jpg", 2, "acercar", "9:16", carpeta / "c.mp4")
+        barrido.assert_called_once()
+
+    def test_preparar_real_no_achica_fotos(self):
+        from PIL import Image
+        carpeta = Path(tempfile.mkdtemp())
+        Image.new("RGBA", (1600, 800), (10, 120, 200, 255)).save(carpeta / "foto.png")
+        Image.new("RGBA", (400, 400), (0, 0, 0, 0)).save(carpeta / "logo.png")
+        foto = imagenes.preparar_real(carpeta / "foto.png", "9:16")
+        logo = imagenes.preparar_real(carpeta / "logo.png", "9:16")
+        self.assertEqual(Image.open(foto).size, (1600, 800))  # la foto no se encoge
+        self.assertEqual(Image.open(logo).size, (1080, 1920))  # el logo sí se centra
 
 
 if __name__ == "__main__":

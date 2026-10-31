@@ -27,8 +27,31 @@ EFECTOS = {
 }
 
 
+def _proporcion(imagen: Path) -> float:
+    from PIL import Image
+
+    with Image.open(imagen) as img:
+        return img.width / img.height
+
+
+def clip_de_barrido(imagen: Path, segundos: float, aspecto: str, salida: Path, a_la_derecha: bool) -> Path:
+    """Foto ancha en video vertical: se muestra a pantalla completa y la cámara la recorre."""
+    ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
+    x = f"(iw-ow)*t/{segundos:.3f}" if a_la_derecha else f"(iw-ow)*(1-t/{segundos:.3f})"
+    filtro = f"scale=-2:{alto},crop={ancho}:{alto}:x='{x}':y=0,fps={FPS},format=yuv420p"
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-loop", "1",
+                    "-i", str(imagen), "-vf", filtro, "-t", f"{segundos:.3f}", "-c:v", "libx264",
+                    "-preset", "veryfast", "-crf", "20", "-an", str(salida)], check=True)
+    return salida
+
+
 def clip_de_imagen(imagen: Path, segundos: float, efecto: str, aspecto: str, salida: Path) -> Path:
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
+    try:
+        if _proporcion(imagen) > (ancho / alto) * 1.6:
+            return clip_de_barrido(imagen, segundos, aspecto, salida, efecto in ("derecha", "acercar", "subir"))
+    except Exception:
+        pass
     z, x, y = EFECTOS[efecto]
     cuadros = max(1, round(segundos * FPS))
     # Se agranda la imagen antes del zoompan para que el movimiento sea suave (sin temblor).

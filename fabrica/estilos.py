@@ -93,10 +93,10 @@ ESTILOS: dict[str, Estilo] = {
         temas_ideales=["noticias", "misterio", "deportes"],
     ),
     "noticiero": Estilo(
-        "Noticiero (fotos reales con licencia libre)",
-        "Fotos reales de Wikimedia Commons con crédito, o de stock.",
+        "Noticiero (fotos reales de las noticias)",
+        "Fotos reales de las notas de prensa y de Wikimedia/Openverse, con crédito.",
         "{escena}",
-        fuentes=("wikimedia", "pexels", "ia"),
+        fuentes=("web", "wikimedia", "pexels", "ia"),
         fondo_subtitulo="#C62828",
         temas_ideales=["noticias", "deportes", "politica"],
     ),

@@ -178,6 +178,32 @@ def _sin_html(texto: str) -> str:
 TAMANOS_PIXELES = TAMANOS
 
 
+def tiene_transparencia(img) -> bool:
+    """True si la imagen tiene zonas transparentes de verdad (logos), no solo canal alfa."""
+    if img.mode not in ("RGBA", "LA", "P"):
+        return False
+    alfa = img.convert("RGBA").getchannel("A")
+    return alfa.getextrema()[0] < 250
+
+
+def preparar_real(ruta: Path, aspecto: str) -> Path:
+    """Logos (con transparencia) se centran sobre un fondo; las fotos van tal cual:
+    el movimiento de cámara las llena en vertical (con barrido si son anchas)."""
+    from PIL import Image
+
+    try:
+        with Image.open(ruta) as img:
+            if tiene_transparencia(img):
+                return encuadrar(ruta, aspecto)
+            if img.mode != "RGB":
+                salida = ruta.with_name(ruta.stem + "-rgb.jpg")
+                img.convert("RGB").save(salida, quality=92)
+                return salida
+    except Exception:
+        pass
+    return ruta
+
+
 def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     """Pone una foto o logo real dentro del formato del video sin recortarlo:
     al centro, sobre un fondo hecho con la misma imagen difuminada."""
@@ -186,7 +212,7 @@ def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     ancho, alto = TAMANOS_PIXELES.get(aspecto, TAMANOS_PIXELES["9:16"])
     img = Image.open(ruta)
     img.load()
-    transparente = img.mode in ("RGBA", "LA", "P")
+    transparente = tiene_transparencia(img)
     img = img.convert("RGBA")
     if rellenar and not transparente and abs(img.width / img.height - ancho / alto) < 0.2:
         # Foto con forma parecida al video: llena toda la pantalla (se recorta un poco).
@@ -237,6 +263,10 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     revisar = bool(im.get("revisar", True))
     conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0}
     fotos_propias = fotos_propias or {}
+    banco = None
+    if im.get("fotos_web", True):
+        from fabrica import fotos_web
+        banco = fotos_web.Banco(carpeta / "web")
 
     def sumar(clave):
         with candado:
@@ -251,6 +281,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         return True
 
     def una(indice_escena):
+        nonlocal revisar
         i, escena = indice_escena
         nombre = f"escena-{i:02d}"
         descripcion = escena.get("imagen", "") or tema
@@ -267,9 +298,20 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
             if hallado and encaja(hallado[0], real):
                 sumar("real")
-                return encuadrar(hallado[0], aspecto), hallado[1]
+                return preparar_real(hallado[0], aspecto), hallado[1]
+            if banco:
+                hallado = banco.tomar(real, lambda ruta: encaja(ruta, real))
+                if hallado:
+                    sumar("real")
+                    return preparar_real(hallado[0], aspecto), hallado[1]
+        ia_de_respaldo = None
         for fuente in estilo.fuentes:
-            if fuente == "ia":
+            if fuente == "web" and banco:
+                hallado = banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa))
+                if hallado:
+                    sumar("real")
+                    return preparar_real(hallado[0], aspecto), hallado[1]
+            elif fuente == "ia":
                 # El contexto global va al principio: el generador da más peso a lo primero.
                 prompt = prompt_imagen(estilo, escena_completa)
                 for intento in ("", "b"):
@@ -280,7 +322,13 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                     if encaja(ruta, escena_completa):
                         sumar("ia")
                         return ruta, None
+                    ia_de_respaldo = ruta
                     logger.info(f"Escena {i}: la imagen no encaja con el guion, se intenta otra")
+                # Si la revisión rechaza casi todo, el problema es la revisión: se apaga.
+                with candado:
+                    if revisar and conteo["rechazadas"] >= 6 and conteo["ia"] == 0:
+                        logger.warning("La revisión de imágenes rechaza demasiado; se desactiva en este video")
+                        revisar = False
             elif fuente == "wikimedia":
                 hallado = wikimedia(busqueda, carpeta, nombre)
                 if hallado:
@@ -290,7 +338,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         usadas_wiki.add(huella)
                     if not repetida and encaja(hallado[0], escena_completa):
                         sumar("real")
-                        return encuadrar(hallado[0], aspecto), hallado[1]
+                        return preparar_real(hallado[0], aspecto), hallado[1]
             elif fuente == "pexels":
                 ruta = (pexels_foto(busqueda, aspecto, carpeta, nombre)
                         or pixabay_foto(busqueda, aspecto, carpeta, nombre))
@@ -298,7 +346,16 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 if ruta and encaja(ruta, escena_completa):
                     sumar("stock")
                     return ruta, None
-        logger.warning(f"Sin imagen que encaje para la escena {i}; se reutilizará otra")
+        # Antes de quedarse sin nada: una foto real del tema, o la imagen IA aunque no fue perfecta.
+        if banco and "web" not in estilo.fuentes:
+            hallado = banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa))
+            if hallado:
+                sumar("real")
+                return preparar_real(hallado[0], aspecto), hallado[1]
+        if ia_de_respaldo:
+            sumar("ia")
+            return ia_de_respaldo, None
+        logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")
         return None, None
 
     elegidas = _elegir_escenas(escenas, int(im.get("max_imagenes", 10)), fotos_propias)
