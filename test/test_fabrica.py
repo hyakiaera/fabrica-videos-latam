@@ -366,6 +366,16 @@ class TestMisFotos(unittest.TestCase):
         self.assertTrue(tema["es_negocio"])
         bn.assert_not_called()
 
+    def test_tendencias_tambien_usan_carpetas(self):
+        from fabrica import mis_fotos
+        candidatos = [tendencias.Candidato("América vs Chivas", "trends", "MX", "es")]
+        respuesta = {"temas": [{"indices": [0], "tema": "Clásico", "categoria": "deportes", "estilo": "comic",
+                                "carpetas_fotos": ["logos equipos", "inventada"]}]}
+        with mock.patch.object(mis_fotos, "categorias", return_value=["logos equipos", "muebles"]), \
+             mock.patch.object(ia, "pedir_json", return_value=respuesta):
+            temas = tendencias.elegir_temas({}, candidatos, 1, [])
+        self.assertEqual(temas[0]["carpetas_fotos"], ["logos equipos"])
+
     def test_tarjeta_de_negocio(self):
         from fabrica import graficas
         salida = Path(tempfile.mkdtemp()) / "t.mp4"

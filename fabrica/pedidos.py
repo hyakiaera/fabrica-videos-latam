@@ -111,7 +111,7 @@ Carpetas de fotos propias del usuario: {', '.join(carpetas) or '(ninguna)'}
 Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para buscar noticias",
 "categoria": "deportes|entretenimiento|tecnologia|economia|mundo|ciencia|general",
 "estilo": "clave del estilo más adecuado",
-"carpetas_fotos": ["carpetas de fotos propias que encajan con el pedido (ej. si habla de su mueblería y existe 'muebles'); [] si ninguna"],
+"carpetas_fotos": ["carpetas de fotos propias que encajan con el pedido (ej. su mueblería → 'muebles'; un partido del América → 'logos equipos', 'america'); [] si ninguna"],
 "es_negocio": true si es un anuncio/promoción de un negocio del usuario, si no false}}"""
     try:
         d = ia.pedir_json(cfg, sistema, usuario, temperatura=0.3)

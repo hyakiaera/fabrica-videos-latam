@@ -129,6 +129,11 @@ def elegir_temas(cfg: dict, candidatos: list[Candidato], cantidad: int,
     """La IA elige los temas con más potencial y les asigna categoría y estilo."""
     t = cfg.get("tendencias", {})
     texto, ordenados = _texto_candidatos(candidatos, int(t.get("max_candidatos_ia", 90)))
+    from fabrica import mis_fotos
+    try:
+        carpetas = mis_fotos.categorias(cfg)
+    except Exception:
+        carpetas = []
     sistema = (
         "Eres editor jefe de un canal de videos cortos (TikTok/Reels/Shorts) para público "
         "latinoamericano. Eliges temas con alto potencial viral, priorizando lo que interesa en "
@@ -145,12 +150,14 @@ Temas ya publicados recientemente (NO repetir):
 Categorías permitidas: {', '.join(t.get('categorias', []))}
 Estilos visuales disponibles:
 {resumen_para_ia()}
+Carpetas de fotos propias del usuario (logos, equipos, productos...): {', '.join(carpetas) or '(ninguna)'}
 
 Elige {cantidad} temas distintos, variados en categoría. Devuelve:
 {{"temas": [{{"indices": [números de candidatos que hablan de ese tema],
   "tema": "título corto en español", "categoria": "...",
   "estilo": "{estilo if estilo != ESTILO_AUTOMATICO else 'clave del estilo más adecuado'}",
-  "por_que": "una frase"}}]}}"""
+  "por_que": "una frase",
+  "carpetas_fotos": ["carpetas de fotos propias que sirven para ese tema; [] si ninguna"]}}]}}"""
     respuesta = ia.pedir_json(cfg, sistema, usuario, temperatura=0.5)
     temas = []
     for tema in respuesta.get("temas", [])[:cantidad]:
@@ -168,6 +175,7 @@ Elige {cantidad} temas distintos, variados en categoría. Devuelve:
             "estilo": estilo_tema,
             "por_que": tema.get("por_que", ""),
             "fuentes": fuentes[:8],
+            "carpetas_fotos": [c for c in tema.get("carpetas_fotos", []) if c in carpetas],
         })
     return [t for t in temas if t["tema"]]
 

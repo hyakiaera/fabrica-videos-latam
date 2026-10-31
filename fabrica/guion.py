@@ -24,8 +24,9 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
         extra += f"\nLo que pidió el dueño del canal (respétalo): {tema['indicaciones']}\n"
     if fotos_propias:
         lista = "\n".join(f"- {nombre}: {desc}" for nombre, (_, desc) in fotos_propias.items())
-        extra += ("\nFOTOS PROPIAS del usuario (úsalas en todas las escenas donde encajen, poniendo el "
-                  f"nombre exacto en \"foto_propia\"; no repitas la misma foto seguida):\n{lista}\n")
+        extra += ("\nFOTOS PROPIAS del usuario (logos, equipos, productos, lugares). Úsalas en todas las "
+                  "escenas donde encajen, poniendo el nombre exacto en \"foto_propia\"; tienen prioridad "
+                  f"sobre generar imágenes. No repitas la misma foto seguida:\n{lista}\n")
     if tema.get("es_negocio"):
         extra += ("\nEs un ANUNCIO del negocio del usuario: tono vendedor y cercano, menciona ofertas y "
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
