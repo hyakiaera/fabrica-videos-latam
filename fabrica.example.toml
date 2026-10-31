@@ -78,6 +78,8 @@ voz_hombre = "es-MX-JorgeNeural-Male"
 voz_mujer = "es-MX-DaliaNeural-Female"
 # Otras opciones: es-US-AlonsoNeural-Male, es-US-PalomaNeural-Female
 velocidad = 1.1
+# Si Edge falla, se prueban otras voces y al final la voz gratis de Google.
+modelo_whisper = "small"    # subtítulos cuando se usa un audio propio o de respaldo
 
 # PERILLA DE VOZ CLONADA: convierte la voz de Edge a TU voz con el modelo que
 # entrenaste en tu cuaderno StudioVoz (Colab). Lo toma solo de tu Drive:

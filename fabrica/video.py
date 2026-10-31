@@ -55,8 +55,13 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     )
 
     audio_propio = None
+    audio_edge = None
     if voz.clonar_activo(cfg):
         audio_propio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
+    else:
+        audio_edge = voz.probar_edge(cfg, datos["guion"], trabajo / "voz")
+        if audio_edge is None:
+            audio_propio = voz.narracion_google(cfg, datos["guion"], trabajo / "voz")
 
     if "stock_video" in estilo.fuentes:
         from fabrica.config import secreto
@@ -79,8 +84,7 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         )
     else:
         # Cada escena dura lo mismo que su parte de la narración, con movimiento de cámara.
-        total = (voz.duracion_archivo(audio_propio) if audio_propio
-                 else voz.duracion_audio(cfg, datos["guion"], trabajo / "voz"))
+        total = voz.duracion_archivo(audio_propio or audio_edge)
         clips = movimiento.clips_de_escenas(cfg, datos["escenas"], imagenes, estilo_clave(estilo),
                                             total + 0.6, trabajo / "clips")
         # MoneyPrinterTurbo solo acepta materiales locales dentro de storage/local_videos.
@@ -95,18 +99,33 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
             video_clip_duration=int(max(movimiento.duraciones(datos["escenas"], total))) + 2,
         )
 
-    proveedor_subs_original = mpt_config.app.get("subtitle_provider", "edge")
-    if audio_propio:
-        destino = Path(utils.task_dir(task_id)) / audio_propio.name
-        shutil.copy(audio_propio, destino)
-        params["custom_audio_file"] = str(destino)
-        # Sin TTS no hay tiempos de palabras: Whisper saca los subtítulos del audio.
-        mpt_config.app["subtitle_provider"] = "whisper"
+    def correr(audio: Path | None):
+        """Corre MoneyPrinterTurbo; con 'audio' usa ese archivo y saca subtítulos con Whisper."""
+        from app.services import subtitle as mpt_subtitulos
 
-    try:
-        resultado = tm.start(task_id, VideoParams(**params))
-    finally:
-        mpt_config.app["subtitle_provider"] = proveedor_subs_original
+        proveedor_original = mpt_config.app.get("subtitle_provider", "edge")
+        modelo_original = mpt_subtitulos.model_size
+        datos_tarea = dict(params)
+        if audio:
+            destino = Path(utils.task_dir(task_id)) / audio.name
+            shutil.copy(audio, destino)
+            datos_tarea["custom_audio_file"] = str(destino)
+            # Sin TTS no hay tiempos de palabras: Whisper saca los subtítulos del audio.
+            # Un modelo chico basta para español claro y es mucho más rápido sin tarjeta gráfica.
+            mpt_config.app["subtitle_provider"] = "whisper"
+            mpt_subtitulos.model_size = vz.get("modelo_whisper", "small")
+        try:
+            return tm.start(task_id, VideoParams(**datos_tarea))
+        finally:
+            mpt_config.app["subtitle_provider"] = proveedor_original
+            mpt_subtitulos.model_size = modelo_original
+
+    resultado = correr(audio_propio)
+    if not (resultado or {}).get("videos") and not audio_propio:
+        # Edge falló justo al hacer el video: se usa la narración que ya teníamos (o la de Google).
+        logger.warning("La voz falló al armar el video; se reintenta con la narración guardada")
+        task_id = str(uuid.uuid4())
+        resultado = correr(audio_edge or voz.narracion_google(cfg, datos["guion"], trabajo / "voz"))
 
     videos = (resultado or {}).get("videos") or []
     if not videos:

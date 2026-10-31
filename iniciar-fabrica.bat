@@ -7,6 +7,7 @@ if not exist .venv (
   echo Instalando por primera vez, puede tardar unos minutos...
   python -m venv .venv || (echo Necesitas Python 3.11 o mas nuevo: https://www.python.org/downloads/ & pause & exit /b 1)
   .venv\Scripts\python -m pip install -q -r requirements.txt
+  .venv\Scripts\python -m pip install -q --no-deps gTTS
 )
 if not exist config.toml copy config.example.toml config.toml >nul
 if not exist fabrica.toml copy fabrica.example.toml fabrica.toml >nul

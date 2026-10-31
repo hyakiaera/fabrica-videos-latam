@@ -11,6 +11,9 @@ import edge_tts
 from loguru import logger
 
 GENEROS = ("hombre", "mujer")
+# Si la voz principal falla, se prueban otras parecidas (español latino neutro).
+RESPALDO = {"hombre": ["es-US-AlonsoNeural-Male", "es-MX-JorgeNeural-Male"],
+            "mujer": ["es-US-PalomaNeural-Female", "es-MX-DaliaNeural-Female"]}
 
 
 def voz_edge(cfg: dict) -> str:
@@ -65,23 +68,50 @@ def generar_y_clonar(cfg: dict, texto: str, carpeta: Path) -> Path:
     return salida
 
 
-def duracion_audio(cfg: dict, texto: str, carpeta: Path) -> float:
-    """Duración exacta de la narración (se genera la voz de prueba con Edge, que es
-    gratis y rápida) para que cada imagen dure lo mismo que su parte del guion."""
+def probar_edge(cfg: dict, texto: str, carpeta: Path) -> Path | None:
+    """Genera la narración con Edge. Sirve para medir su duración exacta (así cada imagen
+    dura lo que su parte del guion) y de respaldo si luego Edge falla. None si Edge no responde."""
     v = cfg.get("voz", {})
     velocidad = float(v.get("velocidad", 1.0))
-    try:
-        from moviepy import AudioFileClip
+    carpeta.mkdir(parents=True, exist_ok=True)
+    prueba = carpeta / "voz-edge.mp3"
+    voces = [voz_edge(cfg)] + [x for x in v.get("voces_respaldo", RESPALDO.get(v.get("genero", "hombre"), []))]
+    for nombre in voces:
+        voz = nombre.removesuffix("-Male").removesuffix("-Female")
+        for intento in range(2):
+            try:
+                asyncio.run(edge_tts.Communicate(texto, voz, rate=f"{round((velocidad - 1) * 100):+d}%")
+                            .save(str(prueba)))
+                if prueba.exists() and prueba.stat().st_size > 2000:
+                    return prueba
+            except Exception as e:
+                logger.warning(f"Voz: Edge falló con {voz} (intento {intento + 1}): {e}")
+    return None
 
-        carpeta.mkdir(parents=True, exist_ok=True)
-        prueba = carpeta / "voz-medida.mp3"
-        voz = voz_edge(cfg).removesuffix("-Male").removesuffix("-Female")
-        asyncio.run(edge_tts.Communicate(texto, voz, rate=f"{round((velocidad - 1) * 100):+d}%").save(str(prueba)))
-        with AudioFileClip(str(prueba)) as audio:
-            return float(audio.duration)
-    except Exception as e:
-        logger.warning(f"Voz: no se pudo medir la narración ({e}); se estima")
-        return len(texto.split()) / (2.5 * velocidad)
+
+def narracion_google(cfg: dict, texto: str, carpeta: Path) -> Path:
+    """Respaldo cuando Edge no responde: voz gratis de Google (gTTS), español de México."""
+    import subprocess
+
+    import imageio_ffmpeg
+    from gtts import gTTS
+
+    carpeta.mkdir(parents=True, exist_ok=True)
+    base = carpeta / "voz-google.mp3"
+    gTTS(texto, lang="es", tld="com.mx").save(str(base))
+    velocidad = float(cfg.get("voz", {}).get("velocidad", 1.0)) * 1.12  # gTTS habla algo lento
+    salida = carpeta / "voz-google-final.mp3"
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(base),
+                    "-filter:a", f"atempo={velocidad:.2f}", str(salida)], check=True)
+    logger.warning("Voz: se usó la voz de respaldo de Google porque Edge no respondió")
+    return salida
+
+
+def duracion_audio(cfg: dict, texto: str, carpeta: Path) -> float:
+    prueba = probar_edge(cfg, texto, carpeta)
+    if prueba:
+        return duracion_archivo(prueba)
+    return len(texto.split()) / (2.5 * float(cfg.get("voz", {}).get("velocidad", 1.0)))
 
 
 def duracion_archivo(ruta: Path) -> float:
