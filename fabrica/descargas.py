@@ -19,7 +19,20 @@ def _descomprimir(carpeta: Path):
             logger.warning(f"Descarga: ZIP dañado {z.name}")
 
 
-def bajar(url: str, carpeta: Path) -> list[Path]:
+def _bajar_carpeta_drive(carpeta_id: str, carpeta: Path, saltar) -> None:
+    """Baja una carpeta compartida de Drive, saltando los archivos que no hacen falta
+    (ej. los G_/D_ de entrenamiento de un modelo de voz, que pesan cientos de MB)."""
+    import gdown
+
+    archivos = gdown.download_folder(id=carpeta_id, output=str(carpeta), quiet=True, skip_download=True)
+    for archivo in archivos or []:
+        nombre = Path(archivo.path).name
+        if saltar(nombre):
+            continue
+        gdown.download(id=archivo.id, output=str(carpeta / nombre), quiet=True)
+
+
+def bajar(url: str, carpeta: Path, saltar=lambda nombre: False) -> list[Path]:
     """Descarga el link en la carpeta y devuelve los archivos obtenidos."""
     carpeta.mkdir(parents=True, exist_ok=True)
     url = url.strip().replace("/blob/", "/resolve/")  # Hugging Face: página → archivo
@@ -30,7 +43,7 @@ def bajar(url: str, carpeta: Path) -> list[Path]:
         carpeta_id = re.search(r"/folders/([\w-]+)", url)
         archivo_id = re.search(r"/d/([\w-]+)|[?&]id=([\w-]+)", url)
         if carpeta_id:
-            gdown.download_folder(id=carpeta_id.group(1), output=str(carpeta), quiet=True)
+            _bajar_carpeta_drive(carpeta_id.group(1), carpeta, saltar)
         elif archivo_id:
             gdown.download(id=archivo_id.group(1) or archivo_id.group(2), output=str(carpeta) + "/",
                            quiet=True)

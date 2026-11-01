@@ -590,5 +590,29 @@ class TestTonoYRitmo(unittest.TestCase):
         self.assertIn("pow", z)
 
 
+class TestModeloPorLink(unittest.TestCase):
+    def test_carpeta_de_drive_solo_baja_el_modelo(self):
+        from fabrica import descargas
+
+        class Archivo:
+            def __init__(self, id_, ruta):
+                self.id, self.path = id_, ruta
+
+        carpeta = Path(tempfile.mkdtemp())
+        lista = [Archivo("1", "M/G_2333.pth"), Archivo("2", "M/HYAKO_285e.pth"),
+                 Archivo("3", "M/added_HYAKO.index"), Archivo("4", "M/train.log")]
+        bajados = []
+
+        def bajar(id, output, quiet):
+            Path(output).write_bytes(b"x")
+            bajados.append(id)
+
+        saltar = lambda n: n.startswith(("G_", "D_")) or not n.lower().endswith((".pth", ".index", ".zip"))
+        with mock.patch("gdown.download_folder", return_value=lista), mock.patch("gdown.download", side_effect=bajar):
+            archivos = descargas.bajar("https://drive.google.com/drive/folders/abc?usp=sharing", carpeta, saltar)
+        self.assertEqual(bajados, ["2", "3"])
+        self.assertEqual(sorted(p.name for p in archivos), ["HYAKO_285e.pth", "added_HYAKO.index"])
+
+
 if __name__ == "__main__":
     unittest.main()

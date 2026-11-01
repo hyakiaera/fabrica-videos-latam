@@ -85,7 +85,9 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
         if not pth:
             from fabrica import descargas
             logger.info("Applio: bajando tu modelo de voz desde el link...")
-            descargas.bajar(v["link_modelo"], local)
+            # Solo el modelo final (.pth y .index); los G_/D_ de entrenamiento no hacen falta.
+            descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
+                            or not n.lower().endswith((".pth", ".index", ".zip")))
             pth, idx = _archivos_modelo_recursivo(local)
         if pth:
             return pth, idx
