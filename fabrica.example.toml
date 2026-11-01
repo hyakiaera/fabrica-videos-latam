@@ -110,37 +110,6 @@ duracion_clip_stock = 4
 descargas_simultaneas_stock = 2  # más alto = Pixabay/Pexels pueden bloquear (error 429)
 hilos = 4                   # GitHub da 4 núcleos
 
-[avatar]
-# TU AVATAR en los videos. Toma un look de tu banco en Google Drive (lo creas con
-# el cuaderno StudioAvatar):  Fabrica de Videos/MIS AVATARES/AVATARES 2026/<avatar>/02_looks/<ESTILO>
-# modo = "no"   → sin avatar
-# modo = "auto" → el look depende del TONO del guion:
-#     serio    → solo FORMAL o LUXURY (nunca urbano)
-#     chistoso → STREET, HIPHOP, VACACIONES, SPORT o FUTURISTA (nunca traje ni casual)
-#     neutral  → CASUAL, SPORT, LUXURY, STREET o VACACIONES
-# modo = "04_FORMAL" (o cualquier carpeta de tus looks) → MANUAL: siempre ese look
-# Si no hay looks permitidos para ese tono, el video sale sin avatar.
-modo = "auto"
-nombre = ""                 # carpeta del avatar (vacío = el primero que encuentre, ej. EL_HYAKO_MAYOR)
-carpeta_drive = "Fabrica de Videos/MIS AVATARES/AVATARES 2026"
-carpeta_local = ""          # en tu PC: ruta a AVATARES 2026 (si usas Drive para escritorio)
-# "recorte" = TÚ SIN FONDO encima del video, como presentador (usa 07_sin_fondo; si no
-#             hay looks sin fondo para ese tono, usa la tarjeta)
-# "esquina" = tarjeta con tu foto (con fondo y borde blanco) todo el video
-# "escenas" = abre y cierra el video a pantalla completa; "ambos" = tarjeta + escenas
-aparicion = "recorte"
-posicion_recorte = "izquierda"  # izquierda / derecha (encima de los subtítulos), abajo_izquierda, abajo_derecha
-alto_recorte = 0.38         # alto del recorte (fracción del alto del video)
-posicion = "arriba_derecha" # arriba_derecha, arriba_izquierda, centro_izquierda, abajo_izquierda
-tamano = 0.28               # ancho de la tarjeta (fracción del video)
-segundos = 0                # 0 = todo el video; ej. 6 = solo los primeros 6 segundos
-
-# Para cambiar qué looks van con cada tono (usa los nombres de tus carpetas):
-# [avatar.looks_por_tono]
-# serio = ["04_FORMAL", "02_LUXURY"]
-# neutral = ["07_CASUAL", "06_SPORT"]
-# chistoso = ["01_STREET", "03_HIPHOP", "05_VACACIONES"]
-
 [logo]
 activo = true
 archivo = "marca/logo.png"  # sube tu PNG con fondo transparente con este nombre
