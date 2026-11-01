@@ -134,6 +134,7 @@ jobs:
           # automáticas usan tu voz; si falla, sale la voz normal.
           IN_VOZ: ${{ inputs.voz || vars.VOZ || ((secrets.MI_VOS || secrets.MODELO_VOZ_LINK || vars.MODELO_VOZ_LINK) && 'mi voz') || 'hombre' }}
           IN_MODELO_LINK: ${{ inputs.modelo_voz_link || vars.MODELO_VOZ_LINK || secrets.MODELO_VOZ_LINK || secrets.MI_VOS }}
+          IN_MODELO_ESCRITO: ${{ inputs.modelo_voz_link }}
           IN_DRIVE: ${{ inputs.drive }}
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
@@ -157,6 +158,8 @@ jobs:
           ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION")
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
+          # Si pegaste el link de tu modelo en el formulario, se usa tu voz aunque la casilla diga hombre.
+          if [ -n "$IN_MODELO_ESCRITO" ]; then IN_VOZ="mi voz"; fi
           if [ "$IN_VOZ" = "mi voz" ]; then
             ARGS+=(--clonar-voz si)
             if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi

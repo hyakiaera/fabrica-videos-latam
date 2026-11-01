@@ -114,6 +114,13 @@ class TestEstilosYSalidas(unittest.TestCase):
         with self.assertRaises(ValueError):
             estilos.obtener("nada")
 
+    def test_ficha_dice_que_voz_se_uso(self):
+        datos = {"titulo": "T", "guion": "G", "voz_usada": {"voz": "Edge — tu voz clonada falló",
+                                                         "motivo": "RuntimeError: sin .pth"}}
+        ficha = salidas.ficha_texto(datos, {"fuentes": []}, [])
+        self.assertIn("VOZ: Edge — tu voz clonada falló", ficha)
+        self.assertIn("sin .pth", ficha)
+
     def test_ficha_incluye_creditos_y_fuentes(self):
         datos = {"titulo": "T", "guion": "G", "descripcion": "D", "hashtags": ["#a"]}
         tema = {"categoria": "c", "estilo": "e", "fuentes": [("Tit", "Med", "u")]}
@@ -380,20 +387,20 @@ class TestMisFotos(unittest.TestCase):
         with mock.patch.object(mis_fotos, "categorias", return_value=["muebles", "comida"]), \
              mock.patch.object(ia, "pedir_json", return_value=respuesta), \
              mock.patch.object(tendencias, "buscar_noticias") as bn:
-            tema = pedidos.preparar({}, "video de mi mueblería, cojines 30% off", "auto")
+            sin_pedir = pedidos.preparar({}, "video de mi mueblería, cojines 30% off", "auto")
+            tema = pedidos.preparar({}, "video de mi mueblería, cojines 30% off (fotos en drive)", "auto")
+        self.assertEqual(sin_pedir["carpetas_fotos"], [])  # sin decir "drive"/"fotos" no se usan
         self.assertEqual(tema["carpetas_fotos"], ["muebles"])
         self.assertTrue(tema["es_negocio"])
         bn.assert_not_called()
 
-    def test_tendencias_tambien_usan_carpetas(self):
-        from fabrica import mis_fotos
+    def test_tendencias_no_usan_tus_carpetas(self):
         candidatos = [tendencias.Candidato("América vs Chivas", "trends", "MX", "es")]
         respuesta = {"temas": [{"indices": [0], "tema": "Clásico", "categoria": "deportes", "estilo": "comic",
-                                "carpetas_fotos": ["logos equipos", "inventada"]}]}
-        with mock.patch.object(mis_fotos, "categorias", return_value=["logos equipos", "muebles"]), \
-             mock.patch.object(ia, "pedir_json", return_value=respuesta):
+                                "carpetas_fotos": ["logos equipos"]}]}
+        with mock.patch.object(ia, "pedir_json", return_value=respuesta):
             temas = tendencias.elegir_temas({}, candidatos, 1, [])
-        self.assertEqual(temas[0]["carpetas_fotos"], ["logos equipos"])
+        self.assertEqual(temas[0]["carpetas_fotos"], [])
 
     def test_tarjeta_de_negocio(self):
         from fabrica import graficas

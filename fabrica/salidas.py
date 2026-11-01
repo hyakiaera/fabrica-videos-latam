@@ -20,6 +20,9 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
         "FUENTES (verifica los datos antes de publicar):",
         *[f"- {t} ({f}) {u}" for t, f, u in tema.get("fuentes", [])],
     ]
+    if datos.get("voz_usada", {}).get("voz"):
+        v = datos["voz_usada"]
+        lineas += ["", f"VOZ: {v['voz']}" + (f"\n   motivo: {v['motivo']}" if v.get("motivo") else "")]
     if conteo:
         graficas = sum(1 for e in datos.get("escenas", []) if e.get("grafica"))
         lineas += ["", f"IMÁGENES: {conteo.get('propias', 0)} tuyas, {conteo.get('ia', 0)} con IA, {conteo.get('real', 0)} fotos/logos reales, "

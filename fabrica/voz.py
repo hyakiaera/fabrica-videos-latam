@@ -27,6 +27,14 @@ def voz_edge(cfg: dict) -> str:
                                    "mujer": "es-MX-DaliaNeural-Female"}[genero])
 
 
+# Qué voz se usó en el último video y por qué (va a la ficha .txt).
+ULTIMA = {"voz": "", "motivo": ""}
+
+
+def anotar(voz: str, motivo: str = ""):
+    ULTIMA["voz"], ULTIMA["motivo"] = voz, motivo[:400]
+
+
 def clonar_activo(cfg: dict) -> bool:
     v = cfg.get("voz", {})
     if not v.get("clonar"):
@@ -61,10 +69,13 @@ def generar_y_clonar(cfg: dict, texto: str, carpeta: Path) -> Path:
             _comando(cfg, base, salida)
     except Exception as e:
         logger.error(f"Voz: la clonación falló ({e}); se usa la voz gratis de Edge")
+        anotar(f"Edge ({voz}) — tu voz clonada falló", f"{type(e).__name__}: {e}")
         return base
     if not salida.exists() or salida.stat().st_size < 1000:
         logger.error("Voz: no se creó el audio clonado; se usa la voz de Edge")
+        anotar(f"Edge ({voz}) — tu voz clonada no creó audio")
         return base
+    anotar("tu voz clonada")
     return salida
 
 
@@ -104,6 +115,7 @@ def narracion_google(cfg: dict, texto: str, carpeta: Path) -> Path:
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(base),
                     "-filter:a", f"atempo={velocidad:.2f}", str(salida)], check=True)
     logger.warning("Voz: se usó la voz de respaldo de Google porque Edge no respondió")
+    anotar("Google (respaldo) — Edge no respondió")
     return salida
 
 

@@ -140,6 +140,9 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
     if nombradas:
         elegidas = nombradas
     elegidas = _mf.quitar_repetidas(elegidas)
+    if not pide_fotos:
+        # Tus fotos solo se usan cuando lo pides ("drive", "fotos en drive", "mis fotos"...).
+        elegidas = []
     if pide_fotos and not elegidas:
         logger.warning(f"Pediste usar tus fotos pero ninguna carpeta coincide. Tienes: {', '.join(carpetas)}")
     elegido = estilo if estilo != ESTILO_AUTOMATICO else d.get("estilo", "")

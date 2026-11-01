@@ -56,6 +56,7 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
 
     audio_propio = None
     audio_edge = None
+    voz.anotar(f"Edge ({voz.voz_edge(cfg)})")
     if voz.clonar_activo(cfg):
         audio_propio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
     else:
@@ -130,6 +131,7 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         task_id = str(uuid.uuid4())
         resultado = correr(audio_edge or voz.narracion_google(cfg, datos["guion"], trabajo / "voz"))
 
+    datos["voz_usada"] = dict(voz.ULTIMA)
     videos = (resultado or {}).get("videos") or []
     if not videos:
         raise RuntimeError(f"MoneyPrinterTurbo no produjo el video (tarea {task_id})")
