@@ -68,6 +68,40 @@ def _archivos_modelo(carpeta: Path) -> tuple[Path | None, Path | None]:
     return ultimo("*.pth"), ultimo("*.index")
 
 
+EXTRAER = r"""
+import json, sys, torch
+sys.path.insert(0, ".")
+from rvc.train.process.extract_model import extract_model
+from rvc.train.utils import HParams
+g, config, salida, nombre = sys.argv[1:5]
+hps = HParams(**json.load(open(config, encoding="utf-8")))
+ckpt = torch.load(g, map_location="cpu", weights_only=False)
+pesos = ckpt.get("model", ckpt)
+vocoder = getattr(hps.model, "vocoder", None) or "HiFi-GAN"
+extract_model(ckpt=pesos, sr=hps.data.sample_rate, name=nombre, model_path=salida,
+              epoch=ckpt.get("iteration", 0), step=0, hps=hps, vocoder=vocoder)
+print("ok")
+"""
+
+
+def extraer_de_entrenamiento(carpeta: Path) -> Path | None:
+    """Si el entrenamiento se cortó antes de guardar el modelo final, lo saca del
+    checkpoint G_*.pth (es lo mismo que hace Applio al terminar)."""
+    gs = sorted(carpeta.rglob("G_*.pth"), key=lambda p: p.stat().st_mtime)
+    configs = list(carpeta.rglob("config.json"))
+    if not gs or not configs:
+        return None
+    instalar()
+    nombre = gs[-1].parent.name if gs[-1].parent != carpeta else "mi_voz"
+    salida = gs[-1].parent / f"{nombre}_desde_checkpoint.pth"
+    script = APPLIO / "fabrica_extraer.py"
+    script.write_text(EXTRAER, encoding="utf-8")
+    logger.info("Applio: el modelo final no existe; se saca del último checkpoint de entrenamiento")
+    _correr([_python_applio(), script.name, gs[-1].resolve(), configs[0].resolve(), salida.resolve(), nombre],
+            cwd=APPLIO, timeout=900)
+    return salida if salida.exists() else None
+
+
 def _archivos_modelo_recursivo(carpeta: Path) -> tuple[Path | None, Path | None]:
     pths = [p for p in carpeta.rglob("*.pth") if not p.name.startswith(("G_", "D_"))]
     idxs = list(carpeta.rglob("*.index"))
@@ -94,6 +128,13 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
             descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
                             or not n.lower().endswith((".pth", ".index", ".zip")))
             pth, idx = _archivos_modelo_recursivo(local)
+        if not pth:
+            # Entrenamiento sin terminar: solo hay G_/D_. Se baja el G_ y su config para sacar el modelo.
+            descargas.bajar_con_rclone(v["link_modelo"], local, ["+ G_*.pth", "+ config.json",
+                                                                 "+ model_info.json", "+ */", "- *"], remoto)
+            extraido = extraer_de_entrenamiento(local)
+            if extraido:
+                pth, idx = extraido, _archivos_modelo_recursivo(local)[1]
         if pth:
             return pth, idx
         raise RuntimeError("En el link del modelo no encontré ningún archivo .pth (que no empiece con G_ o D_). "
