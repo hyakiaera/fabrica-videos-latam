@@ -124,9 +124,13 @@ modo = "auto"
 nombre = ""                 # carpeta del avatar (vacío = el primero que encuentre, ej. EL_HYAKO_MAYOR)
 carpeta_drive = "Fabrica de Videos/MIS AVATARES/AVATARES 2026"
 carpeta_local = ""          # en tu PC: ruta a AVATARES 2026 (si usas Drive para escritorio)
-# "esquina" = tarjeta con tu foto todo el video; "escenas" = abre y cierra el video
-# a pantalla completa; "ambos" = las dos cosas
-aparicion = "esquina"
+# "recorte" = TÚ SIN FONDO encima del video, como presentador (usa 07_sin_fondo; si no
+#             hay looks sin fondo para ese tono, usa la tarjeta)
+# "esquina" = tarjeta con tu foto (con fondo y borde blanco) todo el video
+# "escenas" = abre y cierra el video a pantalla completa; "ambos" = tarjeta + escenas
+aparicion = "recorte"
+posicion_recorte = "izquierda"  # izquierda / derecha (encima de los subtítulos), abajo_izquierda, abajo_derecha
+alto_recorte = 0.38         # alto del recorte (fracción del alto del video)
 posicion = "arriba_derecha" # arriba_derecha, arriba_izquierda, centro_izquierda, abajo_izquierda
 tamano = 0.28               # ancho de la tarjeta (fracción del video)
 segundos = 0                # 0 = todo el video; ej. 6 = solo los primeros 6 segundos

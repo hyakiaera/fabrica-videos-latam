@@ -88,8 +88,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")
     # Tu avatar: un look de tu banco en Drive según el tono del guion (o el que elegiste).
-    look = avatar.elegir(cfg, tema, trabajo / "avatar", datos)
-    abrir_cerrar = bool(look) and avatar.aparicion(cfg) in ("escenas", "ambos")
+    look, como = avatar.elegir(cfg, tema, trabajo / "avatar", datos)
+    abrir_cerrar = bool(look) and como in ("escenas", "ambos")
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}
     if "stock_video" not in estilo.fuentes:
@@ -113,9 +113,12 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
             direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
         crudo = video.armar(cfg, datos, estilo, [look, *fotos, look] if abrir_cerrar and fotos else fotos, trabajo)
-    if look and (avatar.aparicion(cfg) in ("esquina", "ambos") or not fotos):
+    if look and (como in ("recorte", "esquina", "ambos") or not fotos):
         try:
-            crudo = avatar.poner_en_esquina(cfg, crudo, look, trabajo / "con-avatar.mp4")
+            if como == "recorte":
+                crudo = avatar.poner_recorte(cfg, crudo, look, trabajo / "con-avatar.mp4")
+            else:
+                crudo = avatar.poner_en_esquina(cfg, crudo, look, trabajo / "con-avatar.mp4")
         except Exception as e:
             logger.warning(f"Avatar: no se pudo poner en el video ({e}); sale sin avatar")
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")
@@ -208,6 +211,7 @@ def main(argv=None) -> int:
     p.add_argument("--posicion-logo", help="arriba_izquierda, arriba_centro, arriba_derecha, ...")
     p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
     p.add_argument("--avatar", help="tu avatar: no, auto (según el tono del guion) o un look fijo (ej. 04_FORMAL)")
+    p.add_argument("--avatar-como", help="cómo aparece: recorte (sin fondo), esquina (tarjeta), escenas o ambos")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
     p.add_argument("--repetir-cada", type=float, metavar="HORAS", help="modo PC: repetir cada N horas")
@@ -240,6 +244,8 @@ def main(argv=None) -> int:
                 cfg["voz"]["clonar"] = True
         if args.avatar:
             cfg.setdefault("avatar", {})["modo"] = args.avatar.strip()
+        if args.avatar_como:
+            cfg.setdefault("avatar", {})["aparicion"] = args.avatar_como.strip()
         if args.duracion:
             cfg.setdefault("guion", {})["duracion_segundos"] = segundos(args.duracion)
         return cfg

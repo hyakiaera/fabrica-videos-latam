@@ -58,6 +58,11 @@ on:
         type: choice
         default: auto
         options: [auto, "no", 01_STREET, 02_LUXURY, 03_HIPHOP, 04_FORMAL, 05_VACACIONES, 06_SPORT, 07_CASUAL, 08_FUTURISTA]
+      avatar_como:
+        description: "Cómo aparece tu avatar"
+        type: choice
+        default: recorte
+        options: [recorte, esquina, escenas, ambos]
 
 permissions:
   contents: write  # para guardar el historial de temas y no repetirlos
@@ -140,6 +145,7 @@ jobs:
           IN_DRIVE: ${{ inputs.drive }}
           IN_DETALLES: ${{ inputs.detalles }}
           IN_AVATAR: ${{ inputs.avatar || vars.AVATAR || 'auto' }}
+          IN_AVATAR_COMO: ${{ inputs.avatar_como || vars.AVATAR_COMO || 'recorte' }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
         run: |
           cp config.example.toml config.toml
@@ -158,7 +164,7 @@ jobs:
           SALIDAS="descargar"
           if [ "$EVENTO" = "schedule" ] || [ "$IN_DRIVE" = "true" ]; then SALIDAS="$SALIDAS,drive"; fi
           if [ "$VAR_PUBLICAR" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
-          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION" --avatar "$IN_AVATAR")
+          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION" --avatar "$IN_AVATAR" --avatar-como "$IN_AVATAR_COMO")
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
           if [ "$IN_VOZ" = "mi voz" ]; then

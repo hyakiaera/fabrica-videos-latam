@@ -2,6 +2,7 @@
 (el que creas con el cuaderno StudioAvatar) y lo pone en el video.
 
 Banco en Drive:  Fabrica de Videos/MIS AVATARES/AVATARES 2026/<AVATAR>/02_looks/<ESTILO>/*.png
+Sin fondo (PNG transparente, botón 2C o casilla del 2B):  .../<AVATAR>/07_sin_fondo/<ESTILO>/*.png
 
 - Modo "auto": el look depende del TONO del guion. Temas serios → solo looks
   formales; temas chistosos → nunca traje ni casual; neutrales → casual/deportivo...
@@ -19,6 +20,7 @@ from pathlib import Path
 from loguru import logger
 
 EXT_IMG = (".png", ".jpg", ".jpeg", ".webp")
+LOOKS, SIN_FONDO = "02_looks", "07_sin_fondo"
 TONOS = ("serio", "neutral", "chistoso")
 
 # Qué looks puede usar cada tono (en orden de preferencia). Se cambian en fabrica.toml.
@@ -105,26 +107,29 @@ class Banco:
             raise RuntimeError("no hay ningún avatar en tu carpeta AVATARES 2026")
         return todos[0]
 
-    def estilos(self, avatar: str) -> list[str]:
+    def estilos(self, avatar: str, sub: str = LOOKS) -> list[str]:
         if self.local:
-            carpeta = self.local / avatar / "02_looks"
+            carpeta = self.local / avatar / sub
             return sorted(p.name for p in carpeta.iterdir() if p.is_dir()) if carpeta.is_dir() else []
-        return _rclone_lsf(f"{self.raiz}/{avatar}/02_looks", "--dirs-only")
+        try:
+            return _rclone_lsf(f"{self.raiz}/{avatar}/{sub}", "--dirs-only")
+        except RuntimeError:
+            return []  # la carpeta todavía no existe
 
-    def looks(self, avatar: str, estilo: str) -> list[str]:
+    def looks(self, avatar: str, estilo: str, sub: str = LOOKS) -> list[str]:
         if self.local:
-            carpeta = self.local / avatar / "02_looks" / estilo
+            carpeta = self.local / avatar / sub / estilo
             return sorted(p.name for p in carpeta.iterdir() if p.suffix.lower() in EXT_IMG) if carpeta.is_dir() else []
-        return [n for n in _rclone_lsf(f"{self.raiz}/{avatar}/02_looks/{estilo}", "--files-only")
+        return [n for n in _rclone_lsf(f"{self.raiz}/{avatar}/{sub}/{estilo}", "--files-only")
                 if n.lower().endswith(EXT_IMG)]
 
-    def traer(self, avatar: str, estilo: str, archivo: str, destino: Path) -> Path:
+    def traer(self, avatar: str, estilo: str, archivo: str, destino: Path, sub: str = LOOKS) -> Path:
         destino.mkdir(parents=True, exist_ok=True)
         salida = destino / f"avatar_{estilo}_{archivo}"
         if self.local:
-            shutil.copy(self.local / avatar / "02_looks" / estilo / archivo, salida)
+            shutil.copy(self.local / avatar / sub / estilo / archivo, salida)
         else:
-            subprocess.run(["rclone", "copyto", f"{self.raiz}/{avatar}/02_looks/{estilo}/{archivo}", str(salida)],
+            subprocess.run(["rclone", "copyto", f"{self.raiz}/{avatar}/{sub}/{estilo}/{archivo}", str(salida)],
                            check=True, capture_output=True, timeout=300)
         return salida
 
@@ -144,36 +149,52 @@ def estilos_permitidos(cfg: dict, tema: dict, datos: dict | None = None) -> list
     return permitidos
 
 
-def elegir(cfg: dict, tema: dict, carpeta: Path, datos: dict | None = None) -> Path | None:
-    """Baja un look adecuado para el tema. Devuelve None si no hay avatar."""
+def _con_looks(banco: "Banco", avatar: str, permitidos: list[str], sub: str) -> list[tuple[str, list[str]]]:
+    existentes = set(banco.estilos(avatar, sub))
+    pares = [(e, banco.looks(avatar, e, sub)) for e in permitidos if e in existentes]
+    return [(e, l) for e, l in pares if l]
+
+
+def elegir(cfg: dict, tema: dict, carpeta: Path, datos: dict | None = None) -> tuple[Path | None, str]:
+    """Baja un look adecuado para el tema. Devuelve (ruta, cómo aparece) o (None, "")."""
     m = modo(cfg)
     if m == "no":
-        return None
+        return None, ""
     banco = Banco(cfg)
     if not banco.disponible():
         logger.warning("Avatar: sin acceso a tu Drive (rclone) ni carpeta local; el video sale sin avatar")
-        return None
+        return None, ""
+    como = aparicion(cfg)
     try:
         avatar = banco.elegir_avatar()
-        existentes = set(banco.estilos(avatar))
         permitidos = estilos_permitidos(cfg, tema, datos)
-        con_looks = [(e, banco.looks(avatar, e)) for e in permitidos if e in existentes]
-        con_looks = [(e, l) for e, l in con_looks if l]
+        sub = LOOKS
+        con_looks = []
+        if como == "recorte":
+            con_looks = _con_looks(banco, avatar, permitidos, SIN_FONDO)
+            if con_looks:
+                sub = SIN_FONDO
+            else:
+                logger.warning("Avatar: no hay looks SIN FONDO para este tono (créalos con StudioAvatar, botón 2C); "
+                               "se usa la tarjeta con fondo")
+                como = "esquina"
+        if not con_looks:
+            con_looks = _con_looks(banco, avatar, permitidos, LOOKS)
         if not con_looks:
             detalle = f"tono {tono_de(tema, datos)}" if m == "auto" else "modo manual"
             logger.warning(f"Avatar: no hay looks de {', '.join(permitidos)} ({detalle}) en el avatar "
-                           f"'{avatar}'; el video sale sin avatar. Créalos con StudioAvatar (botón 2).")
-            return None
+                           f"'{avatar}'; el video sale sin avatar. Créalos con StudioAvatar (botón 2B).")
+            return None, ""
         # Se prefiere el primer estilo, pero a veces se usa otro permitido para variar.
         estilo, looks = con_looks[0] if random.random() < 0.6 else random.choice(con_looks)
         archivo = random.choice(looks)
-        ruta = banco.traer(avatar, estilo, archivo, carpeta)
-        logger.info(f"Avatar: {avatar} con look {estilo}/{archivo} "
-                    f"({'tono ' + tono_de(tema, datos) if m == 'auto' else 'manual'})")
-        return ruta
+        ruta = banco.traer(avatar, estilo, archivo, carpeta, sub)
+        logger.info(f"Avatar: {avatar} con look {estilo}/{archivo}{' (sin fondo)' if sub == SIN_FONDO else ''}, "
+                    f"aparece: {como} ({'tono ' + tono_de(tema, datos) if m == 'auto' else 'manual'})")
+        return ruta, como
     except Exception as e:
         logger.warning(f"Avatar: no se pudo traer el look ({e}); el video sale sin avatar")
-        return None
+        return None, ""
 
 
 # ---------------- ponerlo en el video ----------------
@@ -216,7 +237,45 @@ def poner_en_esquina(cfg: dict, video: Path, look: Path, salida: Path) -> Path:
     return salida
 
 
+APARICIONES = ("recorte", "esquina", "escenas", "ambos")
+
+
 def aparicion(cfg: dict) -> str:
-    """'esquina' (tarjeta todo el video), 'escenas' (primera y última imagen) o 'ambos'."""
-    valor = str(cfg.get("avatar", {}).get("aparicion", "esquina")).lower()
-    return valor if valor in ("esquina", "escenas", "ambos") else "esquina"
+    """'recorte' (tú sin fondo encima del video), 'esquina' (tarjeta con borde),
+    'escenas' (abre y cierra el video a pantalla completa) o 'ambos' (tarjeta + escenas)."""
+    valor = str(cfg.get("avatar", {}).get("aparicion", "recorte")).lower()
+    return valor if valor in APARICIONES else "recorte"
+
+
+# Recorte: el borde de abajo queda justo encima de los subtítulos, y del lado
+# izquierdo (a la derecha están los botones de TikTok/Reels).
+POSICIONES_RECORTE = {  # (x %, línea de abajo en % del alto)
+    "izquierda": (2, 68),
+    "derecha": (98, 68),
+    "abajo_izquierda": (2, 100),
+    "abajo_derecha": (98, 100),
+}
+
+
+def filtro_recorte(cfg: dict, alto_video: int) -> str:
+    a = cfg.get("avatar", {})
+    x, abajo = POSICIONES_RECORTE.get(a.get("posicion_recorte", "izquierda"), POSICIONES_RECORTE["izquierda"])
+    alto = int(alto_video * float(a.get("alto_recorte", 0.38)))
+    segundos = float(a.get("segundos", 0) or 0)
+    expr_x = f"W*{x / 100:.4f}-w" if x >= 67 else f"W*{x / 100:.4f}"
+    cuando = f":enable='lte(t,{segundos})'" if segundos > 0 else ""
+    return (f"[1:v]scale=-2:{alto},format=rgba[av];"
+            f"[0:v][av]overlay={expr_x}:H*{abajo / 100:.4f}-h:shortest=1:format=auto{cuando}")
+
+
+def poner_recorte(cfg: dict, video: Path, png: Path, salida: Path) -> Path:
+    """Te pone recortado (PNG sin fondo) encima del video, como presentador."""
+    from fabrica.video import ANCHOS
+    aspecto = cfg.get("video", {}).get("aspecto", "9:16")
+    ancho = ANCHOS.get(aspecto, 1080)
+    alto = {"9:16": ancho * 16 // 9, "16:9": ancho * 9 // 16, "1:1": ancho}.get(aspecto, 1920)
+    comando = [_ffmpeg(), "-y", "-loglevel", "error", "-i", str(video), "-loop", "1", "-i", str(png),
+               "-filter_complex", filtro_recorte(cfg, alto), "-c:v", "libx264", "-preset", "veryfast",
+               "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", str(salida)]
+    subprocess.run(comando, check=True)
+    return salida
