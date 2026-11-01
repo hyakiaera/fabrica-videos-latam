@@ -217,3 +217,48 @@ def describir_imagen(cfg: dict, ruta) -> str:
         return (r.json()["choices"][0]["message"]["content"] or "").strip()[:200] if r.ok else ""
     except Exception:
         return ""
+
+
+def elegir_imagenes(cfg: dict, rutas: list, descripcion: str) -> list[int] | None:
+    """Gemini mira varias fotos a la vez (una sola llamada) y dice cuáles muestran de verdad
+    lo que se describe. Devuelve los índices buenos, o None si no se pudo revisar."""
+    import base64
+    import io
+
+    from PIL import Image
+
+    clave = secreto("GEMINI_API_KEY")
+    if not clave or not rutas:
+        return None
+    contenido = [{"type": "text", "text":
+                  f"Images numbered 0 to {len(rutas) - 1}. Which ones clearly show: {descripcion}? "
+                  "The main subject must be that exact thing (same product type, brand or place). "
+                  "Reject unrelated people, food, animals, cartoons, text banners or random scenes. "
+                  'Answer only JSON: {"good": [indices, best first]}'}]
+    for ruta in rutas:
+        try:
+            img = Image.open(ruta).convert("RGB")
+            img.thumbnail((384, 384))
+            buf = io.BytesIO()
+            img.save(buf, "JPEG", quality=80)
+            datos = base64.b64encode(buf.getvalue()).decode()
+        except Exception:
+            datos = ""
+        contenido.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{datos}"}})
+    modelo = cfg.get("imagenes", {}).get("modelo_revision", "gemini-flash-lite-latest")
+    for intento in range(3):
+        try:
+            r = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers={"Authorization": f"Bearer {clave}"}, timeout=90,
+                json={"model": modelo, "temperature": 0, "messages": [{"role": "user", "content": contenido}]})
+            if r.status_code == 429:
+                time.sleep(10 * (intento + 1))  # límite por minuto de la capa gratis
+                continue
+            if not r.ok:
+                return None
+            buenos = extraer_json(r.json()["choices"][0]["message"]["content"] or "").get("good", [])
+            return [i for i in buenos if isinstance(i, int) and 0 <= i < len(rutas)]
+        except Exception:
+            return None
+    return None

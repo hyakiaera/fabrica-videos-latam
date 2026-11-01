@@ -686,7 +686,7 @@ class TestFotosDeProductos(unittest.TestCase):
             def __init__(self, carpeta):
                 pass
 
-            def tomar(self, consulta, aceptar=lambda r: True):
+            def mejor(self, consulta, descripcion, elegir, lote=6):
                 consultas.append(consulta)
                 return None
 
@@ -720,6 +720,40 @@ class TestVozSigueIntentando(unittest.TestCase):
             pth, idx = voz_applio.traer_modelo({"voz": {"link_modelo": "https://drive.google.com/drive/folders/x"}})
         extraer.assert_called_once()
         self.assertEqual(pth, modelo)
+
+
+class TestRevisionDeFotosWeb(unittest.TestCase):
+    def _banco(self, n=3):
+        from fabrica import fotos_web
+        banco = fotos_web.Banco(Path(tempfile.mkdtemp()))
+        banco.fotos["tenis"] = [(Path(f"/x/{k}.jpg"), f"cred{k}") for k in range(n)]
+        return banco
+
+    def test_sin_revision_no_se_usa_ninguna(self):
+        banco = self._banco()
+        self.assertIsNone(banco.mejor("tenis", "tenis Nike", lambda rutas, d: None))
+        self.assertEqual(banco.usadas, set())  # quedan libres para otra escena
+
+    def test_usa_la_que_elige_gemini_y_libera_las_demas(self):
+        banco = self._banco()
+        r = banco.mejor("tenis", "tenis Nike", lambda rutas, d: [2])
+        self.assertEqual(r, (Path("/x/2.jpg"), "cred2"))
+        self.assertEqual(banco.usadas, {"/x/2.jpg"})
+
+    def test_gemini_revisa_varias_en_una_llamada(self):
+        from PIL import Image
+        carpeta = Path(tempfile.mkdtemp())
+        rutas = []
+        for k in range(3):
+            Image.new("RGB", (50, 50)).save(carpeta / f"{k}.jpg")
+            rutas.append(carpeta / f"{k}.jpg")
+        respuesta = mock.Mock(ok=True, status_code=200)
+        respuesta.json.return_value = {"choices": [{"message": {"content": '{"good": [1, 7]}'}}]}
+        with mock.patch.dict("os.environ", {"GEMINI_API_KEY": "k"}), \
+             mock.patch("requests.post", return_value=respuesta) as post:
+            self.assertEqual(ia.elegir_imagenes({}, rutas, "tenis"), [1])
+        self.assertEqual(post.call_count, 1)
+        self.assertEqual(len(post.call_args.kwargs["json"]["messages"][0]["content"]), 4)
 
 
 if __name__ == "__main__":

@@ -289,6 +289,18 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             return False
         return True
 
+    def elegir(rutas, descripcion):
+        if not im.get("revisar", True):
+            return [0]
+        buenos = ia.elegir_imagenes(cfg, rutas, descripcion)
+        if buenos is not None:
+            with candado:
+                conteo["rechazadas"] += len(rutas) - len(buenos)
+        return buenos
+
+    def de_internet(consulta, descripcion):
+        return banco.mejor(consulta, descripcion, elegir) if banco and consulta else None
+
     def una(indice_escena):
         nonlocal revisar
         i, escena = indice_escena
@@ -313,7 +325,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 sumar("real")
                 return preparar_real(hallado[0], aspecto), hallado[1]
             if banco:
-                hallado = banco.tomar(real, lambda ruta: encaja(ruta, real))
+                hallado = de_internet(real, real)
                 if hallado:
                     sumar("real")
                     return preparar_real(hallado[0], aspecto), hallado[1]
@@ -321,8 +333,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         for fuente in estilo.fuentes:
             if fuente == "web" and banco:
                 consulta = real or escena.get("busqueda_foto") or tema
-                hallado = (banco.tomar(consulta, lambda ruta: encaja(ruta, consulta))
-                           or banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa)))
+                hallado = de_internet(consulta, f"{consulta} ({descripcion})")
                 if hallado:
                     sumar("real")
                     return preparar_real(hallado[0], aspecto), hallado[1]
@@ -363,7 +374,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                     return ruta, None
         # Antes de quedarse sin nada: una foto real del tema, o la imagen IA aunque no fue perfecta.
         if banco and "web" not in estilo.fuentes:
-            hallado = banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa))
+            hallado = de_internet(real or busqueda or tema, f"{real or busqueda or tema} ({descripcion})")
             if hallado:
                 sumar("real")
                 return preparar_real(hallado[0], aspecto), hallado[1]

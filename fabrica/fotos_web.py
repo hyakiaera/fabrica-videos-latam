@@ -131,6 +131,29 @@ class Banco:
         logger.info(f"Fotos web: {len(lista)} fotos para '{consulta}'")
         return len(lista)
 
+    def mejor(self, consulta: str, descripcion: str, elegir, lote: int = 6) -> tuple[Path, str] | None:
+        """La foto no usada del tema que mejor muestra 'descripcion', revisando varias de una vez.
+        'elegir(rutas, descripcion)' devuelve los índices buenos o None si no se pudo revisar:
+        en ese caso NO se usa ninguna (una foto de internet sin revisar puede ser cualquier cosa)."""
+        self.cargar(consulta)
+        with self.candado:
+            libres = [(r, c) for r, c in self.fotos.get(consulta, []) if str(r) not in self.usadas][:lote]
+            for r, _ in libres:
+                self.usadas.add(str(r))  # se reservan para que otra escena no revise las mismas
+        if not libres:
+            return None
+        buenos = elegir([r for r, _ in libres], descripcion)
+        if not buenos:
+            with self.candado:  # las que no se eligieron vuelven a estar disponibles
+                for r, _ in libres:
+                    self.usadas.discard(str(r))
+            return None
+        with self.candado:
+            for k, (r, _) in enumerate(libres):
+                if k != buenos[0]:
+                    self.usadas.discard(str(r))
+        return libres[buenos[0]]
+
     def tomar(self, consulta: str, aceptar=lambda ruta: True) -> tuple[Path, str] | None:
         """Siguiente foto no usada del tema que pase el filtro 'aceptar'."""
         self.cargar(consulta)
