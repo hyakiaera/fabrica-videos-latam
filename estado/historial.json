@@ -132,5 +132,14 @@
   "estilo": "caricatura",
   "titulo": "Los sorprendentes beneficios del café para tu salud",
   "archivo": "salida/2026-11-01/ciencia/beneficios-del-cafe #015.mp4"
+ },
+ {
+  "numero": 16,
+  "fecha": "2026-11-01T17:18",
+  "tema": "Los mejores tenis por menos de 100 dólares",
+  "categoria": "general",
+  "estilo": "realista",
+  "titulo": "¡Los mejores tenis por menos de 100 dólares!",
+  "archivo": "salida/2026-11-01/general/los-mejores-tenis-por-menos-de-100-dolares #016.mp4"
  }
 ]
