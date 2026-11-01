@@ -621,5 +621,25 @@ class TestModeloPorLink(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in archivos), ["HYAKO_285e.pth", "added_HYAKO.index"])
 
 
+class TestFirma(unittest.TestCase):
+    def test_video_firmado_con_la_marca(self):
+        import json
+        import subprocess
+        import imageio_ffmpeg
+        carpeta = Path(tempfile.mkdtemp())
+        crudo = carpeta / "crudo.mp4"
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+                        "color=c=blue:s=320x568:d=1", "-c:v", "libx264", str(crudo)], check=True)
+        cfg = {"logo": {"texto": "DESVERGUEOFFICIAL", "archivo": str(carpeta / "no.png")},
+               "firma": {"autor": "DESVERGUEOFFICIAL"}}
+        final = video.poner_logo(cfg, crudo, carpeta / "final.mp4", titulo="Mi video")
+        salida = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format_tags", "-of", "json",
+                                 str(final)], capture_output=True, text=True).stdout
+        etiquetas = {k.lower(): v for k, v in json.loads(salida)["format"]["tags"].items()}
+        self.assertEqual(etiquetas["artist"], "DESVERGUEOFFICIAL")
+        self.assertEqual(etiquetas["title"], "Mi video")
+        self.assertNotIn("Lavf", etiquetas.get("encoder", ""))
+
+
 if __name__ == "__main__":
     unittest.main()

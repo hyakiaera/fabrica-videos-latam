@@ -108,7 +108,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
             direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
-    final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")
+    final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
 

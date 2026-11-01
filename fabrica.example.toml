@@ -126,6 +126,12 @@ tamano = 0.16               # fracción del ancho del video (0.16 = 16 %)
 opacidad = 0.9              # 1 = sólido, 0.5 = medio transparente
 # Para ver cómo queda sin hacer un video: python -m fabrica --probar-logo
 
+[firma]
+# Autor que aparece en los datos del archivo de video (propiedades / metadatos).
+autor = "DESVERGUEOFFICIAL"
+# copyright = "© 2026 DESVERGUEOFFICIAL"
+# comentario = "Video de DESVERGUEOFFICIAL"
+
 [salida]
 carpeta = "salida"          # aquí quedan los videos para descargar
 

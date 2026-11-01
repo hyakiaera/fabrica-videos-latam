@@ -1,6 +1,7 @@
 """Arma el video con el motor de MoneyPrinterTurbo y le pone el logo."""
 
 import shutil
+from datetime import datetime
 import subprocess
 import uuid
 from pathlib import Path
@@ -259,17 +260,39 @@ def filtro_logo(cfg: dict, es_texto: bool = False) -> str:
             f"[0:v][logo]overlay={_expresion_x(x)}:H*{y / 100:.4f}")
 
 
-def poner_logo(cfg: dict, video: Path, salida: Path) -> Path:
+def firma(cfg: dict, titulo: str = "") -> list[str]:
+    """Datos del archivo (metadatos) con tu marca como autor del video. Se borran las
+    etiquetas técnicas del programa de edición para que el autor que se vea sea tu canal."""
+    marca = cfg.get("firma", {})
+    nombre = marca.get("autor") or cfg.get("logo", {}).get("texto") or "DESVERGUEOFFICIAL"
+    datos = {
+        "artist": nombre, "author": nombre, "album_artist": nombre, "publisher": nombre,
+        "copyright": marca.get("copyright", f"© {datetime.now().year} {nombre}"),
+        "comment": marca.get("comentario", f"Video de {nombre}"),
+        "title": titulo,
+    }
+    argumentos = ["-map_metadata", "-1", "-fflags", "+bitexact", "-flags:v", "+bitexact",
+                  "-flags:a", "+bitexact"]
+    for clave, valor in datos.items():
+        if valor:
+            argumentos += ["-metadata", f"{clave}={valor}"]
+    return argumentos
+
+
+def poner_logo(cfg: dict, video: Path, salida: Path, titulo: str = "") -> Path:
+    """Pone el logo (si hay) y firma el archivo con tu marca."""
     logo = obtener_logo(cfg, salida.parent)
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     if not logo:
         if cfg.get("logo", {}).get("activo", True):
             logger.warning("Logo: no subiste marca/logo.png ni pusiste texto de marca; sale sin logo")
-        shutil.copy(video, salida)
-        return salida
-
-    comando = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(video),
-               "-i", str(logo), "-filter_complex", filtro_logo(cfg, logo.name == "logo-texto.png"), "-c:v", "libx264", "-preset", "veryfast",
-               "-crf", "20", "-c:a", "copy", "-movflags", "+faststart", str(salida)]
+        comando = [ffmpeg, "-y", "-loglevel", "error", "-i", str(video), "-c", "copy",
+                   *firma(cfg, titulo), "-movflags", "+faststart", str(salida)]
+    else:
+        comando = [ffmpeg, "-y", "-loglevel", "error", "-i", str(video), "-i", str(logo),
+                   "-filter_complex", filtro_logo(cfg, logo.name == "logo-texto.png"),
+                   "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "copy",
+                   *firma(cfg, titulo), "-movflags", "+faststart", str(salida)]
     subprocess.run(comando, check=True)
     return salida
 
