@@ -56,7 +56,8 @@ def bajar_con_rclone(url: str, carpeta: Path, filtros: list[str], remoto: str = 
             subprocess.run(["rclone", "backend", "copyid", f"{remoto}:", archivo_id.group(1) or archivo_id.group(2),
                             str(carpeta) + "/"], capture_output=True, text=True, timeout=1800, check=True)
     except Exception as e:
-        logger.warning(f"Descarga con rclone falló: {getattr(e, 'stderr', '') or e}")
+        detalle = (getattr(e, "stderr", "") or str(e))[-400:]
+        logger.warning(f"Descarga con rclone falló: {detalle}")
         return []
     _descomprimir(carpeta)
     return [p for p in carpeta.rglob("*") if p.is_file() and p not in antes]

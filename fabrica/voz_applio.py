@@ -114,31 +114,44 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
     v = cfg.get("voz", {})
     nombre = v.get("modelo", "mi_voz")
     if v.get("link_modelo"):
+        from fabrica import descargas
+
         local = MODELOS / "_desde_link"
+        remoto = cfg.get("drive", {}).get("remoto", "drive")
         pth, idx = _archivos_modelo_recursivo(local)
+        intentos = []
         if not pth:
-            from fabrica import descargas
             logger.info("Applio: bajando tu modelo de voz desde el link...")
-            # Solo el modelo final (.pth y .index); los G_/D_ de entrenamiento no hacen falta.
-            remoto = cfg.get("drive", {}).get("remoto", "drive")
+            # 1) Modelo final (.pth y .index) con tu conexión de Drive; sin los pesados G_/D_.
             descargas.bajar_con_rclone(v["link_modelo"], local, ["- G_*", "- D_*", "+ *.pth", "+ *.index",
-                                                                 "+ */", "- *"], remoto)
+                                                                 "- *"], remoto)
+            pth, idx = _archivos_modelo_recursivo(local)
+            if not pth:
+                intentos.append("rclone: no hay .pth final en la carpeta")
+        if not pth:
+            # 2) Lo mismo con el link público.
+            try:
+                descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
+                                or not n.lower().endswith((".pth", ".index", ".zip")))
+            except Exception as e:
+                intentos.append(f"link público: {e}")
             pth, idx = _archivos_modelo_recursivo(local)
         if not pth:
-            descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
-                            or not n.lower().endswith((".pth", ".index", ".zip")))
-            pth, idx = _archivos_modelo_recursivo(local)
-        if not pth:
-            # Entrenamiento sin terminar: solo hay G_/D_. Se baja el G_ y su config para sacar el modelo.
+            # 3) Entrenamiento sin terminar (solo G_/D_): se baja el G_ y su config y se saca el modelo.
             descargas.bajar_con_rclone(v["link_modelo"], local, ["+ G_*.pth", "+ config.json",
-                                                                 "+ model_info.json", "+ */", "- *"], remoto)
-            extraido = extraer_de_entrenamiento(local)
+                                                                 "+ model_info.json", "- *"], remoto)
+            if not list(local.rglob("G_*.pth")):
+                intentos.append("rclone: no se pudo bajar el G_*.pth")
+            try:
+                extraido = extraer_de_entrenamiento(local)
+            except Exception as e:
+                extraido = None
+                intentos.append(f"sacar modelo del G_: {str(e)[-300:]}")
             if extraido:
                 pth, idx = extraido, _archivos_modelo_recursivo(local)[1]
         if pth:
             return pth, idx
-        raise RuntimeError("En el link del modelo no encontré ningún archivo .pth (que no empiece con G_ o D_). "
-                           "Revisa que la carpeta 'respaldo' tenga el modelo guardado.")
+        raise RuntimeError("No pude conseguir tu modelo de voz. " + " | ".join(intentos))
     local = MODELOS / nombre
     pth, idx = _archivos_modelo(local)
     if pth and not v.get("actualizar_modelo_siempre", True):

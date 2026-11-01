@@ -67,6 +67,29 @@ def noticias(consulta: str, maximo: int = 8) -> list[tuple[str, str, str]]:
     return resultados
 
 
+def bing_imagenes(consulta: str, maximo: int = 8, vertical: bool = True) -> list[tuple[str, str, str]]:
+    """[(url_imagen, sitio, página)] de una búsqueda de imágenes: fotos reales de productos,
+    marcas, lugares y personas (las mismas que salen al buscarlas en internet)."""
+    filtros = "+filterui:imagesize-large" + ("+filterui:aspect-tall" if vertical else "")
+    try:
+        r = requests.get("https://www.bing.com/images/search", headers=CABECERAS, timeout=30,
+                         params={"q": consulta, "form": "HDRSC2", "qft": filtros, "first": 1})
+        html = r.text if r.ok else ""
+    except requests.RequestException:
+        html = ""
+    resultados = []
+    for bloque in re.findall(r'm="(\{[^"]*?murl[^"]*?\})"', html):
+        datos = unescape(bloque)
+        murl = re.search(r'"murl":"(.*?)"', datos)
+        purl = re.search(r'"purl":"(.*?)"', datos)
+        if murl:
+            pagina = purl.group(1) if purl else ""
+            resultados.append((murl.group(1), urlparse(pagina).netloc or "web", pagina))
+        if len(resultados) >= maximo:
+            break
+    return resultados
+
+
 def openverse(consulta: str, maximo: int = 6) -> list[tuple[str, str, str]]:
     """[(url_imagen, crédito, página)] con licencia Creative Commons."""
     try:
@@ -90,12 +113,14 @@ class Banco:
         self.candado = threading.Lock()
 
     def cargar(self, consulta: str, con_noticias: bool = True) -> int:
+        """Fotos del tema: búsqueda de imágenes (vertical y luego cualquiera), noticias y Openverse."""
         with self.candado:
             if consulta in self.fotos:
                 return len(self.fotos[consulta])
             self.fotos[consulta] = []
         self.carpeta.mkdir(parents=True, exist_ok=True)
-        fuentes = (noticias(consulta) if con_noticias else []) + openverse(consulta)
+        fuentes = bing_imagenes(consulta) + bing_imagenes(consulta, vertical=False)
+        fuentes += (noticias(consulta) if con_noticias else []) + openverse(consulta)
         lista = []
         for k, (url, credito, pagina) in enumerate(fuentes):
             ruta = _bajar(url, self.carpeta / f"web-{abs(hash(consulta)) % 10**6}-{k:02d}.jpg")

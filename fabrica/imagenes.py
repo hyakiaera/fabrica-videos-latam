@@ -186,6 +186,14 @@ def tiene_transparencia(img) -> bool:
     return alfa.getextrema()[0] < 250
 
 
+def fondo_de_producto(img) -> bool:
+    """Fotos de tienda (producto sobre fondo blanco o liso): no se deben recortar,
+    así que se muestran completas al centro."""
+    pequena = img.convert("RGB").resize((40, 40))
+    esquinas = [pequena.getpixel(p) for p in ((1, 1), (38, 1), (1, 38), (38, 38))]
+    return all(min(c) > 225 for c in esquinas)
+
+
 def preparar_real(ruta: Path, aspecto: str) -> Path:
     """Logos (con transparencia) se centran sobre un fondo; las fotos van tal cual:
     el movimiento de cámara las llena en vertical (con barrido si son anchas)."""
@@ -193,7 +201,7 @@ def preparar_real(ruta: Path, aspecto: str) -> Path:
 
     try:
         with Image.open(ruta) as img:
-            if tiene_transparencia(img):
+            if tiene_transparencia(img) or fondo_de_producto(img):
                 return encuadrar(ruta, aspecto)
             if img.mode != "RGB":
                 salida = ruta.with_name(ruta.stem + "-rgb.jpg")
@@ -222,7 +230,7 @@ def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
         salida = ruta.with_name(ruta.stem + "-encuadre.jpg")
         img.crop((x, y, x + ancho, y + alto)).save(salida, quality=92)
         return salida
-    if transparente:  # logos: fondo claro para que se vean
+    if transparente or fondo_de_producto(img):  # logos y productos: fondo claro, completos
         fondo = Image.new("RGB", (ancho, alto), (245, 245, 245))
         escala = min(ancho * 0.7 / img.width, alto * 0.45 / img.height)
     else:
@@ -312,7 +320,9 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         ia_de_respaldo = None
         for fuente in estilo.fuentes:
             if fuente == "web" and banco:
-                hallado = banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa))
+                consulta = real or escena.get("busqueda_foto") or tema
+                hallado = (banco.tomar(consulta, lambda ruta: encaja(ruta, consulta))
+                           or banco.tomar(tema or busqueda, lambda ruta: encaja(ruta, tema or escena_completa)))
                 if hallado:
                     sumar("real")
                     return preparar_real(hallado[0], aspecto), hallado[1]

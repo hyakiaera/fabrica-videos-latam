@@ -14,7 +14,7 @@ _ORIGINALES = {}
 def setUpModule():
     # Las pruebas no deben salir a internet a buscar fotos de noticias.
     from fabrica import fotos_web
-    for nombre in ("noticias", "openverse"):
+    for nombre in ("noticias", "openverse", "bing_imagenes"):
         _ORIGINALES[nombre] = getattr(fotos_web, nombre)
         parche = mock.patch.object(fotos_web, nombre, return_value=[])
         parche.start()
@@ -103,10 +103,10 @@ class TestEstilosYSalidas(unittest.TestCase):
         self.assertNotIn("no logos", p)
 
     def test_realista_requiere_clave_de_stock(self):
-        realista = estilos.obtener("realista")
+        realista = estilos.obtener("videos_stock")
         with mock.patch.dict("os.environ", {}, clear=True):
             self.assertFalse(estilos.disponible(realista))
-            self.assertNotIn("- realista:", estilos.resumen_para_ia())
+            self.assertNotIn("- videos_stock:", estilos.resumen_para_ia())
         with mock.patch.dict("os.environ", {"PIXABAY_API_KEY": "x"}, clear=True):
             self.assertTrue(estilos.disponible(realista))
 
@@ -499,7 +499,7 @@ class TestRespaldoStock(unittest.TestCase):
     def test_si_falla_el_stock_se_rehace_con_imagenes(self):
         from fabrica import __main__ as m
         datos = {"titulo": "T", "guion": "g", "escenas": [{"texto": "a"}], "hashtags": []}
-        tema = {"tema": "Pupusas", "categoria": "comida", "estilo": "realista", "fuentes": []}
+        tema = {"tema": "Pupusas", "categoria": "comida", "estilo": "videos_stock", "fuentes": []}
         carpeta = Path(tempfile.mkdtemp())
         armados = []
 
@@ -660,6 +660,66 @@ class TestModeloConRclone(unittest.TestCase):
         self.assertIn("--drive-root-folder-id", cmd)
         self.assertIn("1n3qMPuJXE9hTYmL5xpygo6wQxZtXFvdX", cmd)
         self.assertEqual([p.name for p in archivos], ["HYAKO_285e.pth"])
+
+
+class TestFotosDeProductos(unittest.TestCase):
+    def test_bing_imagenes_lee_resultados(self):
+        html = ('<a class="iusc" m="{&quot;murl&quot;:&quot;https://tienda.com/nike.jpg&quot;,'
+                '&quot;purl&quot;:&quot;https://tienda.com/nike&quot;}">')
+        with mock.patch("requests.get", return_value=mock.Mock(ok=True, text=html)):
+            r = _ORIGINALES["bing_imagenes"]("Nike Revolution 7")
+        self.assertEqual(r, [("https://tienda.com/nike.jpg", "tienda.com", "https://tienda.com/nike")])
+
+    def test_foto_de_producto_se_muestra_completa(self):
+        from PIL import Image, ImageDraw
+        carpeta = Path(tempfile.mkdtemp())
+        img = Image.new("RGB", (1000, 1000), (255, 255, 255))
+        ImageDraw.Draw(img).rectangle([200, 400, 800, 650], fill=(20, 20, 20))
+        img.save(carpeta / "tenis.jpg")
+        salida = imagenes.preparar_real(carpeta / "tenis.jpg", "9:16")
+        self.assertEqual(Image.open(salida).size, (1080, 1920))
+
+    def test_realista_busca_la_foto_real_de_cada_escena(self):
+        consultas = []
+
+        class BancoFalso:
+            def __init__(self, carpeta):
+                pass
+
+            def tomar(self, consulta, aceptar=lambda r: True):
+                consultas.append(consulta)
+                return None
+
+        from fabrica import fotos_web
+        with mock.patch.object(fotos_web, "Banco", BancoFalso), \
+             mock.patch.object(imagenes, "wikimedia", return_value=None), \
+             mock.patch.object(imagenes, "pexels_foto", return_value=None), \
+             mock.patch.object(imagenes, "pixabay_foto", return_value=None), \
+             mock.patch.object(imagenes, "cloudflare", return_value=None), \
+             mock.patch.object(imagenes, "pollinations", return_value=None), \
+             self.assertRaises(RuntimeError):  # sin ninguna imagen el video no puede seguir
+            imagenes.para_escenas({"imagenes": {"fotos_reales": False}},
+                                  [{"imagen": "x", "foto_real": "Nike Revolution 7 tenis"}],
+                                  estilos.obtener("realista"), "9:16", Path(tempfile.mkdtemp()), tema="tenis")
+        self.assertEqual(consultas[0], "Nike Revolution 7 tenis")
+
+
+class TestVozSigueIntentando(unittest.TestCase):
+    def test_si_el_link_falla_intenta_sacar_del_checkpoint(self):
+        from fabrica import descargas, voz_applio
+        carpeta = Path(tempfile.mkdtemp())
+        modelo = carpeta / "HYAKO_desde_checkpoint.pth"
+        def extraer_falso(_carpeta):
+            modelo.write_bytes(b"x")
+            return modelo
+
+        with mock.patch.object(voz_applio, "MODELOS", carpeta), \
+             mock.patch.object(descargas, "bajar_con_rclone", return_value=[]), \
+             mock.patch.object(descargas, "bajar", side_effect=RuntimeError("No se pudo descargar")), \
+             mock.patch.object(voz_applio, "extraer_de_entrenamiento", side_effect=extraer_falso) as extraer:
+            pth, idx = voz_applio.traer_modelo({"voz": {"link_modelo": "https://drive.google.com/drive/folders/x"}})
+        extraer.assert_called_once()
+        self.assertEqual(pth, modelo)
 
 
 if __name__ == "__main__":

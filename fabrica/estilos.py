@@ -101,11 +101,18 @@ ESTILOS: dict[str, Estilo] = {
         temas_ideales=["noticias", "deportes", "politica"],
     ),
     "realista": Estilo(
-        "Stock realista (original de MoneyPrinterTurbo)",
-        "Videos de stock de Pexels/Pixabay.",
+        "Realista (fotos reales de internet)",
+        "Fotos reales de lo que se habla: productos, marcas, lugares (búsqueda de imágenes, noticias).",
+        "realistic photo of {escena}, natural light, high detail",
+        fuentes=("web", "wikimedia", "pexels", "ia"),
+        temas_ideales=["productos", "compras", "tecnologia", "lugares", "general"],
+    ),
+    "videos_stock": Estilo(
+        "Videos de stock (original de MoneyPrinterTurbo)",
+        "Videos de stock de Pexels/Pixabay; bueno para temas generales sin nombres propios.",
         "{escena}",
         fuentes=("stock_video",),
-        temas_ideales=["general"],
+        temas_ideales=["motivación", "salud", "viajes"],
     ),
 }
 
@@ -125,7 +132,7 @@ def prompt_imagen(estilo: Estilo, escena: str) -> str:
 
 
 def hay_stock() -> bool:
-    """El estilo "realista" necesita clave de Pexels o de Pixabay."""
+    """El estilo "videos_stock" necesita clave de Pexels o de Pixabay."""
     from fabrica.config import secreto
     return bool(secreto("PEXELS_API_KEY") or secreto("PIXABAY_API_KEY"))
 

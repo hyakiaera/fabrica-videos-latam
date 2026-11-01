@@ -21,7 +21,7 @@ on:
         description: "Estilo"
         type: choice
         default: auto
-        options: [auto, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista]
+        options: [auto, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista, videos_stock]
       tema:
         description: "Tema, pedido o link de YouTube/TikTok/noticia (vacío = tendencias)"
         default: ""

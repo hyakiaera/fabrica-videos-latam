@@ -29,7 +29,8 @@ Wikimedia Commons y Pexels.
 | `3d` | Animación 3D | Curiosidades, tecnología |
 | `cinematografico` | Foto IA cinematográfica | Noticias, misterio |
 | `noticiero` | Fotos reales con licencia libre + crédito | Noticias, deportes |
-| `realista` | Videos de stock (el original de MoneyPrinterTurbo) | General |
+| `realista` | Fotos reales de internet: productos, marcas, lugares | Compras, productos, tecnología |
+| `videos_stock` | Videos de stock (el original de MoneyPrinterTurbo) | Motivación, salud, viajes |
 | `auto` | La IA elige por tema | — |
 
 Para sumar un estilo nuevo: agrega una entrada en `fabrica/estilos.py`.

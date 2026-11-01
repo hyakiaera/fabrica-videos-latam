@@ -65,9 +65,9 @@ def _guardar_historial(entradas: list[dict]):
 
 def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     if not estilos.disponible(estilos.obtener(tema["estilo"])):
-        logger.warning("El estilo realista necesita PEXELS_API_KEY o PIXABAY_API_KEY; "
-                       "se usa cinematografico (imágenes IA gratis)")
-        tema["estilo"] = "cinematografico"
+        logger.warning("El estilo videos_stock necesita PEXELS_API_KEY o PIXABAY_API_KEY; "
+                       "se usa realista (fotos reales)")
+        tema["estilo"] = "realista"
     estilo = estilos.obtener(tema["estilo"])
     hoy = datetime.now().strftime("%Y-%m-%d")
     numero = _siguiente_numero()

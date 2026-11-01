@@ -105,6 +105,8 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
 - No confundas cosas parecidas (pupusas no son tacos ni arepas; un estadio de béisbol no es de fútbol).
 - SÍ usa marcas, logos, equipos, productos y lugares por su nombre (Binance, Club América, FC
   Barcelona, Toyota, iPhone, La Selecta...) con sus colores y rasgos, adaptados al estilo.
+- Si el video recomienda o compara productos (tenis, celulares, autos...), NOMBRA modelos concretos que
+  aparezcan en las fuentes y pon cada uno en "foto_real"; la gente espera ver lo que se menciona.
 - Personas reales famosas: en "imagen" no describas su cara (descríbelas de espaldas, de lejos o
   por su camiseta/uniforme); pon su nombre en "foto_real" para usar una foto real con licencia."""
     datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)
