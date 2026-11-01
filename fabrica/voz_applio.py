@@ -86,12 +86,18 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
             from fabrica import descargas
             logger.info("Applio: bajando tu modelo de voz desde el link...")
             # Solo el modelo final (.pth y .index); los G_/D_ de entrenamiento no hacen falta.
+            remoto = cfg.get("drive", {}).get("remoto", "drive")
+            descargas.bajar_con_rclone(v["link_modelo"], local, ["- G_*", "- D_*", "+ *.pth", "+ *.index",
+                                                                 "+ */", "- *"], remoto)
+            pth, idx = _archivos_modelo_recursivo(local)
+        if not pth:
             descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
                             or not n.lower().endswith((".pth", ".index", ".zip")))
             pth, idx = _archivos_modelo_recursivo(local)
         if pth:
             return pth, idx
-        raise RuntimeError("El link del modelo no tiene ningún archivo .pth")
+        raise RuntimeError("En el link del modelo no encontré ningún archivo .pth (que no empiece con G_ o D_). "
+                           "Revisa que la carpeta 'respaldo' tenga el modelo guardado.")
     local = MODELOS / nombre
     pth, idx = _archivos_modelo(local)
     if pth and not v.get("actualizar_modelo_siempre", True):

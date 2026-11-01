@@ -641,5 +641,26 @@ class TestFirma(unittest.TestCase):
         self.assertNotIn("Lavf", etiquetas.get("encoder", ""))
 
 
+class TestModeloConRclone(unittest.TestCase):
+    def test_carpeta_compartida_se_baja_con_rclone(self):
+        from fabrica import descargas
+        carpeta = Path(tempfile.mkdtemp())
+
+        def correr(cmd, **kw):
+            (carpeta / "respaldo").mkdir(exist_ok=True)
+            (carpeta / "respaldo" / "HYAKO_285e.pth").write_bytes(b"x")
+            return mock.Mock(returncode=0)
+
+        with mock.patch("shutil.which", return_value="/usr/bin/rclone"), \
+             mock.patch("subprocess.run", side_effect=correr) as run:
+            archivos = descargas.bajar_con_rclone(
+                "https://drive.google.com/drive/folders/1n3qMPuJXE9hTYmL5xpygo6wQxZtXFvdX?usp=sharing",
+                carpeta, ["- G_*", "+ *.pth", "- *"])
+        cmd = run.call_args.args[0]
+        self.assertIn("--drive-root-folder-id", cmd)
+        self.assertIn("1n3qMPuJXE9hTYmL5xpygo6wQxZtXFvdX", cmd)
+        self.assertEqual([p.name for p in archivos], ["HYAKO_285e.pth"])
+
+
 if __name__ == "__main__":
     unittest.main()
