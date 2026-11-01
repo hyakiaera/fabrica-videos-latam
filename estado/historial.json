@@ -76,5 +76,14 @@
   "estilo": "cinematografico",
   "titulo": "¡Los mejores manjares de la comida típica salvadoreña!",
   "archivo": "salida/2026-10-31/general/manjares-tipicos-de-la-comida-salvadorena #009.mp4"
+ },
+ {
+  "numero": 10,
+  "fecha": "2026-11-01T00:05",
+  "tema": "El telescopio Swift de la NASA caerá a la Tierra",
+  "categoria": "ciencia",
+  "estilo": "explicativo",
+  "titulo": "¿El telescopio Swift de la NASA caerá a la Tierra?",
+  "archivo": "salida/2026-11-01/ciencia/el-telescopio-swift-de-la-nasa-caera-a-la-tierra #010.mp4"
  }
 ]
