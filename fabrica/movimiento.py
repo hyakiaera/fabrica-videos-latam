@@ -13,18 +13,44 @@ from fabrica import graficas
 
 TAMANOS = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080)}
 FPS = 30
-ZOOM = 0.16  # cuánto se acerca la cámara en todo el clip
 
-# Expresiones de zoompan: "on" es el cuadro actual y N el total de cuadros.
-EFECTOS = {
-    "acercar": (f"1+{ZOOM}*on/N", "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"),
-    "alejar": (f"1+{ZOOM}-{ZOOM}*on/N", "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"),
-    "derecha": (f"1+{ZOOM}", "(iw-iw/zoom)*on/N", "ih/2-(ih/zoom/2)"),
-    "izquierda": (f"1+{ZOOM}", "(iw-iw/zoom)*(1-on/N)", "ih/2-(ih/zoom/2)"),
-    "subir": (f"1+{ZOOM}", "iw/2-(iw/zoom/2)", "(ih-ih/zoom)*(1-on/N)"),
-    "bajar": (f"1+{ZOOM}", "iw/2-(iw/zoom/2)", "(ih-ih/zoom)*on/N"),
-    "diagonal": (f"1+{ZOOM}*on/N", "(iw-iw/zoom)*on/N", "(ih-ih/zoom)*on/N"),
+# Ritmo según el tono del guion: cuánto se mueve la cámara y si cada escena entra
+# con un "golpe" de zoom (corte dinámico) en lugar de un fundido a negro.
+RITMOS = {
+    "lento": {"zoom": 0.10, "golpe": 0.0},    # triste, reflexivo, emotivo
+    "normal": {"zoom": 0.16, "golpe": 0.12},
+    "rapido": {"zoom": 0.24, "golpe": 0.22},  # deportes, épico, alegre, urgente
 }
+TONOS_LENTOS = ("triste", "reflexivo", "emotivo", "nostalgico", "melancolico", "inspirador", "calmado")
+TONOS_RAPIDOS = ("epico", "alegre", "energico", "urgente", "divertido", "emocionante", "intenso")
+EFECTOS = ("acercar", "alejar", "derecha", "izquierda", "subir", "bajar", "diagonal")
+
+
+def ritmo_de(tono: str) -> str:
+    import unicodedata
+    t = unicodedata.normalize("NFKD", (tono or "").lower()).encode("ascii", "ignore").decode()
+    if any(x in t for x in TONOS_LENTOS):
+        return "lento"
+    if any(x in t for x in TONOS_RAPIDOS):
+        return "rapido"
+    return "normal"
+
+
+def _expresiones(efecto: str, cuadros: int, zoom: float, golpe: float) -> tuple[str, str, str]:
+    """Expresiones de zoompan ("on" = cuadro actual). El golpe es un zoom extra que se
+    suelta en el primer tercio de segundo, como un corte dinámico."""
+    n = cuadros
+    extra = f"+{golpe}*pow(max(0,1-on/{max(1, int(FPS * 0.35))}),2)" if golpe else ""
+    centro_x, centro_y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
+    return {
+        "acercar": (f"1+{zoom}*on/{n}{extra}", centro_x, centro_y),
+        "alejar": (f"1+{zoom}-{zoom}*on/{n}{extra}", centro_x, centro_y),
+        "derecha": (f"1+{zoom}{extra}", f"(iw-iw/zoom)*on/{n}", centro_y),
+        "izquierda": (f"1+{zoom}{extra}", f"(iw-iw/zoom)*(1-on/{n})", centro_y),
+        "subir": (f"1+{zoom}{extra}", centro_x, f"(ih-ih/zoom)*(1-on/{n})"),
+        "bajar": (f"1+{zoom}{extra}", centro_x, f"(ih-ih/zoom)*on/{n}"),
+        "diagonal": (f"1+{zoom}*on/{n}{extra}", f"(iw-iw/zoom)*on/{n}", f"(ih-ih/zoom)*on/{n}"),
+    }[efecto]
 
 
 def _proporcion(imagen: Path) -> float:
@@ -45,20 +71,22 @@ def clip_de_barrido(imagen: Path, segundos: float, aspecto: str, salida: Path, a
     return salida
 
 
-def clip_de_imagen(imagen: Path, segundos: float, efecto: str, aspecto: str, salida: Path) -> Path:
+def clip_de_imagen(imagen: Path, segundos: float, efecto: str, aspecto: str, salida: Path,
+                   ritmo: str = "normal", primera: bool = False) -> Path:
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
     try:
         if _proporcion(imagen) > (ancho / alto) * 1.6:
             return clip_de_barrido(imagen, segundos, aspecto, salida, efecto in ("derecha", "acercar", "subir"))
     except Exception:
         pass
-    z, x, y = EFECTOS[efecto]
     cuadros = max(1, round(segundos * FPS))
+    r = RITMOS.get(ritmo, RITMOS["normal"])
+    # La primera escena arranca ya con la imagen (sin golpe ni fundido): nada de inicio oscuro.
+    z, x, y = _expresiones(efecto, cuadros, r["zoom"], 0.0 if primera else r["golpe"])
     # Se agranda la imagen antes del zoompan para que el movimiento sea suave (sin temblor).
     filtro = (f"scale={ancho * 2}:{alto * 2}:force_original_aspect_ratio=increase,"
               f"crop={ancho * 2}:{alto * 2},"
-              f"zoompan=z='{z.replace('N', str(cuadros))}':x='{x.replace('N', str(cuadros))}':"
-              f"y='{y.replace('N', str(cuadros))}':d={cuadros}:s={ancho}x{alto}:fps={FPS},"
+              f"zoompan=z='{z}':x='{x}':y='{y}':d={cuadros}:s={ancho}x{alto}:fps={FPS},"
               f"format=yuv420p")
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-loop", "1",
                     "-i", str(imagen), "-vf", filtro, "-frames:v", str(cuadros), "-c:v", "libx264",
@@ -74,8 +102,10 @@ def duraciones(escenas: list[dict], total: float) -> list[float]:
 
 
 def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clave: str,
-                     duracion_total: float, carpeta: Path) -> list[Path]:
+                     duracion_total: float, carpeta: Path, tono: str = "") -> list[Path]:
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
+    ritmo = ritmo_de(tono)
+    logger.info(f"Movimiento: ritmo {ritmo} (tono: {tono or 'sin indicar'})")
     carpeta.mkdir(parents=True, exist_ok=True)
     clips, ultima, ultimo_efecto = [], None, None
     disponibles = [img for img in imagenes if img]
@@ -94,7 +124,7 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
             continue
         # Movimiento distinto al de la escena anterior, para que no se vea repetido.
         efecto = random.choice([e for e in EFECTOS if e != ultimo_efecto])
-        clips.append(clip_de_imagen(imagen, segundos, efecto, aspecto, salida))
+        clips.append(clip_de_imagen(imagen, segundos, efecto, aspecto, salida, ritmo, primera=not clips))
         ultima, ultimo_efecto = imagen, efecto
     if not clips:
         raise RuntimeError("No hay imágenes ni gráficas para armar el video")

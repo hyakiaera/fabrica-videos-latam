@@ -556,5 +556,39 @@ class TestCarpetasAnidadas(unittest.TestCase):
         self.assertTrue(tema["prioridad_fotos_propias"])
 
 
+class TestTonoYRitmo(unittest.TestCase):
+    def test_ritmo_segun_tono(self):
+        from fabrica import movimiento
+        self.assertEqual(movimiento.ritmo_de("Triste"), "lento")
+        self.assertEqual(movimiento.ritmo_de("épico"), "rapido")
+        self.assertEqual(movimiento.ritmo_de("informativo"), "normal")
+
+    def test_direccion_y_personaje_en_cada_imagen(self):
+        prompts = []
+
+        def generar(prompt, carpeta, nombre):
+            prompts.append(prompt)
+            ruta = carpeta / f"{nombre}.jpg"
+            ruta.write_bytes(b"x")
+            return ruta
+
+        imagenes._SIN_SERVICIO.add("pollinations")
+        with mock.patch.object(imagenes, "cloudflare", side_effect=generar), \
+             mock.patch.object(ia, "imagen_encaja", return_value=True):
+            imagenes.para_escenas({}, [{"imagen": "man alone at a table"}], estilos.obtener("caricatura"),
+                                  "9:16", Path(tempfile.mkdtemp()), direccion="melancholic blue light",
+                                  personaje="a Latino man in his 30s")
+        imagenes._SIN_SERVICIO.clear()
+        self.assertIn("a Latino man in his 30s", prompts[0])
+        self.assertIn("melancholic blue light", prompts[0])
+
+    def test_primera_escena_sin_golpe(self):
+        from fabrica import movimiento
+        z, _, _ = movimiento._expresiones("acercar", 90, 0.16, 0.0)
+        self.assertNotIn("pow", z)
+        z, _, _ = movimiento._expresiones("acercar", 90, 0.16, 0.12)
+        self.assertIn("pow", z)
+
+
 if __name__ == "__main__":
     unittest.main()

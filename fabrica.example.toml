@@ -56,7 +56,7 @@ usar_pollinations_texto = true   # tercer respaldo gratis, sin clave
 
 [guion]
 duracion_segundos = 55
-segundos_por_escena = 5
+segundos_por_escena = 4
 instrucciones_extra = "Al final invita a seguir el canal."
 
 [imagenes]
@@ -66,7 +66,7 @@ simultaneas = 3             # imágenes que se piden a la vez (más = más rápi
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
 fotos_web = true            # fotos reales de las noticias (RSS) y de Openverse
 max_fotos_propias = 40      # fotos de "mis fotos" que se consideran por categoría
-max_imagenes = 10           # imágenes nuevas por video (cuida la cuota diaria gratis);
+max_imagenes = 14           # imágenes nuevas por video (cuida la cuota diaria gratis);
                             # las demás escenas reutilizan una con otro movimiento
 modelo_revision = "gemini-flash-lite-latest"
 
@@ -104,7 +104,7 @@ tamano_letra = 70
 grosor_borde = 2.5
 posicion_subtitulos = "custom"
 altura_subtitulos = 72      # % desde arriba
-transicion = "Shuffle"      # Shuffle (variadas), FadeIn, FadeOut, SlideIn, SlideOut, ZoomIn, ZoomOut, ""
+transicion = ""             # las escenas ya traen cortes dinámicos (golpe de zoom)
 fuente_stock = "pexels"     # para el estilo "realista"
 duracion_clip_stock = 4
 descargas_simultaneas_stock = 2  # más alto = Pixabay/Pexels pueden bloquear (error 429)
@@ -114,12 +114,12 @@ hilos = 4                   # GitHub da 4 núcleos
 activo = true
 archivo = "marca/logo.png"  # sube tu PNG con fondo transparente con este nombre
 # Si no hay logo.png, se usa este texto como logo (ej. "@MiCanal"). Vacío = sin logo.
-texto = ""
+texto = "DESVERGUEOFFICIAL"
 tamano_texto = 0.34         # ancho del texto de marca (fracción del video)
 # Posiciones listas (fuera de subtítulos y botones de las apps):
 # arriba_izquierda, arriba_centro, arriba_derecha, centro_izquierda,
 # abajo_izquierda, o "personalizada" usando x / y
-posicion = "arriba_izquierda"
+posicion = "centro_izquierda"
 x = 4                       # % desde la izquierda (solo personalizada)
 y = 7                       # % desde arriba (solo personalizada)
 tamano = 0.16               # fracción del ancho del video (0.16 = 16 %)

@@ -68,6 +68,10 @@ Devuelve este JSON:
  "guion": "texto narrado completo, unas {palabras} palabras, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
+ "tono": "una palabra: triste, reflexivo, inspirador, motivador, alegre, divertido, épico, serio, urgente o informativo",
+ "tipo_contenido": "noticia, deporte, finanzas, consejo/mensaje, historia, aprendizaje, entretenimiento o anuncio",
+ "direccion_visual": "en INGLÉS: iluminación, paleta de colores y atmósfera que transmiten ese tono (ej. 'melancholic blue dusk light, rain on windows, muted colors, slowly turning to warm golden hopeful light')",
+ "personaje": "en INGLÉS, solo si el video gira alrededor de una persona genérica (ej. consejos): su descripción fija para que sea el mismo en todas las escenas (ej. 'a Latino man in his 30s, short black hair, trimmed beard, grey hoodie'); si no, vacío",
  "visual_global": "en INGLÉS: el tema principal y el lugar/país, descrito para un generador de imágenes (ej. 'Salvadoran pupusas, thick griddled corn cakes stuffed with cheese and beans, in El Salvador')",
  "escenas": [{{"texto": "parte del guion que se narra en esta escena",
    "imagen": "descripción visual en INGLÉS de LO QUE SE DICE en esta escena, concreta y autosuficiente (el generador no conoce el resto del guion)",
@@ -87,6 +91,11 @@ goles, récords, rankings), pon en "grafica" en vez de null:
 Usa exactamente {escenas} escenas, en el mismo orden que el guion.
 
 REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
+- Primero analiza el TONO y el TIPO de contenido; todas las imágenes deben transmitir ese tono.
+- En consejos, mensajes, reflexiones o motivación: cada imagen muestra la EMOCIÓN o la situación
+  de esa frase con el personaje (ej. "no te valoran" → the man sitting alone at a table while
+  others ignore him; "pon límites" → the man calmly raising his hand, standing firm; "invierte en
+  ti" → the man training at a gym at sunrise). Nada de objetos sueltos sin relación.
 - Cada "imagen" nombra SIEMPRE el tema concreto (la comida, el lugar, el objeto exacto) con sus
   rasgos visibles. Ej.: no "food on a table" sino "Salvadoran pupusas, round thick corn cakes
   stuffed with cheese, with curtido cabbage slaw, on a clay plate".

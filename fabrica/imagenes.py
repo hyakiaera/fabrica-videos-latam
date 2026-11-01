@@ -253,7 +253,8 @@ def _elegir_escenas(escenas: list[dict], maximo: int, propias: dict | None = Non
 
 def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                  carpeta: Path, visual_global: str = "", tema: str = "",
-                 fotos_propias: dict | None = None) -> tuple[list, list[str], dict]:
+                 fotos_propias: dict | None = None, direccion: str = "",
+                 personaje: str = "") -> tuple[list, list[str], dict]:
     """Imagen de cada escena (None = reutilizar la anterior o es una gráfica),
     créditos de fotos y un conteo de dónde salió cada imagen.
     Se piden varias a la vez para que el video tarde menos."""
@@ -287,6 +288,10 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         descripcion = escena.get("imagen", "") or tema
         busqueda = escena.get("busqueda_foto", "") or tema
         escena_completa = f"{visual_global}. Scene: {descripcion}" if visual_global else descripcion
+        if personaje:
+            escena_completa += f". Main character (always the same): {personaje}"
+        if direccion:
+            escena_completa += f". Mood and lighting: {direccion}"
         propia = escena.get("foto_propia")
         if propia in fotos_propias:
             from fabrica import mis_fotos

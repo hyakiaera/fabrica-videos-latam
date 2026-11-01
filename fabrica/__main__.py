@@ -84,12 +84,14 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         estilo = estilos.obtener("cinematografico")
         tema["estilo"] = "cinematografico"
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
+    logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}
     if "stock_video" not in estilo.fuentes:
         fotos, creditos, conteo = imagenes.para_escenas(
             cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
-            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias)
+            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
+            direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
 
     try:
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
@@ -103,7 +105,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         tema["estilo"] = "cinematografico"
         fotos, creditos, conteo = imagenes.para_escenas(
             cfg, datos["escenas"], estilo, aspecto, trabajo / "imagenes",
-            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias)
+            visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
+            direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4")
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
