@@ -31,6 +31,8 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
                        f"{conteo.get('stock', 0)} de stock, {graficas} gráficas, "
                        f"{conteo.get('rechazadas', 0)} rechazadas por no encajar, "
                        f"{conteo.get('estilizadas', 0)} fotos reales pasadas al estilo del video"]
+    if conteo and conteo.get("_sin_cuota"):
+        lineas += [f"SIN CUOTA HOY (se usaron fotos en su lugar): {', '.join(conteo['_sin_cuota'])}"]
     if creditos:
         lineas += ["", "CRÉDITOS DE FOTOS (pégalos en la descripción):", *creditos]
     lineas += ["", "GUION:", datos["guion"]]

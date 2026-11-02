@@ -113,7 +113,7 @@ def cloudflare(prompt: str, carpeta: Path, nombre: str) -> Path | None:
     for intento in range(2):
         try:
             r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=120,
-                              json={"prompt": prompt[:2000], "steps": 6})
+                              json={"prompt": prompt[:2000], "steps": 4})  # FLUX schnell: 4 pasos bastan y gastan menos cuota
             if r.ok:
                 imagen = r.json().get("result", {}).get("image")
                 if imagen:
@@ -457,6 +457,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         raise RuntimeError("No se consiguió ninguna imagen que encaje (¿se acabó la cuota diaria de "
                            "Cloudflare?). Prueba más tarde o agrega POLLINATIONS_TOKEN.")
     conteo["_generadas"] = generadas
+    conteo["_sin_cuota"] = sorted(_SIN_SERVICIO)
     logger.info(f"Imágenes: {conteo['propias']} tuyas, {conteo['ia']} IA, {conteo['real']} reales, {conteo['stock']} stock, "
                 f"{conteo['rechazadas']} rechazadas por no encajar")
     return imagenes, creditos, conteo

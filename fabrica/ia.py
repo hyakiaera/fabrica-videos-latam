@@ -233,7 +233,10 @@ def elegir_imagenes(cfg: dict, rutas: list, descripcion: str) -> list[int] | Non
     contenido = [{"type": "text", "text":
                   f"Images numbered 0 to {len(rutas) - 1}. Which ones clearly show: {descripcion}? "
                   "The main subject must be that exact thing (same product type, brand or place). "
-                  "Reject unrelated people, food, animals, cartoons, text banners or random scenes. "
+                  "If it names a real person, do NOT try to recognize who it is: accept real photos of "
+                  "people that plausibly fit (same number of people, gender, setting such as a red carpet, "
+                  "stage, stadium or interview). Reject unrelated objects, food, animals, cartoons, clip "
+                  "art, text banners or random scenes. "
                   'Answer only JSON: {"good": [indices, best first]}'}]
     for ruta in rutas:
         try:
