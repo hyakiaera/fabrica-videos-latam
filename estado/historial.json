@@ -186,5 +186,14 @@
   "estilo": "cinematografico",
   "titulo": "Nueve muertos en trágico accidente de avión privado en Florida",
   "archivo": "salida/2026-11-02/mundo/tragico-accidente-de-avion-en-florida-deja-9-muertos #021.mp4"
+ },
+ {
+  "numero": 22,
+  "fecha": "2026-11-02T04:45",
+  "tema": "Cárcel por piratear la conducción autónoma de Tesla",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "¡Cárcel por hackear el piloto automático de Tesla!",
+  "archivo": "salida/2026-11-02/tecnologia/carcel-por-piratear-la-conduccion-autonoma-de-tesla #022.mp4"
  }
 ]
