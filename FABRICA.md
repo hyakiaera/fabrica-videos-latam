@@ -238,12 +238,12 @@ Si algo falla, el video sale sin avatar y la ficha dice por qué.
 | Tipo | % |
 |---|---|
 | Tendencias del momento (el sistema de siempre) | 20 |
-| Deportes (Liga MX, fútbol salvadoreño, LaLiga, MLS, Premier, selecciones, Messi, CR7, béisbol) | 20 |
-| Tendencias y noticias no latinas | 15 |
-| Entretenimiento latino (novelas, series, moda, maquillaje, temas de mujeres y hombres) | 15 |
-| Curiosidades, consejos, motivación, ideas de negocio, tops | 15 |
+| Deportes (Liga MX, fútbol salvadoreño, LaLiga, MLS, Premier, selecciones, Messi, CR7, béisbol) | 17 |
+| Tendencias y noticias no latinas | 9 |
+| Entretenimiento latino (novelas, series, moda, maquillaje, temas de mujeres y hombres) | 18 |
+| Curiosidades, consejos, motivación, ideas de negocio, tops | 18 |
 | Cripto y bolsa | 10 |
-| Música (latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno) | 5 |
+| Música (latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno) | 8 |
 
 Cada ronda toma la categoría que más falta según los últimos 40 videos. Se cambia en `[mezcla]`.
 Además, no se repite un tema parecido a otro de los últimos 4 días.

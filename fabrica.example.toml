@@ -18,12 +18,12 @@ salidas = ["descargar", "drive"]
 # Porcentaje de cada tipo de tema en los videos automáticos (deben sumar 100).
 activa = true
 general = 20          # lo que está en tendencia (el sistema de siempre)
-deportes = 20         # Liga MX, fútbol salvadoreño, LaLiga, MLS, Premier, selecciones, Messi, CR7, béisbol
-mundo = 15            # tendencias y noticias no latinas
-entretenimiento = 15  # novelas, series, moda, maquillaje, temas de mujeres y hombres (latinos)
-curiosidades = 15     # cómo hacer, sabías que, consejos, motivación, ideas de negocio, tops
+deportes = 17         # Liga MX, fútbol salvadoreño, LaLiga, MLS, Premier, selecciones, Messi, CR7, béisbol
+mundo = 9            # tendencias y noticias no latinas
+entretenimiento = 18  # novelas, series, moda, maquillaje, temas de mujeres y hombres (latinos)
+curiosidades = 18     # cómo hacer, sabías que, consejos, motivación, ideas de negocio, tops
 finanzas = 10         # cripto, bolsa, Wall Street, memecoins, apps para invertir
-musica = 5            # música latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno
+musica = 8            # música latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno
 
 [tendencias]
 categorias = ["deportes", "entretenimiento", "tecnologia", "economia", "mundo", "ciencia"]

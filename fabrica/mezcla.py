@@ -14,23 +14,23 @@ from fabrica import ia, tendencias
 # clave: (porcentaje, para qué es, búsquedas de noticias; vacío = temas que no dependen de noticias)
 CATEGORIAS = {
     "general": (20, "lo que está en tendencia ahora para el público latino (el sistema de siempre)", None),
-    "deportes": (20, "deportes: fútbol mexicano, fútbol salvadoreño, fútbol español, MLS, Premier League, "
+    "deportes": (17, "deportes: fútbol mexicano, fútbol salvadoreño, fútbol español, MLS, Premier League, "
                      "selecciones, Messi, Cristiano Ronaldo, farándula de futbolistas, béisbol",
                  ["Liga MX", "fútbol salvadoreño", "LaLiga", "MLS", "Premier League", "Selección Mexicana",
                   "Messi", "Cristiano Ronaldo", "futbolistas polémica", "béisbol MLB"]),
-    "mundo": (15, "tendencias y noticias NO latinas (Estados Unidos, Europa, Asia) contadas para latinos",
+    "mundo": (9, "tendencias y noticias NO latinas (Estados Unidos, Europa, Asia) contadas para latinos",
               ["trending news United States", "world news today", "viral news"]),
-    "entretenimiento": (15, "entretenimiento latino: novelas, series, lo mejor de la semana, moda, ropa, "
+    "entretenimiento": (18, "entretenimiento latino: novelas, series, lo mejor de la semana, moda, ropa, "
                             "maquillaje, temas de mujeres y de hombres, famosos latinos",
                         ["telenovelas", "series más vistas Netflix", "moda tendencias", "maquillaje tendencia",
                          "famosos latinos", "reality show"]),
-    "curiosidades": (15, "curiosidades y valor: cómo hacer algo, sabías que, consejos, reflexiones, motivación, "
+    "curiosidades": (18, "curiosidades y valor: cómo hacer algo, sabías que, consejos, reflexiones, motivación, "
                          "ideas de negocio, ofertas, top 5 / top 10 (ej. máquinas para empezar un negocio), "
                          "cómo gastar mejor 500 dólares", []),
     "finanzas": (10, "cripto y bolsa: resumen del mercado del día, Wall Street, memecoins, bitcoin, ahorrar "
                      "en BTC, mejores apps para invertir, mejores exchanges",
                  ["bitcoin hoy", "Wall Street hoy", "bolsa de valores hoy", "memecoin", "criptomonedas"]),
-    "musica": (5, "música y estudio: música latina y urbana, reggaetón, tendencias y top 5 de la semana, "
+    "musica": (8, "música y estudio: música latina y urbana, reggaetón, tendencias y top 5 de la semana, "
                   "artistas latinos, El Hyako Mayor y Hyakiaera Records, consejos de grabación, mejores "
                   "programas y VST, Suno y música con IA, todo sobre estudio musical",
                ["reggaeton estrenos", "música urbana latina", "canciones latinas más escuchadas semana",

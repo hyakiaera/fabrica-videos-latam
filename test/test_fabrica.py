@@ -985,8 +985,8 @@ class TestMezcla(unittest.TestCase):
             historial.append({"mezcla": mezcla.elegir_categorias({}, historial, 1)[0]})
         ultimos = [e["mezcla"] for e in historial[-100:]]
         self.assertAlmostEqual(ultimos.count("general"), 20, delta=4)
-        self.assertAlmostEqual(ultimos.count("deportes"), 20, delta=4)
-        self.assertAlmostEqual(ultimos.count("musica"), 5, delta=3)
+        self.assertAlmostEqual(ultimos.count("deportes"), 17, delta=4)
+        self.assertAlmostEqual(ultimos.count("musica"), 8, delta=3)
 
     def test_no_repite_jarritos(self):
         from datetime import datetime
