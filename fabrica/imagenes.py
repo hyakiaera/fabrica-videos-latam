@@ -321,11 +321,12 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         if real and im.get("fotos_reales", True):
             # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
             hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
-            if hallado and encaja(hallado[0], real):
+            # Se revisa contra la escena completa: "Tesla" el auto no es Nikola Tesla.
+            if hallado and encaja(hallado[0], f"{real} — {descripcion}"):
                 sumar("real")
                 return preparar_real(hallado[0], aspecto), hallado[1]
             if banco:
-                hallado = de_internet(real, real)
+                hallado = de_internet(real, f"{real} — {descripcion}")
                 if hallado:
                     sumar("real")
                     return preparar_real(hallado[0], aspecto), hallado[1]

@@ -66,7 +66,7 @@ def _correr(cmd: list, timeout: int, cwd: Path | None = None) -> str:
 
 def instalar():
     """Instala Chatterbox en su propio entorno (no toca nada de la fábrica). Una sola vez."""
-    marca = MOTOR / ".fabrica_ok"
+    marca = MOTOR / ".fabrica_ok2"
     if marca.exists() and _python().exists():
         return
     import sys
@@ -77,7 +77,9 @@ def instalar():
     uv = [sys.executable, "-m", "uv"]
     shutil.rmtree(MOTOR / ".venv", ignore_errors=True)
     _correr(uv + ["venv", MOTOR / ".venv", "--python", "3.11"], 600, cwd=MOTOR)
-    _correr(uv + ["pip", "install", "--python", _python(), "chatterbox-tts",
+    # setuptools<81: la librería de marca de agua de Chatterbox (perth) todavía usa
+    # pkg_resources, que las versiones nuevas de setuptools ya no traen.
+    _correr(uv + ["pip", "install", "--python", _python(), "chatterbox-tts", "setuptools<81",
                   "--extra-index-url", "https://download.pytorch.org/whl/cpu",
                   "--index-strategy", "unsafe-best-match"], 3600, cwd=MOTOR)
     marca.write_text("ok")
