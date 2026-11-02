@@ -58,7 +58,18 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     audio_propio = None
     audio_edge = None
     voz.anotar(f"Edge ({voz.voz_edge(cfg)})")
-    if voz.clonar_activo(cfg):
+    from fabrica import voz_yo
+    if voz_yo.activo(cfg):
+        try:
+            audio_propio = voz_yo.generar(cfg, datos["guion"], trabajo / "voz-yo")
+            voz.anotar("yo (la IA lectora imitando tu forma de hablar"
+                       + (" + tu modelo de voz)" if "pulida" in audio_propio.name else ")"))
+        except Exception as e:
+            logger.error(f"Voz yo falló; se usa la voz normal: {e}")
+            voz.anotar(f"Edge ({voz.voz_edge(cfg)}) — la voz 'yo' falló", f"{type(e).__name__}: {str(e)[-300:]}")
+    if audio_propio:
+        pass  # ya está la voz "yo"
+    elif voz.clonar_activo(cfg):
         audio_propio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
     else:
         audio_edge = voz.probar_edge(cfg, datos["guion"], trabajo / "voz")

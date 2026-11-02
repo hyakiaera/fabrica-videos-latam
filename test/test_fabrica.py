@@ -784,5 +784,31 @@ class TestModeloFinal(unittest.TestCase):
         self.assertEqual(baja.call_count, 2)
 
 
+class TestVozYo(unittest.TestCase):
+    def test_muestra_usa_archivo_muestra_si_existe(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import voz_yo
+        carpeta = Path(tempfile.mkdtemp())
+        for nombre, segundos in (("largo.mp3", 40), ("muestra.mp3", 12)):
+            subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+                            f"sine=f=200:d={segundos}", str(carpeta / nombre)], check=True)
+        salida = voz_yo.preparar_muestra(list(carpeta.glob("*.mp3")), carpeta / "m.wav")
+        self.assertTrue(salida.exists())
+        self.assertLess(voz_yo._duracion(salida), 13)
+
+    def test_si_la_voz_yo_falla_sale_jorge(self):
+        from fabrica import voz_yo
+        datos = {"titulo": "T", "guion": "hola", "escenas": [{"texto": "a"}]}
+        cfg = {"voz": {"lector": "yo"}}
+        with mock.patch.object(voz_yo, "generar", side_effect=RuntimeError("sin grabaciones")), \
+             mock.patch.object(voz, "probar_edge", return_value=None) as edge, \
+             mock.patch.object(voz, "narracion_google", side_effect=RuntimeError("parar aquí")):
+            with self.assertRaises(RuntimeError):
+                video.armar(cfg, datos, estilos.obtener("caricatura"), [None], Path(tempfile.mkdtemp()))
+        edge.assert_called_once()  # cayó a la voz normal
+        self.assertIn("la voz 'yo' falló", voz.ULTIMA["voz"])
+
+
 if __name__ == "__main__":
     unittest.main()

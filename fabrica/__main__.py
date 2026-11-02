@@ -189,7 +189,8 @@ def main(argv=None) -> int:
     p.add_argument("--categoria", help="categoría del tema manual")
     p.add_argument("--detalles", help="datos que SÍ tienen que salir o decirse en el video")
     p.add_argument("--salidas", help="combinación de: descargar,drive,publicar")
-    p.add_argument("--voz", choices=["hombre", "mujer"], help="voz de Edge (por defecto hombre)")
+    p.add_argument("--voz", choices=["hombre", "mujer", "yo"],
+                   help="voz de Edge (por defecto hombre) o 'yo': una IA lee imitando tus grabaciones")
     p.add_argument("--clonar-voz", choices=["si", "no"], help="convertir la voz a tu voz (StudioVoz)")
     p.add_argument("--texto-marca", help='texto que va como logo si no hay marca/logo.png (ej. "@MiCanal")')
     p.add_argument("--duracion", help="duración: 1, 1:30, 2, 2:30 o 3 (minutos)")
@@ -212,7 +213,9 @@ def main(argv=None) -> int:
         cfg = config.cargar(args.config)
         if args.clonar_voz:
             cfg.setdefault("voz", {})["clonar"] = args.clonar_voz == "si"
-        if args.voz:
+        if args.voz == "yo":
+            cfg.setdefault("voz", {})["lector"] = "yo"
+        elif args.voz:
             cfg.setdefault("voz", {})["genero"] = args.voz
         if args.texto_marca:
             cfg.setdefault("logo", {})["texto"] = args.texto_marca

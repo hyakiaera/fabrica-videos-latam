@@ -130,6 +130,18 @@ final con Whisper.
 
 Si la voz sale muy aguda o muy grave, ajusta `tono` (igual que en el botón 3 de StudioVoz).
 
+### Voz "yo" (una IA lee imitando tu forma de hablar)
+
+1. Sube tus audios **hablando** (no cantando) a `Mi unidad › Fabrica de Videos › mi voz`.
+   Puedes ir subiendo más con el tiempo: se van juntando. Si un archivo se llama `muestra`
+   (ej. `muestra.mp3`), se usa ese de ejemplo; si no, se toma un pedazo del audio más largo.
+2. En **Run workflow**, elige **Voz: `yo`**.
+3. La IA lectora (Chatterbox, código abierto, licencia MIT) escucha tu muestra y lee el guion
+   imitando tu tono, ritmo y acento. Si tienes tu modelo (secreto `MI_VOS`), lo pule con tu timbre.
+
+Si algo falla, el video sale con Jorge. La primera vez instala la IA lectora (~10-15 minutos) y
+sin tarjeta gráfica cada video tarda varios minutos más.
+
 ## 6. Logo
 
 Sube tu PNG con fondo transparente como `marca/logo.png` (en GitHub: entra a la carpeta `marca` →

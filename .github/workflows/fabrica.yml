@@ -42,7 +42,7 @@ on:
         description: "Voz"
         type: choice
         default: hombre
-        options: [hombre, mujer, mi voz]
+        options: [hombre, mujer, mi voz, yo]
       modelo_voz_link:
         description: "Para 'mi voz': link del modelo (.pth/.zip) o su nombre en StudioVoz (vacío = mi_voz)"
         default: ""
@@ -87,7 +87,9 @@ jobs:
           path: |
             .applio
             .applio_modelos
-          key: applio-${{ runner.os }}-v1
+            .chatterbox
+            ~/.cache/huggingface
+          key: voces-${{ runner.os }}-v2
 
       - name: Configurar Google Drive (rclone)
         env:
@@ -159,8 +161,12 @@ jobs:
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
           # Si pegaste el link de tu modelo en el formulario, se usa tu voz aunque la casilla diga hombre.
-          if [ -n "$IN_MODELO_ESCRITO" ]; then IN_VOZ="mi voz"; fi
-          if [ "$IN_VOZ" = "mi voz" ]; then
+          if [ -n "$IN_MODELO_ESCRITO" ] && [ "$IN_VOZ" != "yo" ]; then IN_VOZ="mi voz"; fi
+          if [ "$IN_VOZ" = "yo" ]; then
+            # Una IA lee imitando tus grabaciones (Drive: Fabrica de Videos/mi voz) y tu modelo la pule.
+            ARGS+=(--voz yo --clonar-voz no)
+            if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi
+          elif [ "$IN_VOZ" = "mi voz" ]; then
             ARGS+=(--clonar-voz si)
             if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi
           else
