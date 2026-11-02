@@ -785,6 +785,17 @@ class TestModeloFinal(unittest.TestCase):
 
 
 class TestVozYo(unittest.TestCase):
+    def test_junta_varias_muestras(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import voz_yo
+        carpeta = Path(tempfile.mkdtemp())
+        for nombre in ("muestra1.mp3", "muestra2.mp3", "muestra3.mp3", "otro.mp3"):
+            subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+                            "sine=f=200:d=20", str(carpeta / nombre)], check=True)
+        salida = voz_yo.preparar_muestra(list(carpeta.glob("*.mp3")), carpeta / "m.wav")
+        self.assertAlmostEqual(voz_yo._duracion(salida), 10, delta=0.6)
+
     def test_muestra_usa_archivo_muestra_si_existe(self):
         import subprocess
         import imageio_ffmpeg

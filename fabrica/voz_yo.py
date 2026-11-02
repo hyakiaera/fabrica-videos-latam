@@ -5,7 +5,8 @@ acento). Después, si tienes tu modelo de voz (HYAKO_LOCUTOR), lo pule con tu ti
 Tus grabaciones van en Google Drive:  Mi unidad › Fabrica de Videos › mi voz
 Puedes subir ahí todos los audios que quieras (se van juntando para entrenar algún día
 tu propio lector). Si un archivo se llama "muestra" (muestra.mp3, muestra.wav...), se usa
-ese; si no, se toma un pedazo limpio del audio más largo."""
+ese (o se juntan pedazos de muestra1, muestra2, muestra3); si no, se toma un pedazo
+limpio del audio más largo."""
 
 import os
 import re
@@ -151,20 +152,36 @@ def _duracion(ruta: Path) -> float:
     return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3)) if m else 0.0
 
 
-def preparar_muestra(grabaciones: list[Path], salida: Path) -> Path:
-    """Muestra de ~15 segundos: el archivo 'muestra' si existe; si no, un pedazo del medio
-    del audio más largo (lejos del inicio y del final, donde suele haber ruidos)."""
-    elegida = next((g for g in grabaciones if g.stem.lower().startswith("muestra")), None)
-    inicio, largo = 0.0, 20.0
-    if elegida is None:
-        elegida = max(grabaciones, key=_duracion)
-        total = _duracion(elegida)
-        inicio = max(0.0, total / 2 - 7.5) if total > 20 else 0.0
-        largo = 15.0
-    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-ss", f"{inicio:.1f}",
-                    "-i", str(elegida), "-t", f"{largo:.1f}", "-ac", "1", "-ar", "24000",
-                    "-af", "loudnorm", str(salida)], check=True)
-    logger.info(f"Voz yo: muestra tomada de '{elegida.name}' ({largo:.0f} s)")
+def preparar_muestra(grabaciones: list[Path], salida: Path, segundos_total: float = 10.0) -> Path:
+    """Muestra de tu voz para la IA lectora.
+
+    - Si hay archivos que empiezan con "muestra" (muestra.mp3, muestra1.mp3, muestra2.wav...),
+      se toma un pedazo de cada uno (hasta 3) y se juntan: más variedad de cómo hablas.
+    - Si no, un pedazo del medio del audio más largo.
+    La IA solo escucha unos 10 segundos de muestra, así que el total se reparte en ese tiempo."""
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    muestras = sorted(g for g in grabaciones if g.stem.lower().startswith("muestra"))[:3]
+    if not muestras:
+        muestras = [max(grabaciones, key=_duracion)]
+    por_cada = segundos_total / len(muestras)
+    pedazos = []
+    for k, audio in enumerate(muestras):
+        total = _duracion(audio)
+        # Del medio del audio, lejos del inicio y del final (donde suele haber ruidos o silencio).
+        inicio = max(0.0, total / 2 - por_cada / 2) if total > por_cada + 1 else 0.0
+        pedazo = salida.with_name(f"pedazo{k}.wav")
+        subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-ss", f"{inicio:.1f}", "-i", str(audio),
+                        "-t", f"{por_cada:.1f}", "-ac", "1", "-ar", "24000",
+                        "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm",
+                        str(pedazo)], check=True)
+        pedazos.append(pedazo)
+    if len(pedazos) == 1:
+        pedazos[0].replace(salida)
+    else:
+        entradas = sum((["-i", str(p)] for p in pedazos), [])
+        subprocess.run([ffmpeg, "-y", "-loglevel", "error", *entradas, "-filter_complex",
+                        f"concat=n={len(pedazos)}:v=0:a=1", str(salida)], check=True)
+    logger.info(f"Voz yo: muestra de {len(muestras)} audio(s): {', '.join(m.name for m in muestras)}")
     return salida
 
 
