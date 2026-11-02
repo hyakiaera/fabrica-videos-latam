@@ -69,6 +69,41 @@ def pollinations(cfg: dict, prompt: str, aspecto: str, carpeta: Path, nombre: st
     return None
 
 
+def estilizar(ruta: Path, prompt: str, aspecto: str, fuerza: float = 0.55) -> Path | None:
+    """Pasa una foto real al estilo del video (caricatura, 3D, cómic...) conservando lo que se
+    ve en ella (Stable Diffusion img2img en Cloudflare, cuota diaria gratis)."""
+    import io
+
+    from PIL import Image
+
+    cuenta, token = secreto("CLOUDFLARE_ACCOUNT_ID"), secreto("CLOUDFLARE_API_TOKEN")
+    if not (cuenta and token) or "estilizar" in _SIN_SERVICIO:
+        return None
+    ancho, alto = {"9:16": (576, 1024), "16:9": (1024, 576)}.get(aspecto, (768, 768))
+    try:
+        img = Image.open(ruta).convert("RGB")
+        escala = max(ancho / img.width, alto / img.height)
+        img = img.resize((int(img.width * escala) + 1, int(img.height * escala) + 1))
+        x, y = (img.width - ancho) // 2, (img.height - alto) // 2
+        buf = io.BytesIO()
+        img.crop((x, y, x + ancho, y + alto)).save(buf, "PNG")
+        r = requests.post(
+            f"https://api.cloudflare.com/client/v4/accounts/{cuenta}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img",
+            headers={"Authorization": f"Bearer {token}"}, timeout=120,
+            json={"prompt": prompt[:1500], "image_b64": base64.b64encode(buf.getvalue()).decode(),
+                  "strength": fuerza, "num_steps": 20, "guidance": 7.5})
+        if r.status_code in (401, 402, 403, 429):
+            _SIN_SERVICIO.add("estilizar")
+            return None
+        if r.ok and r.headers.get("content-type", "").startswith("image/"):
+            salida = ruta.with_name(ruta.stem + "-estilo.png")
+            salida.write_bytes(r.content)
+            return salida
+    except Exception as e:
+        logger.warning(f"No se pudo pasar la foto al estilo: {e}")
+    return None
+
+
 def cloudflare(prompt: str, carpeta: Path, nombre: str) -> Path | None:
     """FLUX gratis en Cloudflare Workers AI (cuota diaria gratis)."""
     cuenta, token = secreto("CLOUDFLARE_ACCOUNT_ID"), secreto("CLOUDFLARE_API_TOKEN")
@@ -270,7 +305,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
     revisar = bool(im.get("revisar", True))
-    conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0}
+    conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0, "estilizadas": 0}
     generadas: list[tuple[Path, str]] = []
     fotos_propias = fotos_propias or {}
     banco = None
@@ -298,6 +333,20 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             with candado:
                 conteo["rechazadas"] += len(rutas) - len(buenos)
         return buenos
+
+    # Estilos dibujados: las fotos reales se pasan al estilo para que el video se vea parejo.
+    estilizable = (im.get("estilizar_fotos", True) and estilo.fuentes and estilo.fuentes[0] == "ia"
+                   and "photo" not in estilo.plantilla)
+
+    def al_estilo(ruta, descripcion):
+        lista = preparar_real(ruta, aspecto)
+        if not estilizable or lista != ruta:  # logos y productos encuadrados quedan tal cual
+            return lista
+        convertida = estilizar(ruta, prompt_imagen(estilo, descripcion), aspecto)
+        if convertida:
+            sumar("estilizadas")
+            return convertida
+        return lista
 
     def de_internet(consulta, descripcion):
         return banco.mejor(consulta, descripcion, elegir) if banco and consulta else None
@@ -335,12 +384,12 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             # Se revisa contra la escena completa: "Tesla" el auto no es Nikola Tesla.
             if hallado and encaja(hallado[0], f"{real} — {descripcion}"):
                 sumar("real")
-                return preparar_real(hallado[0], aspecto), hallado[1]
+                return al_estilo(hallado[0], escena_completa), hallado[1]
             if banco:
                 hallado = de_internet(real, f"{real} — {descripcion}")
                 if hallado:
                     sumar("real")
-                    return preparar_real(hallado[0], aspecto), hallado[1]
+                    return al_estilo(hallado[0], escena_completa), hallado[1]
         ia_de_respaldo = None
         for fuente in estilo.fuentes:
             if fuente == "web" and banco:
@@ -348,7 +397,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 hallado = de_internet(consulta, f"{consulta} ({descripcion})")
                 if hallado:
                     sumar("real")
-                    return preparar_real(hallado[0], aspecto), hallado[1]
+                    return al_estilo(hallado[0], escena_completa), hallado[1]
             elif fuente == "ia":
                 # El contexto global va al principio: el generador da más peso a lo primero.
                 prompt = prompt_imagen(estilo, escena_completa)
@@ -378,20 +427,20 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         usadas_wiki.add(huella)
                     if not repetida and encaja(hallado[0], escena_completa):
                         sumar("real")
-                        return preparar_real(hallado[0], aspecto), hallado[1]
+                        return al_estilo(hallado[0], escena_completa), hallado[1]
             elif fuente == "pexels":
                 ruta = (pexels_foto(busqueda, aspecto, carpeta, nombre)
                         or pixabay_foto(busqueda, aspecto, carpeta, nombre))
                 # Una foto de stock que no tiene que ver es peor que repetir una buena.
                 if ruta and encaja(ruta, escena_completa):
                     sumar("stock")
-                    return ruta, None
+                    return al_estilo(ruta, escena_completa), None
         # Antes de quedarse sin nada: una foto real del tema, o la imagen IA aunque no fue perfecta.
         if banco and "web" not in estilo.fuentes:
             hallado = de_internet(real or busqueda or tema, f"{real or busqueda or tema} ({descripcion})")
             if hallado:
                 sumar("real")
-                return preparar_real(hallado[0], aspecto), hallado[1]
+                return al_estilo(hallado[0], escena_completa), hallado[1]
         if ia_de_respaldo:
             sumar("ia")
             return ia_de_respaldo, None

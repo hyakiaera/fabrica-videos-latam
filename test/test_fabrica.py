@@ -923,5 +923,44 @@ class TestAvatar(unittest.TestCase):
         self.assertEqual(elegido.name, "dos.mp4")
 
 
+class TestFotosAlEstilo(unittest.TestCase):
+    def _correr(self, estilo, foto):
+        estilizadas = []
+
+        def estilizar(ruta, prompt, aspecto, fuerza=0.55):
+            estilizadas.append(prompt)
+            salida = ruta.with_name("x-estilo.png")
+            salida.write_bytes(b"x")
+            return salida
+
+        with mock.patch.object(imagenes, "wikimedia", return_value=(foto, "credito")), \
+             mock.patch.object(imagenes, "estilizar", side_effect=estilizar), \
+             mock.patch.object(ia, "imagen_encaja", return_value=True):
+            rutas, _, conteo = imagenes.para_escenas(
+                {"imagenes": {"fotos_web": False}}, [{"imagen": "stadium", "foto_real": "Estadio Azteca"}],
+                estilos.obtener(estilo), "9:16", foto.parent)
+        return rutas[0], estilizadas, conteo
+
+    def _foto(self, color=(30, 120, 40), transparente=False):
+        from PIL import Image
+        c = Path(tempfile.mkdtemp())
+        modo = "RGBA" if transparente else "RGB"
+        Image.new(modo, (900, 1600), color + ((0,) if transparente else ())).save(c / "f.png")
+        return c / "f.png"
+
+    def test_caricatura_pasa_la_foto_al_estilo(self):
+        ruta, estilizadas, conteo = self._correr("caricatura", self._foto())
+        self.assertEqual(ruta.name, "x-estilo.png")
+        self.assertIn("cartoon caricature", estilizadas[0])
+        self.assertEqual(conteo["estilizadas"], 1)
+
+    def test_realista_y_logos_quedan_reales(self):
+        _, estilizadas, _ = self._correr("realista", self._foto())
+        self.assertEqual(estilizadas, [])
+        ruta, estilizadas, _ = self._correr("caricatura", self._foto(transparente=True))
+        self.assertEqual(estilizadas, [])
+        self.assertTrue(ruta.name.endswith("-encuadre.jpg"))
+
+
 if __name__ == "__main__":
     unittest.main()
