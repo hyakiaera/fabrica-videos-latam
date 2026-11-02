@@ -713,6 +713,9 @@ class TestVozSigueIntentando(unittest.TestCase):
             modelo.write_bytes(b"x")
             return modelo
 
+        modelo = carpeta / "x" / "HYAKO_desde_checkpoint.pth"
+        modelo.parent.mkdir()
+
         with mock.patch.object(voz_applio, "MODELOS", carpeta), \
              mock.patch.object(descargas, "bajar_con_rclone", return_value=[]), \
              mock.patch.object(descargas, "bajar", side_effect=RuntimeError("No se pudo descargar")), \
@@ -754,6 +757,31 @@ class TestRevisionDeFotosWeb(unittest.TestCase):
             self.assertEqual(ia.elegir_imagenes({}, rutas, "tenis"), [1])
         self.assertEqual(post.call_count, 1)
         self.assertEqual(len(post.call_args.kwargs["json"]["messages"][0]["content"]), 4)
+
+
+class TestModeloFinal(unittest.TestCase):
+    def test_link_nuevo_baja_el_modelo_final_con_indice(self):
+        from fabrica import descargas, voz_applio
+        carpeta = Path(tempfile.mkdtemp())
+        links = ("https://drive.google.com/drive/folders/RESPALDO "
+                 "https://drive.google.com/file/d/INDEX/view")
+
+        def rclone(link, destino, filtros, remoto):
+            destino.mkdir(parents=True, exist_ok=True)
+            if "RESPALDO" in link:
+                (destino / "G_2333333.pth").write_bytes(b"x")
+                (destino / "HYAKO_LOCUTOR_300e_9000s.pth").write_bytes(b"x")
+                (destino / "HYAKO_desde_checkpoint.pth").write_bytes(b"x")
+            else:
+                (destino / "added_HYAKO.index").write_bytes(b"x")
+            return [destino]
+
+        with mock.patch.object(voz_applio, "MODELOS", carpeta), \
+             mock.patch.object(descargas, "bajar_con_rclone", side_effect=rclone) as baja:
+            pth, idx = voz_applio.traer_modelo({"voz": {"link_modelo": links}})
+        self.assertEqual(pth.name, "HYAKO_LOCUTOR_300e_9000s.pth")
+        self.assertEqual(idx.name, "added_HYAKO.index")
+        self.assertEqual(baja.call_count, 2)
 
 
 if __name__ == "__main__":

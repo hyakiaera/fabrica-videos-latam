@@ -89,7 +89,7 @@ motor = "applio"            # "applio" (StudioVoz) o "comando" (otro programa)
 modelo = "mi_voz"           # el NOMBRE_MODELO que usaste en StudioVoz
 carpeta_modelos_drive = "StudioVoz/modelos"
 tono = 0                    # +12 hombre→mujer, -12 mujer→hombre
-parecido = 0.5              # PARECIDO_A_LA_VOZ del cuaderno
+parecido = 0.75             # PARECIDO_A_LA_VOZ del cuaderno (más alto = más parecido a ti)
 proteger_consonantes = 0.33
 metodo_tono = "rmvpe"
 tiempo_max_clonar = 1800

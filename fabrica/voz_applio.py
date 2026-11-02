@@ -104,6 +104,8 @@ def extraer_de_entrenamiento(carpeta: Path) -> Path | None:
 
 def _archivos_modelo_recursivo(carpeta: Path) -> tuple[Path | None, Path | None]:
     pths = [p for p in carpeta.rglob("*.pth") if not p.name.startswith(("G_", "D_"))]
+    finales = [p for p in pths if not p.name.endswith("_desde_checkpoint.pth")]
+    pths = finales or pths  # el modelo final de Applio gana al sacado del checkpoint
     idxs = list(carpeta.rglob("*.index"))
     ultimo = lambda lista: max(lista, key=lambda p: p.stat().st_mtime) if lista else None
     return ultimo(pths), ultimo(idxs)
@@ -114,32 +116,38 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
     v = cfg.get("voz", {})
     nombre = v.get("modelo", "mi_voz")
     if v.get("link_modelo"):
+        import hashlib
+        import re as _re
+
         from fabrica import descargas
 
-        local = MODELOS / "_desde_link"
+        # Se aceptan varios links separados por espacio o coma (ej. la carpeta y el .index aparte).
+        links = [l for l in _re.split(r"[\s,]+", v["link_modelo"].strip()) if l.startswith("http")]
+        # Una carpeta por combinación de links: si cambias el link, se baja el modelo nuevo.
+        local = MODELOS / ("link-" + hashlib.sha1(" ".join(links).encode()).hexdigest()[:12])
         remoto = cfg.get("drive", {}).get("remoto", "drive")
         pth, idx = _archivos_modelo_recursivo(local)
         intentos = []
-        if not pth:
+        if not pth or pth.name.endswith("_desde_checkpoint.pth") or not idx:
             logger.info("Applio: bajando tu modelo de voz desde el link...")
-            # 1) Modelo final (.pth y .index) con tu conexión de Drive; sin los pesados G_/D_.
-            descargas.bajar_con_rclone(v["link_modelo"], local, ["- G_*", "- D_*", "+ *.pth", "+ *.index",
-                                                                 "- *"], remoto)
+            for link in links:
+                # 1) Modelo final (.pth y .index) con tu conexión de Drive; sin los pesados G_/D_.
+                if not descargas.bajar_con_rclone(link, local, ["- G_*", "- D_*", "+ *.pth", "+ *.index",
+                                                                "- *"], remoto):
+                    # 2) Lo mismo con el link público.
+                    try:
+                        descargas.bajar(link, local, saltar=lambda n: n.startswith(("G_", "D_"))
+                                        or not n.lower().endswith((".pth", ".index", ".zip")))
+                    except Exception as e:
+                        intentos.append(f"{link[:60]}: {e}")
             pth, idx = _archivos_modelo_recursivo(local)
             if not pth:
-                intentos.append("rclone: no hay .pth final en la carpeta")
-        if not pth:
-            # 2) Lo mismo con el link público.
-            try:
-                descargas.bajar(v["link_modelo"], local, saltar=lambda n: n.startswith(("G_", "D_"))
-                                or not n.lower().endswith((".pth", ".index", ".zip")))
-            except Exception as e:
-                intentos.append(f"link público: {e}")
-            pth, idx = _archivos_modelo_recursivo(local)
+                intentos.append("no hay .pth final (que no empiece con G_ o D_)")
         if not pth:
             # 3) Entrenamiento sin terminar (solo G_/D_): se baja el G_ y su config y se saca el modelo.
-            descargas.bajar_con_rclone(v["link_modelo"], local, ["+ G_*.pth", "+ config.json",
-                                                                 "+ model_info.json", "- *"], remoto)
+            for link in links:
+                descargas.bajar_con_rclone(link, local, ["+ G_*.pth", "+ config.json", "+ model_info.json",
+                                                         "- *"], remoto)
             if not list(local.rglob("G_*.pth")):
                 intentos.append("rclone: no se pudo bajar el G_*.pth")
             try:
@@ -150,6 +158,7 @@ def traer_modelo(cfg: dict) -> tuple[Path, Path | None]:
             if extraido:
                 pth, idx = extraido, _archivos_modelo_recursivo(local)[1]
         if pth:
+            logger.info(f"Applio: modelo {pth.name}" + (f" con índice {idx.name}" if idx else " (sin .index)"))
             return pth, idx
         raise RuntimeError("No pude conseguir tu modelo de voz. " + " | ".join(intentos))
     local = MODELOS / nombre
@@ -183,7 +192,7 @@ def convertir(cfg: dict, entrada: Path, salida: Path) -> Path:
              "--input-path", entrada.resolve(), "--output-path", salida.resolve(),
              "--pth-path", pth.resolve(), "--index-path", idx.resolve() if idx else "",
              "--pitch", int(v.get("tono", 0)),
-             "--index-rate", float(v.get("parecido", 0.5)) if idx else 0,
+             "--index-rate", float(v.get("parecido", 0.75)) if idx else 0,
              "--protect", float(v.get("proteger_consonantes", 0.33)),
              "--f0-method", v.get("metodo_tono", "rmvpe"),
              "--export-format", "WAV", "--embedder-model", "contentvec"],
