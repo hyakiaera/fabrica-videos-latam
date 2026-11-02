@@ -141,6 +141,7 @@ jobs:
           IN_AVATAR: ${{ inputs.avatar || vars.AVATAR || 'no' }}
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
         run: |

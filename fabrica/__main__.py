@@ -140,7 +140,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         salidas.publicar(cfg, guardado, datos)
 
     entradas = _historial()
-    entradas.append({"numero": numero, "fecha": datetime.now().isoformat(timespec="minutes"), "tema": tema["tema"],
+    entradas.append({"mezcla": tema.get("mezcla", ""), "numero": numero, "fecha": datetime.now().isoformat(timespec="minutes"), "tema": tema["tema"],
                      "categoria": tema["categoria"], "estilo": tema["estilo"], "titulo": datos["titulo"],
                      "archivo": str(guardado.relative_to(config.RAIZ)) if guardado.is_relative_to(config.RAIZ) else str(guardado)})
     _guardar_historial(entradas)
@@ -162,12 +162,19 @@ def una_ronda(cfg: dict, args) -> int:
         from fabrica import pedidos
         temas = [pedidos.preparar(cfg, args.tema, estilo, args.categoria or "")]
     else:
-        candidatos = tendencias.recolectar(cfg)
-        if not candidatos:
-            logger.error("No se pudieron leer las tendencias (¿sin internet?)")
+        if cfg.get("mezcla", {}).get("activa", True):
+            from fabrica import mezcla
+            temas = mezcla.temas_de_la_ronda(cfg, cantidad, _historial(), estilo)
+        else:
+            candidatos = tendencias.recolectar(cfg)
+            if not candidatos:
+                logger.error("No se pudieron leer las tendencias (¿sin internet?)")
+                return 1
+            recientes = [e["tema"] for e in _historial()]
+            temas = tendencias.elegir_temas(cfg, candidatos, cantidad, recientes, estilo)
+        if not temas:
+            logger.error("No se encontró ningún tema nuevo")
             return 1
-        recientes = [e["tema"] for e in _historial()]
-        temas = tendencias.elegir_temas(cfg, candidatos, cantidad, recientes, estilo)
 
     if args.detalles:
         for t in temas:

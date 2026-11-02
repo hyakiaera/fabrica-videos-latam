@@ -973,5 +973,41 @@ class TestFotosAlEstilo(unittest.TestCase):
         self.assertTrue(ruta.name.endswith("-encuadre.jpg"))
 
 
+class TestMezcla(unittest.TestCase):
+    def test_porcentajes_suman_100(self):
+        from fabrica import mezcla
+        self.assertEqual(sum(mezcla._pesos({}).values()), 100)
+
+    def test_con_el_tiempo_respeta_los_porcentajes(self):
+        from fabrica import mezcla
+        historial = []
+        for _ in range(200):
+            historial.append({"mezcla": mezcla.elegir_categorias({}, historial, 1)[0]})
+        ultimos = [e["mezcla"] for e in historial[-100:]]
+        self.assertAlmostEqual(ultimos.count("general"), 20, delta=4)
+        self.assertAlmostEqual(ultimos.count("deportes"), 20, delta=4)
+        self.assertAlmostEqual(ultimos.count("musica"), 5, delta=3)
+
+    def test_no_repite_jarritos(self):
+        from datetime import datetime
+        from fabrica import mezcla
+        historial = [{"tema": "El curioso éxito de los refrescos Jarritos como bebida de lujo",
+                      "fecha": datetime.now().isoformat(timespec="minutes")}]
+        self.assertTrue(mezcla.repetido("Jarritos: de refresco de barrio en México a bebida de lujo", historial))
+        self.assertFalse(mezcla.repetido("América vence a Chivas en el clásico", historial))
+
+    def test_ronda_elige_tema_no_repetido(self):
+        from fabrica import mezcla
+        opciones = [{"tema": "Jarritos bebida de lujo", "categoria": "general", "estilo": "comic"},
+                    {"tema": "Nuevo récord de Messi", "categoria": "deportes", "estilo": "comic"}]
+        historial = [{"tema": "Jarritos refresco de lujo", "fecha": "2999-01-01T00:00"}]
+        with mock.patch.object(mezcla, "elegir_categorias", return_value=["deportes"]), \
+             mock.patch.object(mezcla, "candidatos", return_value=[tendencias.Candidato("x", "news", "MX", "es")]), \
+             mock.patch.object(tendencias, "elegir_temas", return_value=opciones):
+            temas = mezcla.temas_de_la_ronda({}, 1, historial, "auto")
+        self.assertEqual(temas[0]["tema"], "Nuevo récord de Messi")
+        self.assertEqual(temas[0]["mezcla"], "deportes")
+
+
 if __name__ == "__main__":
     unittest.main()

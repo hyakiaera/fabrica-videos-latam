@@ -233,6 +233,21 @@ Cada avatar queda guardado en `Fabrica de Videos › MIS AVATARES › <categorí
 Intro y cierre gasta poca GPU (~5 min); los demás modos mueven tu boca todo el video (~15-25 min).
 Si algo falla, el video sale sin avatar y la ficha dice por qué.
 
+## 11. Mezcla de temas de los videos automáticos
+
+| Tipo | % |
+|---|---|
+| Tendencias del momento (el sistema de siempre) | 20 |
+| Deportes (Liga MX, fútbol salvadoreño, LaLiga, MLS, Premier, selecciones, Messi, CR7, béisbol) | 20 |
+| Tendencias y noticias no latinas | 15 |
+| Entretenimiento latino (novelas, series, moda, maquillaje, temas de mujeres y hombres) | 15 |
+| Curiosidades, consejos, motivación, ideas de negocio, tops | 15 |
+| Cripto y bolsa | 10 |
+| Música (latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno) | 5 |
+
+Cada ronda toma la categoría que más falta según los últimos 40 videos. Se cambia en `[mezcla]`.
+Además, no se repite un tema parecido a otro de los últimos 4 días.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

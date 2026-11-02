@@ -125,7 +125,7 @@ def _texto_candidatos(candidatos: list[Candidato], maximo: int) -> tuple[str, li
 
 
 def elegir_temas(cfg: dict, candidatos: list[Candidato], cantidad: int,
-                 recientes: list[str], estilo: str = ESTILO_AUTOMATICO) -> list[dict]:
+                 recientes: list[str], estilo: str = ESTILO_AUTOMATICO, enfoque: str = "") -> list[dict]:
     """La IA elige los temas con más potencial y les asigna categoría y estilo."""
     t = cfg.get("tendencias", {})
     texto, ordenados = _texto_candidatos(candidatos, int(t.get("max_candidatos_ia", 90)))
@@ -148,6 +148,7 @@ Categorías permitidas: {', '.join(t.get('categorias', []))}
 Estilos visuales disponibles:
 {resumen_para_ia()}
 
+{('El video debe ser de: ' + enfoque + '. Elige solo temas de eso.') if enfoque else ''}
 Elige {cantidad} temas distintos, variados en categoría. Devuelve:
 {{"temas": [{{"indices": [números de candidatos que hablan de ese tema],
   "tema": "título corto en español", "categoria": "...",
@@ -175,12 +176,13 @@ Elige {cantidad} temas distintos, variados en categoría. Devuelve:
     return [t for t in temas if t["tema"]]
 
 
-def buscar_noticias(consulta: str, limite: int = 6) -> list[tuple]:
-    """Titulares recientes sobre un tema escrito a mano, en español y en inglés."""
+def buscar_noticias(consulta: str, limite: int = 6, solo_ingles: bool = False) -> list[tuple]:
+    """Titulares recientes sobre un tema, en español y en inglés."""
     from urllib.parse import quote
 
     titulares = []
-    for hl, gl, ceid in (("es-419", "US", "US:es-419"), ("en-US", "US", "US:en")):
+    ediciones = [("en-US", "US", "US:en")] if solo_ingles else [("es-419", "US", "US:es-419"), ("en-US", "US", "US:en")]
+    for hl, gl, ceid in ediciones:
         raiz = _get(f"https://news.google.com/rss/search?q={quote(consulta)}&hl={hl}&gl={gl}&ceid={ceid}")
         if raiz is None:
             continue

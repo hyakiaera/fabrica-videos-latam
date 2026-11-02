@@ -137,8 +137,34 @@ def audio_para_avatar(narracion: Path, m: str, intro: float, cierre: float, carp
 
 # ---------- 2. Kaggle: mover tu boca con su GPU gratis ----------
 
+_ENTORNO_KAGGLE: dict | None = None
+
+
+def _entorno_kaggle() -> dict:
+    """Kaggle tiene dos tipos de clave: la vieja (usuario + key) y la nueva "Access token".
+    Se prueba la que sirva, sin importar en qué secreto la hayas guardado."""
+    global _ENTORNO_KAGGLE
+    if _ENTORNO_KAGGLE is not None:
+        return _ENTORNO_KAGGLE
+    base = {k: v for k, v in os.environ.items() if not k.startswith("KAGGLE_")}
+    usuario = secreto("KAGGLE_USERNAME")
+    claves = [c for c in (secreto("KAGGLE_KEY"), secreto("KAGGLE_API_TOKEN")) if c]
+    opciones = []
+    for clave in claves:
+        opciones.append({**base, "KAGGLE_USERNAME": usuario, "KAGGLE_KEY": clave})  # clave vieja
+        opciones.append({**base, "KAGGLE_API_TOKEN": clave, "KAGGLE_USERNAME": usuario})  # token nuevo
+    for entorno in opciones:
+        r = subprocess.run(["kaggle", "kernels", "list", "--mine", "--page-size", "1"],
+                           capture_output=True, text=True, timeout=120, env=entorno)
+        if r.returncode == 0:
+            _ENTORNO_KAGGLE = entorno
+            return entorno
+    raise RuntimeError("Kaggle rechazó las claves (revisa KAGGLE_USERNAME y KAGGLE_KEY)")
+
+
 def _kaggle(*args, timeout=600) -> str:
-    r = subprocess.run(["kaggle", *map(str, args)], capture_output=True, text=True, timeout=timeout)
+    r = subprocess.run(["kaggle", *map(str, args)], capture_output=True, text=True, timeout=timeout,
+                       env=_entorno_kaggle())
     if r.returncode != 0:
         raise RuntimeError(f"kaggle {args[0]} {args[1]}: {(r.stderr or r.stdout)[-400:]}")
     return r.stdout
@@ -146,7 +172,7 @@ def _kaggle(*args, timeout=600) -> str:
 
 def en_kaggle(entrada: Path, salida: Path, espera_max: int = 5400) -> Path:
     usuario = secreto("KAGGLE_USERNAME")
-    if not (usuario and secreto("KAGGLE_KEY")):
+    if not (usuario and (secreto("KAGGLE_KEY") or secreto("KAGGLE_API_TOKEN"))):
         raise RuntimeError("Faltan KAGGLE_USERNAME y KAGGLE_KEY")
     datos_id, kernel_id = f"{usuario}/fabrica-avatar-entrada", f"{usuario}/fabrica-avatar"
     (entrada / "dataset-metadata.json").write_text(json.dumps(
