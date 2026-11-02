@@ -144,6 +144,10 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         resultado = correr(audio_edge or voz.narracion_google(cfg, datos["guion"], trabajo / "voz"))
 
     datos["voz_usada"] = dict(voz.ULTIMA)
+    # Narración sola (sin música), para que el avatar mueva la boca con ella.
+    narracion = Path(utils.task_dir(task_id)) / "audio.mp3"
+    candidatos = [a for a in (audio_propio, narracion, audio_edge) if a]
+    datos["audio_narracion"] = next((str(a) for a in candidatos if Path(a).exists()), "")
     videos = (resultado or {}).get("videos") or []
     if not videos:
         raise RuntimeError(f"MoneyPrinterTurbo no produjo el video (tarea {task_id})")

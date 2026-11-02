@@ -108,6 +108,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
             direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
+    from fabrica import avatar
+    crudo = avatar.agregar(cfg, crudo, datos, _slug(tema.get("categoria", "general")), trabajo, numero)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
@@ -203,6 +205,7 @@ def main(argv=None) -> int:
     p.add_argument("--logo-link", help="link a tu logo PNG (Google Drive compartido o directo)")
     p.add_argument("--posicion-logo", help="arriba_izquierda, arriba_centro, arriba_derecha, ...")
     p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
+    p.add_argument("--avatar", help="no, intro y cierre, esquina, dividida o mixto")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
     p.add_argument("--repetir-cada", type=float, metavar="HORAS", help="modo PC: repetir cada N horas")
@@ -225,6 +228,8 @@ def main(argv=None) -> int:
                 cfg["voz"]["yo_pulir"] = False
         elif args.voz:
             cfg.setdefault("voz", {})["genero"] = args.voz
+        if args.avatar:
+            cfg.setdefault("avatar", {})["modo"] = args.avatar
         if args.texto_marca:
             cfg.setdefault("logo", {})["texto"] = args.texto_marca
         if args.logo_link:

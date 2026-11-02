@@ -218,6 +218,21 @@ Así pone tus fotos en las escenas y solo genera con IA las que falten.
 
 En la PC también funciona con una carpeta `mis fotos/<categoría>` dentro del proyecto.
 
+## 10. Tu avatar (Kaggle, automático)
+
+Usa tus videos reales de la carpeta **EL HYAKO 1** y mueve tu boca con la narración del video
+(LatentSync). Corre en **Kaggle** con su GPU gratis, sin que estés presente.
+
+1. Cuenta gratis en https://www.kaggle.com con el **teléfono verificado** (para usar GPU).
+2. Kaggle → tu foto → **Settings → API → Create New Token**: baja un `kaggle.json` con tu
+   usuario y tu clave. Guárdalos como secretos `KAGGLE_USERNAME` y `KAGGLE_KEY`.
+3. En **Run workflow**, casilla **Avatar**: `intro y cierre`, `esquina`, `dividida` o `mixto`.
+   Para los automáticos: variable `AVATAR`.
+
+Cada avatar queda guardado en `Fabrica de Videos › MIS AVATARES › <categoría>`.
+Intro y cierre gasta poca GPU (~5 min); los demás modos mueven tu boca todo el video (~15-25 min).
+Si algo falla, el video sale sin avatar y la ficha dice por qué.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

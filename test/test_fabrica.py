@@ -870,5 +870,58 @@ class TestReferenciasPorNombre(unittest.TestCase):
         self.assertIsNone(self._buscar("estadio Real Madrid Bernabéu"))
 
 
+class TestAvatar(unittest.TestCase):
+    def _clip(self, ruta, segundos, tam="1080x1920", audio=True):
+        import subprocess
+        import imageio_ffmpeg
+        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+               f"color=c=blue:s={tam}:d={segundos}:r=25"]
+        if audio:
+            cmd += ["-f", "lavfi", "-i", f"sine=f=300:d={segundos}", "-c:a", "aac", "-shortest"]
+        subprocess.run(cmd + ["-c:v", "libx264", "-pix_fmt", "yuv420p", str(ruta)], check=True)
+        return ruta
+
+    def test_las_cuatro_formas_conservan_la_duracion(self):
+        from fabrica import avatar
+        c = Path(tempfile.mkdtemp())
+        video = self._clip(c / "v.mp4", 14)
+        completo = self._clip(c / "a.mp4", 14, "360x640", audio=False)
+        corto = self._clip(c / "ic.mp4", 8.4, "360x640", audio=False)
+        for modo, av in (("intro y cierre", corto), ("esquina", completo), ("dividida", completo),
+                         ("mixto", completo)):
+            salida = avatar.componer(video, av, modo, 4, 4, c / f"{modo}.mp4")
+            self.assertAlmostEqual(avatar._duracion(salida), 14, delta=0.2)
+
+    def test_audio_solo_intro_y_cierre(self):
+        from fabrica import avatar
+        c = Path(tempfile.mkdtemp())
+        narracion = self._clip(c / "n.mp4", 30)
+        audio, total = avatar.audio_para_avatar(narracion, "intro y cierre", 5, 5, c)
+        self.assertAlmostEqual(avatar._duracion(audio), 10.4, delta=0.2)
+        audio, _ = avatar.audio_para_avatar(narracion, "mixto", 5, 5, c)
+        self.assertAlmostEqual(avatar._duracion(audio), 30, delta=0.2)
+
+    def test_sin_kaggle_el_video_sale_igual(self):
+        from fabrica import avatar
+        c = Path(tempfile.mkdtemp())
+        narracion = self._clip(c / "n.mp4", 12)
+        datos = {"audio_narracion": str(narracion)}
+        with mock.patch.dict("os.environ", {}, clear=True), \
+             mock.patch.object(avatar, "elegir_video_base", return_value=self._clip(c / "b.mp4", 20, "360x640")):
+            r = avatar.agregar({"avatar": {"modo": "esquina"}}, c / "video.mp4", datos, "deportes", c, 1)
+        self.assertEqual(r, c / "video.mp4")
+        self.assertIn("KAGGLE", datos["avatar_usado"])
+
+    def test_no_repite_el_ultimo_video_base(self):
+        from fabrica import avatar
+        c = Path(tempfile.mkdtemp())
+        lista = mock.Mock(stdout="uno.mp4\ndos.mp4\n")
+        with mock.patch.object(avatar, "HISTORIAL", c / "h.json"), \
+             mock.patch("subprocess.run", return_value=lista):
+            (c / "h.json").write_text('["uno.mp4"]')
+            elegido = avatar.elegir_video_base({}, c / "base")
+        self.assertEqual(elegido.name, "dos.mp4")
+
+
 if __name__ == "__main__":
     unittest.main()

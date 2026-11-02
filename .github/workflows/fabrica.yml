@@ -46,10 +46,11 @@ on:
       modelo_voz_link:
         description: "Para 'mi voz': link del modelo (.pth/.zip) o su nombre en StudioVoz (vacío = mi_voz)"
         default: ""
-      drive:
-        description: "Subir a Google Drive"
-        type: boolean
-        default: true
+      avatar:
+        description: "Tu avatar (hecho en Kaggle)"
+        type: choice
+        default: "no"
+        options: ["no", "intro y cierre", "esquina", "dividida", "mixto"]
       detalles:
         description: "Detalles que SÍ tienen que salir o decirse (ej. el top 10 en orden, precios, fecha)"
         default: ""
@@ -64,7 +65,7 @@ concurrency:
 jobs:
   videos:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 170  # el avatar en Kaggle puede tardar
     steps:
       - uses: actions/checkout@v5
 
@@ -78,7 +79,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
           pip install -q -r requirements.txt
-          pip install -q -U yt-dlp trafilatura gdown edge-tts num2words
+          pip install -q -U yt-dlp trafilatura gdown edge-tts num2words kaggle
           pip install -q --no-deps gTTS  # voz de respaldo (sin cambiar otras librerías)
 
       - name: Recordar el motor de voz clonada (StudioVoz/Applio)
@@ -137,7 +138,9 @@ jobs:
           IN_VOZ: ${{ inputs.voz || vars.VOZ || ((secrets.MI_VOS || secrets.MODELO_VOZ_LINK || vars.MODELO_VOZ_LINK) && 'mi voz') || 'hombre' }}
           IN_MODELO_LINK: ${{ inputs.modelo_voz_link || vars.MODELO_VOZ_LINK || secrets.MODELO_VOZ_LINK || secrets.MI_VOS }}
           IN_MODELO_ESCRITO: ${{ inputs.modelo_voz_link }}
-          IN_DRIVE: ${{ inputs.drive }}
+          IN_AVATAR: ${{ inputs.avatar || vars.AVATAR || 'no' }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
         run: |
@@ -155,9 +158,9 @@ jobs:
           fi
 
           SALIDAS="descargar"
-          if [ "$EVENTO" = "schedule" ] || [ "$IN_DRIVE" = "true" ]; then SALIDAS="$SALIDAS,drive"; fi
+          SALIDAS="$SALIDAS,drive"
           if [ "$VAR_PUBLICAR" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
-          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION")
+          ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION" --avatar "$IN_AVATAR")
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
           # Si pegaste el link de tu modelo en el formulario, se usa tu voz aunque la casilla diga hombre.
@@ -190,7 +193,7 @@ jobs:
         run: |
           git config user.name "fabrica-bot"
           git config user.email "fabrica-bot@users.noreply.github.com"
-          git add estado/historial.json 2>/dev/null || exit 0
+          git add estado/historial.json estado/avatares.json 2>/dev/null || git add estado/historial.json 2>/dev/null || exit 0
           git diff --cached --quiet && exit 0
           git commit -q -m "Historial de temas"
           # Si mientras tanto se subió otro cambio, se junta y se reintenta.
