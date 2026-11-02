@@ -64,6 +64,7 @@ modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
 simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
+guardar_generadas = true    # las imágenes IA van a "mis fotos/generadas/<categoría>" para reusarlas
 fotos_web = true            # fotos reales de las noticias (RSS) y de Openverse
 max_fotos_propias = 40      # fotos de "mis fotos" que se consideran por categoría
 max_imagenes = 14           # imágenes nuevas por video (cuida la cuota diaria gratis);
@@ -93,6 +94,11 @@ parecido = 0.75             # PARECIDO_A_LA_VOZ del cuaderno (más alto = más p
 proteger_consonantes = 0.33
 metodo_tono = "rmvpe"
 tiempo_max_clonar = 1800
+# Voz "yo" (IA lectora que imita tus grabaciones de la carpeta "mi voz")
+yo_oraciones_por_pedazo = 3  # 1 = como antes (oración por oración)
+yo_ritmo = 0.4               # más bajo = más pausado
+yo_expresion = 0.5           # más alto = más emoción
+yo_pulir = true              # pasar por tu modelo (HYAKO_LOCUTOR) al final
 # Solo si motor = "comando": recibe {entrada} y debe crear {salida}
 comando_clonar = ""
 

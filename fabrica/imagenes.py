@@ -271,6 +271,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     candado = threading.Lock()
     revisar = bool(im.get("revisar", True))
     conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0}
+    generadas: list[tuple[Path, str]] = []
     fotos_propias = fotos_propias or {}
     banco = None
     if im.get("fotos_web", True):
@@ -318,6 +319,16 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             sumar("propias")
             return encuadrar(mis_fotos.mejorar(fotos_propias[propia][0]), aspecto, rellenar=True), None
         real = (escena.get("foto_real") or "").strip()
+        if real:
+            # Primero tus archivos con ese nombre (ej. tus escudos en "mis fotos/logos equipos").
+            from fabrica import mis_fotos
+            try:
+                tuya = mis_fotos.buscar_referencia(cfg, real, carpeta / "referencias")
+            except Exception:
+                tuya = None
+            if tuya:
+                sumar("propias")
+                return preparar_real(tuya, aspecto), None
         if real and im.get("fotos_reales", True):
             # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
             hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
@@ -348,6 +359,8 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         break  # sin cuota o sin servicio: no insistir
                     if encaja(ruta, escena_completa):
                         sumar("ia")
+                        with candado:
+                            generadas.append((ruta, escena.get("texto") or descripcion))
                         return ruta, None
                     ia_de_respaldo = ruta
                     logger.info(f"Escena {i}: la imagen no encaja con el guion, se intenta otra")
@@ -394,6 +407,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     if not any(imagenes) and not any(e.get("grafica") for e in escenas):
         raise RuntimeError("No se consiguió ninguna imagen que encaje (¿se acabó la cuota diaria de "
                            "Cloudflare?). Prueba más tarde o agrega POLLINATIONS_TOKEN.")
+    conteo["_generadas"] = generadas
     logger.info(f"Imágenes: {conteo['propias']} tuyas, {conteo['ia']} IA, {conteo['real']} reales, {conteo['stock']} stock, "
                 f"{conteo['rechazadas']} rechazadas por no encajar")
     return imagenes, creditos, conteo

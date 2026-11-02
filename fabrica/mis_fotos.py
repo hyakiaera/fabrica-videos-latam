@@ -10,6 +10,7 @@ descripciones en la misma carpeta) y el guion las usa en las escenas."""
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from loguru import logger
@@ -117,3 +118,81 @@ def mejorar(ruta: Path) -> Path:
     salida = ruta.with_name(ruta.stem + "-mejorada.jpg")
     img.save(salida, quality=93)
     return salida
+
+
+# Palabras que no ayudan a reconocer de quién es un archivo ("club-america-logo.png" → america).
+GENERICAS = {"logo", "logos", "escudo", "escudos", "club", "fc", "cf", "png", "jpg", "jpeg", "svg", "webp",
+             "seeklogo", "transparent", "background", "football", "futbol", "soccer", "icon", "digital",
+             "download", "free", "de", "del", "la", "el", "los", "las", "deportivo", "estadio", "stadium",
+             "oficial", "official", "foto", "imagen", "png_seeklogo"}
+_INDICE: dict[str, list[str]] = {}
+
+
+def _claves(texto: str) -> set[str]:
+    import re
+    palabras = re.findall(r"[a-z0-9]+", _normal(texto))
+    return {p for p in palabras if p not in GENERICAS and len(p) > 2
+            and not (any(c.isdigit() for c in p) and len(p) > 4)}  # quita códigos tipo "3a4adeb2"
+
+
+def indice(cfg: dict) -> list[str]:
+    """Todos los archivos de 'mis fotos' (solo nombres), para buscar logos y referencias."""
+    if "lista" not in _INDICE:
+        nombres = []
+        remoto = _remoto(cfg)
+        if remoto:
+            r = subprocess.run(["rclone", "lsf", remoto, "-R", "--files-only", "--max-depth", "4"],
+                               capture_output=True, text=True, timeout=180)
+            nombres = [n.strip() for n in r.stdout.splitlines()
+                       if n.strip().lower().endswith(EXTENSIONES)]
+        if _local().is_dir():
+            nombres += [str(p.relative_to(_local())).replace("\\", "/") for p in _local().rglob("*")
+                        if p.suffix.lower() in EXTENSIONES]
+        _INDICE["lista"] = nombres
+    return _INDICE["lista"]
+
+
+def buscar_referencia(cfg: dict, consulta: str, carpeta: Path) -> Path | None:
+    """Si en 'mis fotos' hay un archivo con el nombre de lo que se busca (ej. el escudo
+    'club-america.png' para "escudo Club América"), lo usa. Solo con coincidencia de nombre."""
+    buscadas = _claves(consulta)
+    if not buscadas:
+        return None
+    busca_lugar = any(x in _normal(consulta) for x in ("estadio", "stadium", "cancha"))
+    for nombre in indice(cfg):
+        if busca_lugar and "logo" in _normal(nombre):
+            continue  # "estadio Real Madrid" no es el escudo del Real Madrid
+        del_archivo = _claves(Path(nombre).stem)
+        if del_archivo and (del_archivo <= buscadas or buscadas <= del_archivo):
+            carpeta.mkdir(parents=True, exist_ok=True)
+            destino = carpeta / Path(nombre).name
+            if (_local() / nombre).is_file():
+                shutil.copy(_local() / nombre, destino)
+            elif _remoto(cfg):
+                subprocess.run(["rclone", "copyto", f"{_remoto(cfg)}/{nombre}", str(destino)],
+                               capture_output=True, timeout=300)
+            if destino.exists():
+                logger.info(f"Mis fotos: '{nombre}' para '{consulta}'")
+                return destino
+    return None
+
+
+def guardar_generadas(cfg: dict, generadas: list[tuple[Path, str]], categoria: str, numero: int):
+    """Guarda las imágenes hechas con IA en 'mis fotos/generadas/<categoría>' con un nombre
+    que describe la escena (y su descripción en descripciones.json), para reusarlas."""
+    import re
+    remoto = _remoto(cfg)
+    if not generadas or not remoto:
+        return
+    temporal = Path(tempfile.mkdtemp())
+    destino = f"{remoto}/generadas/{categoria or 'general'}"
+    subprocess.run(["rclone", "copyto", f"{destino}/{CACHE}", str(temporal / CACHE)], capture_output=True, timeout=120)
+    cache = json.loads((temporal / CACHE).read_text(encoding="utf-8")) if (temporal / CACHE).exists() else {}
+    for k, (ruta, texto) in enumerate(generadas):
+        base = re.sub(r"[^a-z0-9]+", "-", _normal(texto))[:60].strip("-") or "escena"
+        nombre = f"{base}-{numero:03d}-{k}.jpg"
+        shutil.copy(ruta, temporal / nombre)
+        cache[nombre] = texto
+    (temporal / CACHE).write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+    subprocess.run(["rclone", "copy", str(temporal), destino], capture_output=True, timeout=900)
+    logger.info(f"Mis fotos: {len(generadas)} imágenes IA guardadas en generadas/{categoria}")

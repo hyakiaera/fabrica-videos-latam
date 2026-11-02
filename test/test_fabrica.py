@@ -844,5 +844,31 @@ class TestLecturaYEscudos(unittest.TestCase):
         self.assertEqual(tema["fuentes"][0][2], "https://tudn.com/x")
 
 
+class TestReferenciasPorNombre(unittest.TestCase):
+    def _buscar(self, consulta):
+        from fabrica import mis_fotos
+        raiz = Path(tempfile.mkdtemp())
+        (raiz / "logos equipos").mkdir()
+        for n in ("club-america.3a4adeb2.png", "chivas-guadalajara-logo-png_seeklogo-474960.png",
+                  "pumas-unam-logo-3-1.png", "Real_Madrid.png"):
+            (raiz / "logos equipos" / n).write_bytes(b"x")
+        mis_fotos._INDICE.clear()
+        with mock.patch.object(mis_fotos, "_local", return_value=raiz), \
+             mock.patch.object(mis_fotos, "_remoto", return_value=None):
+            r = mis_fotos.buscar_referencia({}, consulta, Path(tempfile.mkdtemp()))
+        mis_fotos._INDICE.clear()
+        return r.name if r else None
+
+    def test_escudos_por_nombre(self):
+        self.assertEqual(self._buscar("escudo Club América"), "club-america.3a4adeb2.png")
+        self.assertEqual(self._buscar("escudo Club Deportivo Guadalajara Chivas"),
+                         "chivas-guadalajara-logo-png_seeklogo-474960.png")
+        self.assertEqual(self._buscar("escudo Pumas UNAM"), "pumas-unam-logo-3-1.png")
+
+    def test_no_confunde(self):
+        self.assertIsNone(self._buscar("escudo Toluca"))
+        self.assertIsNone(self._buscar("estadio Real Madrid Bernabéu"))
+
+
 if __name__ == "__main__":
     unittest.main()

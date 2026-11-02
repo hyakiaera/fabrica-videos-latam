@@ -24,10 +24,18 @@ AUDIOS = (".mp3", ".wav", ".m4a", ".aac", ".ogg", ".opus", ".flac", ".mp4", ".we
 LECTOR = r"""
 import re, sys, torch, torchaudio
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-texto_ruta, muestra, salida, cfg_weight, exageracion = sys.argv[1:6]
+texto_ruta, muestra, salida, cfg_weight, exageracion, por_pedazo = sys.argv[1:7]
 texto = open(texto_ruta, encoding="utf-8").read()
-# Una oración por pedazo: cortar a media frase es lo que causaba pausas raras.
-frases = [f.strip() for f in re.split(r"(?<=[.!?])\s+", texto) if f.strip()]
+# Varias oraciones juntas para que la entonación fluya (cada pedazo "arranca de cero").
+oraciones = [f.strip() for f in re.split(r"(?<=[.!?])\s+", texto) if f.strip()]
+frases, actual, cuenta = [], "", 0
+for o in oraciones:
+    if actual and (cuenta >= int(por_pedazo) or len(actual) + len(o) > 300):
+        frases.append(actual.strip()); actual, cuenta = "", 0
+    actual += " " + o
+    cuenta += 1
+if actual.strip():
+    frases.append(actual.strip())
 modelo = ChatterboxMultilingualTTS.from_pretrained(device="cpu")
 
 
@@ -41,12 +49,13 @@ def recortar(wav, umbral=0.01):
 
 
 pedazos = []
-pausa = torch.zeros(1, int(modelo.sr * 0.18))
 for k, frase in enumerate(frases):
-    print(f"frase {k + 1}/{len(frases)}", flush=True)
+    print(f"pedazo {k + 1}/{len(frases)}", flush=True)
     wav = modelo.generate(frase, language_id="es", audio_prompt_path=muestra,
                           cfg_weight=float(cfg_weight), exaggeration=float(exageracion))
-    pedazos += [recortar(wav), pausa]
+    # Pausa según cómo termina: una pregunta o exclamación respira un poco más.
+    segundos = 0.32 if frase.endswith(("?", "!")) else 0.26
+    pedazos += [recortar(wav), torch.zeros(1, int(modelo.sr * segundos))]
 torchaudio.save(salida, torch.cat(pedazos, dim=1), modelo.sr)
 print("ok")
 """
@@ -175,9 +184,9 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
     leido = carpeta / "voz-yo.wav"
     v = cfg.get("voz", {})
     _correr([_python(), script, (carpeta / "guion.txt").resolve(), muestra.resolve(), leido.resolve(),
-             v.get("yo_ritmo", 0.4), v.get("yo_expresion", 0.5)],
+             v.get("yo_ritmo", 0.4), v.get("yo_expresion", 0.5), v.get("yo_oraciones_por_pedazo", 3)],
             int(cfg.get("voz", {}).get("tiempo_max_yo", 3600)), cwd=MOTOR)
-    if cfg.get("voz", {}).get("link_modelo") or cfg.get("voz", {}).get("pulir_con_modelo"):
+    if v.get("yo_pulir", True) and (v.get("link_modelo") or v.get("pulir_con_modelo")):
         from fabrica import voz_applio
         try:
             pulido = voz_applio.convertir(cfg, leido, carpeta / "voz-yo-pulida.wav")

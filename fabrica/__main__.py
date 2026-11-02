@@ -111,6 +111,12 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
     mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
+    if cfg.get("imagenes", {}).get("guardar_generadas", True) and conteo.get("_generadas"):
+        from fabrica import mis_fotos
+        try:
+            mis_fotos.guardar_generadas(cfg, conteo["_generadas"], _slug(tema.get("categoria", "general")), numero)
+        except Exception as e:
+            logger.warning(f"No se pudieron guardar las imágenes generadas: {e}")
 
     ruta_relativa = f"{hoy}/{_slug(tema['categoria'])}"
     carpeta_dia = Path(cfg.get("salida", {}).get("carpeta", "salida"))
@@ -189,7 +195,7 @@ def main(argv=None) -> int:
     p.add_argument("--categoria", help="categoría del tema manual")
     p.add_argument("--detalles", help="datos que SÍ tienen que salir o decirse en el video")
     p.add_argument("--salidas", help="combinación de: descargar,drive,publicar")
-    p.add_argument("--voz", choices=["hombre", "mujer", "yo"],
+    p.add_argument("--voz", choices=["hombre", "mujer", "yo", "yo-sin-modelo"],
                    help="voz de Edge (por defecto hombre) o 'yo': una IA lee imitando tus grabaciones")
     p.add_argument("--clonar-voz", choices=["si", "no"], help="convertir la voz a tu voz (StudioVoz)")
     p.add_argument("--texto-marca", help='texto que va como logo si no hay marca/logo.png (ej. "@MiCanal")')
@@ -213,8 +219,10 @@ def main(argv=None) -> int:
         cfg = config.cargar(args.config)
         if args.clonar_voz:
             cfg.setdefault("voz", {})["clonar"] = args.clonar_voz == "si"
-        if args.voz == "yo":
+        if args.voz in ("yo", "yo-sin-modelo"):
             cfg.setdefault("voz", {})["lector"] = "yo"
+            if args.voz == "yo-sin-modelo":
+                cfg["voz"]["yo_pulir"] = False
         elif args.voz:
             cfg.setdefault("voz", {})["genero"] = args.voz
         if args.texto_marca:
