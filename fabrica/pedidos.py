@@ -132,6 +132,12 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
     es_negocio = bool(d.get("es_negocio"))
     if not es_negocio:  # un anuncio de tu negocio no necesita noticias
         fuentes += tendencias.buscar_noticias(consulta)
+        if not contexto:
+            # El contenido de las notas trae los datos concretos (marcadores, cifras, nombres).
+            from fabrica import fotos_web
+            notas = fotos_web.noticias_texto(consulta)
+            contexto = "\n\n".join(f"[{medio}] {titulo}\n{texto}" for titulo, medio, _, texto in notas)[:MAX_CONTEXTO]
+            fuentes = [(t, m, u) for t, m, u, _ in notas] + fuentes
     elegidas = [c for c in d.get("carpetas_fotos", []) if c in carpetas]
     # "fotos en drive", "drive", "mis fotos"...: primero tus fotos, luego generar.
     pide_fotos = bool(re.search(r"\b(drive|drives|driver|drivers|mis fotos|fotos)\b", pedido, re.I))

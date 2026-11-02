@@ -107,6 +107,10 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
   Barcelona, Toyota, iPhone, La Selecta...) con sus colores y rasgos, adaptados al estilo.
 - Si el video recomienda o compara productos (tenis, celulares, autos...), NOMBRA modelos concretos que
   aparezcan en las fuentes y pon cada uno en "foto_real"; la gente espera ver lo que se menciona.
+- Deportes: cada vez que se mencione un equipo, pon en "foto_real" "escudo <nombre completo del
+  equipo>" (ej. "escudo Club América", "escudo Club Deportivo Guadalajara Chivas"); si hay
+  marcadores en el contenido, dilos y muéstralos en una gráfica tipo "tarjeta" (ej. lineas:
+  ["América 2 - 1 Pumas", "Chivas 0 - 0 Toluca"]).
 - Personas reales famosas: en "imagen" no describas su cara (descríbelas de espaldas, de lejos o
   por su camiseta/uniforme); pon su nombre en "foto_real" para usar una foto real con licencia."""
     datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)

@@ -24,26 +24,61 @@ AUDIOS = (".mp3", ".wav", ".m4a", ".aac", ".ogg", ".opus", ".flac", ".mp4", ".we
 LECTOR = r"""
 import re, sys, torch, torchaudio
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-texto_ruta, muestra, salida = sys.argv[1:4]
+texto_ruta, muestra, salida, cfg_weight, exageracion = sys.argv[1:6]
 texto = open(texto_ruta, encoding="utf-8").read()
-# Frases cortas: el modelo lee mejor de a poco y no se le acaba la memoria.
-frases, actual = [], ""
-for f in re.split(r"(?<=[.!?¿¡;:])\s+", texto):
-    if len(actual) + len(f) > 220 and actual:
-        frases.append(actual.strip()); actual = ""
-    actual += " " + f
-if actual.strip():
-    frases.append(actual.strip())
+# Una oración por pedazo: cortar a media frase es lo que causaba pausas raras.
+frases = [f.strip() for f in re.split(r"(?<=[.!?])\s+", texto) if f.strip()]
 modelo = ChatterboxMultilingualTTS.from_pretrained(device="cpu")
+
+
+def recortar(wav, umbral=0.01):
+    # Quita el silencio del principio y del final de cada oración.
+    activo = (wav.abs() > umbral).nonzero()
+    if activo.numel() == 0:
+        return wav
+    margen = int(modelo.sr * 0.04)
+    return wav[:, max(0, activo[0, 1].item() - margen): activo[-1, 1].item() + margen]
+
+
 pedazos = []
-silencio = torch.zeros(1, int(modelo.sr * 0.25))
+pausa = torch.zeros(1, int(modelo.sr * 0.18))
 for k, frase in enumerate(frases):
     print(f"frase {k + 1}/{len(frases)}", flush=True)
-    wav = modelo.generate(frase, language_id="es", audio_prompt_path=muestra)
-    pedazos += [wav, silencio]
+    wav = modelo.generate(frase, language_id="es", audio_prompt_path=muestra,
+                          cfg_weight=float(cfg_weight), exaggeration=float(exageracion))
+    pedazos += [recortar(wav), pausa]
 torchaudio.save(salida, torch.cat(pedazos, dim=1), modelo.sr)
 print("ok")
 """
+
+
+SIMBOLOS = [(r"%", " por ciento"), (r"\$\s?", ""), (r"&", " y "), (r"\bvs\.?\b", "contra"),
+            (r"\bEE\.?\s?UU\b", "Estados Unidos"), (r"\bkm\b", "kilómetros"), (r"\bkg\b", "kilos"),
+            (r"\bNo\.\s?", "número "), (r"#", "número ")]
+
+
+def para_leer(texto: str) -> str:
+    """Deja el guion listo para leerse en voz alta: números en palabras, símbolos y
+    abreviaturas escritos completos (la IA lectora se trababa con ellos)."""
+    import re as _re
+
+    from num2words import num2words
+
+    dolares = _re.sub(r"\$\s?(\d[\d,.]*)", lambda m: f"{m.group(1)} dólares", texto)
+    for patron, cambio in SIMBOLOS:
+        dolares = _re.sub(patron, cambio, dolares, flags=_re.I)
+
+    def a_palabras(m):
+        crudo = m.group(0).replace(",", "")
+        try:
+            return num2words(float(crudo) if "." in crudo else int(crudo), lang="es")
+        except Exception:
+            return m.group(0)
+
+    # Marcadores deportivos "2-1" → "dos a uno"
+    dolares = _re.sub(r"\b(\d+)\s?-\s?(\d+)\b", lambda m: f"{m.group(1)} a {m.group(2)}", dolares)
+    # Comas solo como separador de miles (1,500); la coma de una frase se respeta.
+    return _re.sub(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?", a_palabras, dolares)
 
 
 def activo(cfg: dict) -> bool:
@@ -134,11 +169,13 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
     logger.info(f"Voz yo: {len(grabaciones)} grabaciones tuyas ({total:.1f} minutos en total)")
     muestra = preparar_muestra(grabaciones, carpeta / "muestra.wav")
     instalar()
-    (carpeta / "guion.txt").write_text(texto, encoding="utf-8")
+    (carpeta / "guion.txt").write_text(para_leer(texto), encoding="utf-8")
     script = MOTOR / "fabrica_lector.py"
     script.write_text(LECTOR, encoding="utf-8")
     leido = carpeta / "voz-yo.wav"
-    _correr([_python(), script, (carpeta / "guion.txt").resolve(), muestra.resolve(), leido.resolve()],
+    v = cfg.get("voz", {})
+    _correr([_python(), script, (carpeta / "guion.txt").resolve(), muestra.resolve(), leido.resolve(),
+             v.get("yo_ritmo", 0.4), v.get("yo_expresion", 0.5)],
             int(cfg.get("voz", {}).get("tiempo_max_yo", 3600)), cwd=MOTOR)
     if cfg.get("voz", {}).get("link_modelo") or cfg.get("voz", {}).get("pulir_con_modelo"):
         from fabrica import voz_applio

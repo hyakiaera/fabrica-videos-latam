@@ -14,7 +14,7 @@ _ORIGINALES = {}
 def setUpModule():
     # Las pruebas no deben salir a internet a buscar fotos de noticias.
     from fabrica import fotos_web
-    for nombre in ("noticias", "openverse", "bing_imagenes"):
+    for nombre in ("noticias", "openverse", "bing_imagenes", "imagen_wikipedia", "noticias_texto"):
         _ORIGINALES[nombre] = getattr(fotos_web, nombre)
         parche = mock.patch.object(fotos_web, nombre, return_value=[])
         parche.start()
@@ -808,6 +808,40 @@ class TestVozYo(unittest.TestCase):
                 video.armar(cfg, datos, estilos.obtener("caricatura"), [None], Path(tempfile.mkdtemp()))
         edge.assert_called_once()  # cayó a la voz normal
         self.assertIn("la voz 'yo' falló", voz.ULTIMA["voz"])
+
+
+class TestLecturaYEscudos(unittest.TestCase):
+    def test_guion_listo_para_leer(self):
+        from fabrica.voz_yo import para_leer
+        texto = para_leer("América ganó 2-1, subió 15% y cuesta $99 en EE.UU.")
+        self.assertEqual(texto, "América ganó dos a uno, subió quince por ciento y cuesta noventa y nueve "
+                                "dólares en Estados Unidos.")
+
+    def test_escudo_desde_wikipedia(self):
+        respuesta = mock.Mock()
+        respuesta.json.return_value = {"query": {"pages": {"1": {
+            "index": 1, "title": "Club América", "original": {"source": "https://upload.wikimedia.org/a.png"}}}}}
+        with mock.patch("requests.get", return_value=respuesta):
+            r = _ORIGINALES["imagen_wikipedia"]("Club América")
+        self.assertEqual(r[0][0], "https://upload.wikimedia.org/a.png")
+
+    def test_banco_busca_escudo_en_wikipedia_primero(self):
+        from fabrica import fotos_web
+        with mock.patch.object(fotos_web, "imagen_wikipedia", return_value=[]) as wiki:
+            fotos_web.Banco(Path(tempfile.mkdtemp())).cargar("escudo Club América")
+        wiki.assert_called_once_with("Club América")
+
+    def test_pedido_trae_contenido_de_las_notas(self):
+        from fabrica import fotos_web, mis_fotos
+        notas = [("América 2-1 Pumas", "TUDN", "https://tudn.com/x", "El América venció 2-1 a Pumas...")]
+        respuesta = {"tema": "Liga MX", "consulta": "resultados liga mx", "estilo": "comic"}
+        with mock.patch.object(mis_fotos, "categorias", return_value=[]), \
+             mock.patch.object(ia, "pedir_json", return_value=respuesta), \
+             mock.patch.object(tendencias, "buscar_noticias", return_value=[]), \
+             mock.patch.object(fotos_web, "noticias_texto", return_value=notas):
+            tema = pedidos.preparar({}, "resultados del futbol mexicano", "auto")
+        self.assertIn("venció 2-1 a Pumas", tema["contexto"])
+        self.assertEqual(tema["fuentes"][0][2], "https://tudn.com/x")
 
 
 if __name__ == "__main__":

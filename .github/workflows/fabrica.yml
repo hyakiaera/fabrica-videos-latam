@@ -78,7 +78,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
           pip install -q -r requirements.txt
-          pip install -q -U yt-dlp trafilatura gdown edge-tts
+          pip install -q -U yt-dlp trafilatura gdown edge-tts num2words
           pip install -q --no-deps gTTS  # voz de respaldo (sin cambiar otras librerías)
 
       - name: Recordar el motor de voz clonada (StudioVoz/Applio)

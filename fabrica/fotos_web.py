@@ -90,6 +90,60 @@ def bing_imagenes(consulta: str, maximo: int = 8, vertical: bool = True) -> list
     return resultados
 
 
+def imagen_wikipedia(nombre: str) -> list[tuple[str, str, str]]:
+    """Imagen principal del artículo de Wikipedia: el escudo de un equipo, el logo de una
+    empresa o marca, la foto de un lugar o producto. Busca en español y luego en inglés."""
+    resultados = []
+    for idioma in ("es", "en"):
+        try:
+            r = requests.get(f"https://{idioma}.wikipedia.org/w/api.php", headers=CABECERAS, timeout=20, params={
+                "action": "query", "format": "json", "generator": "search", "gsrsearch": nombre,
+                "gsrlimit": 2, "prop": "pageimages", "piprop": "original|name"})
+            paginas = sorted(r.json().get("query", {}).get("pages", {}).values(), key=lambda p: p.get("index", 9))
+        except Exception:
+            continue
+        for p in paginas:
+            original = p.get("original", {}).get("source")
+            if original:
+                resultados.append((original, f"Wikipedia ({p.get('title', '')})",
+                                   f"https://{idioma}.wikipedia.org/wiki/{quote(p.get('title', ''))}"))
+        if resultados:
+            break
+    return resultados
+
+
+def noticias_texto(consulta: str, maximo: int = 3) -> list[tuple[str, str, str, str]]:
+    """[(titular, medio, url, texto)] de las notas más recientes del tema, con su contenido,
+    para que el guion tenga datos concretos (resultados, cifras, nombres)."""
+    try:
+        import trafilatura
+    except ImportError:
+        return []
+    try:
+        r = requests.get(f"https://www.bing.com/news/search?q={quote(consulta)}&format=rss&setlang=es",
+                         headers=CABECERAS, timeout=30)
+        xml = r.text if r.ok else ""
+    except requests.RequestException:
+        return []
+    notas = []
+    for item in re.findall(r"<item>(.*?)</item>", xml, re.S)[: maximo * 2]:
+        titulo = unescape((re.search(r"<title>(.*?)</title>", item, re.S) or [None, ""])[1]).strip()
+        enlace = unescape((re.search(r"<link>(.*?)</link>", item, re.S) or [None, ""])[1]).strip()
+        destino = parse_qs(urlparse(enlace).query).get("url", [enlace])[0]
+        medio = re.search(r"<News:Source>(.*?)</News:Source>", item, re.S)
+        try:
+            html = requests.get(destino, headers=CABECERAS, timeout=20).text
+            texto = trafilatura.extract(html) or ""
+        except Exception:
+            texto = ""
+        if len(texto) > 300:
+            notas.append((titulo, unescape(medio.group(1)) if medio else urlparse(destino).netloc,
+                          destino, texto[:2500]))
+        if len(notas) >= maximo:
+            break
+    return notas
+
+
 def openverse(consulta: str, maximo: int = 6) -> list[tuple[str, str, str]]:
     """[(url_imagen, crédito, página)] con licencia Creative Commons."""
     try:
@@ -119,7 +173,12 @@ class Banco:
                 return len(self.fotos[consulta])
             self.fotos[consulta] = []
         self.carpeta.mkdir(parents=True, exist_ok=True)
-        fuentes = bing_imagenes(consulta) + bing_imagenes(consulta, vertical=False)
+        fuentes = []
+        if re.search(r"\b(logo|escudo|emblema)\b", consulta, re.I):
+            # Escudos y logos: el de Wikipedia es el oficial y casi nunca falla.
+            nombre = re.sub(r"\b(logo|escudo|emblema|oficial|de|del)\b", " ", consulta, flags=re.I)
+            fuentes += imagen_wikipedia(" ".join(nombre.split()))
+        fuentes += bing_imagenes(consulta) + bing_imagenes(consulta, vertical=False)
         fuentes += (noticias(consulta) if con_noticias else []) + openverse(consulta)
         lista = []
         for k, (url, credito, pagina) in enumerate(fuentes):
