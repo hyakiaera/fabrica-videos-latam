@@ -153,13 +153,20 @@ def _entorno_kaggle() -> dict:
     for clave in claves:
         opciones.append({**base, "KAGGLE_USERNAME": usuario, "KAGGLE_KEY": clave})  # clave vieja
         opciones.append({**base, "KAGGLE_API_TOKEN": clave, "KAGGLE_USERNAME": usuario})  # token nuevo
+    errores = []
     for entorno in opciones:
-        r = subprocess.run(["kaggle", "kernels", "list", "--mine", "--page-size", "1"],
-                           capture_output=True, text=True, timeout=120, env=entorno)
+        try:
+            r = subprocess.run(["kaggle", "kernels", "list", "--mine"],
+                               capture_output=True, text=True, timeout=120, env=entorno)
+        except FileNotFoundError:
+            raise RuntimeError("no está instalado el programa de Kaggle (pip install kaggle)")
         if r.returncode == 0:
             _ENTORNO_KAGGLE = entorno
             return entorno
-    raise RuntimeError("Kaggle rechazó las claves (revisa KAGGLE_USERNAME y KAGGLE_KEY)")
+        errores.append(((r.stderr or r.stdout).strip().splitlines() or ["?"])[-1][:160])
+    if not opciones:
+        raise RuntimeError("Faltan los secretos KAGGLE_USERNAME y KAGGLE_KEY")
+    raise RuntimeError("Kaggle rechazó las claves: " + " | ".join(dict.fromkeys(errores)))
 
 
 def _kaggle(*args, timeout=600) -> str:

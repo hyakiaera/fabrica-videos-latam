@@ -91,6 +91,10 @@ def para_leer(texto: str) -> str:
     return _re.sub(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?", a_palabras, dolares)
 
 
+# Por qué no se pudo pulir con tu modelo la última vez (va a la ficha).
+ERROR_PULIDO = {"motivo": ""}
+
+
 def activo(cfg: dict) -> bool:
     return cfg.get("voz", {}).get("lector") == "yo"
 
@@ -203,6 +207,9 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
     _correr([_python(), script, (carpeta / "guion.txt").resolve(), muestra.resolve(), leido.resolve(),
              v.get("yo_ritmo", 0.4), v.get("yo_expresion", 0.5), v.get("yo_oraciones_por_pedazo", 3)],
             int(cfg.get("voz", {}).get("tiempo_max_yo", 3600)), cwd=MOTOR)
+    ERROR_PULIDO["motivo"] = ""
+    if v.get("yo_pulir", True) and not (v.get("link_modelo") or v.get("pulir_con_modelo")):
+        ERROR_PULIDO["motivo"] = "no llegó el link de tu modelo (secreto MI_VOS)"
     if v.get("yo_pulir", True) and (v.get("link_modelo") or v.get("pulir_con_modelo")):
         from fabrica import voz_applio
         try:
@@ -211,4 +218,5 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
                 return pulido
         except Exception as e:
             logger.warning(f"Voz yo: no se pudo pulir con tu modelo ({e}); se usa la lectura tal cual")
+            ERROR_PULIDO["motivo"] = f"{type(e).__name__}: {str(e)[-250:]}"
     return leido
