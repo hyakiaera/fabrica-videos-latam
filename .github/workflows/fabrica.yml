@@ -133,9 +133,10 @@ jobs:
           IN_DURACION: ${{ inputs.duracion || vars.DURACION || '1' }}
           IN_LOGO: ${{ inputs.logo || vars.LOGO_LINK || vars.TEXTO_MARCA }}
           IN_POSICION_LOGO: ${{ inputs.posicion_logo || vars.LOGO_POSICION }}
-          # Si guardaste el link de tu modelo (secreto MI_VOS o MODELO_VOZ_LINK), las rondas
-          # automáticas usan tu voz; si falla, sale la voz normal.
-          IN_VOZ: ${{ inputs.voz || vars.VOZ || ((secrets.MI_VOS || secrets.MODELO_VOZ_LINK || vars.MODELO_VOZ_LINK) && 'mi voz') || 'hombre' }}
+          # Con tu modelo guardado (secreto MI_VOS), las rondas automáticas usan "yo": la IA lectora
+          # aprende de tus muestras (carpeta "mi voz") y HYAKO_LOCUTOR le pone tu timbre.
+          # Si algo falla, sale la voz normal.
+          IN_VOZ: ${{ inputs.voz || vars.VOZ || ((secrets.MI_VOS || secrets.MODELO_VOZ_LINK || vars.MODELO_VOZ_LINK) && 'yo') || 'hombre' }}
           IN_MODELO_LINK: ${{ inputs.modelo_voz_link || vars.MODELO_VOZ_LINK || secrets.MODELO_VOZ_LINK || secrets.MI_VOS }}
           IN_MODELO_ESCRITO: ${{ inputs.modelo_voz_link }}
           IN_AVATAR: ${{ inputs.avatar || vars.AVATAR || 'no' }}
