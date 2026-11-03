@@ -311,5 +311,15 @@
   "estilo": "comic",
   "titulo": "¿La motivación no basta? Descubre qué necesitas para llegar lejos",
   "archivo": "salida/2026-11-03/general/reflexion-del-dia #034.mp4"
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 35,
+  "fecha": "2026-11-03T20:22",
+  "tema": "Ciberataques masivos sacuden supermercados en Europa",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "Ciberataques masivos sacuden supermercados en Europa",
+  "archivo": "salida/2026-11-03/tecnologia/ciberataques-masivos-sacuden-supermercados-en-europa #035.mp4"
  }
 ]
