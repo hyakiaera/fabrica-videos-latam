@@ -29,8 +29,13 @@ FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
 # Lo que corre en Kaggle: lo mismo que tu cuaderno "Avatar que Habla", sin preguntas.
 SCRIPT_KAGGLE = r'''
-import glob, os, subprocess, sys
-ENTRADA = glob.glob("/kaggle/input/*/audio.wav")[0].rsplit("/", 1)[0]
+import glob, os, subprocess, sys, time
+for _ in range(30):  # por si el dataset todavía se está preparando
+    encontrados = glob.glob("/kaggle/input/**/audio.wav", recursive=True)
+    if encontrados:
+        break
+    time.sleep(10)
+ENTRADA = encontrados[0].rsplit("/", 1)[0]
 LS, PY = "/kaggle/working/LatentSync", "/kaggle/working/ls_env/bin/python"
 def run(cmd, cwd=None):
     p = subprocess.run(cmd, cwd=cwd, shell=isinstance(cmd, str), capture_output=True, text=True)
@@ -188,8 +193,15 @@ def en_kaggle(entrada: Path, salida: Path, espera_max: int = 5400) -> Path:
         _kaggle("datasets", "version", "-p", entrada, "-m", "nuevo video", "--dir-mode", "zip", timeout=1800)
     except RuntimeError:
         _kaggle("datasets", "create", "-p", entrada, "--dir-mode", "zip", timeout=1800)
-    for _ in range(60):  # Kaggle tarda un poco en dejar lista la nueva versión
-        if "ready" in _kaggle("datasets", "status", datos_id).lower():
+    # Kaggle tarda un poco en dejar lista la nueva versión. Algunas claves no tienen permiso
+    # para preguntar el estado (error 403): en ese caso solo se espera un rato.
+    for intento in range(30):
+        try:
+            if "ready" in _kaggle("datasets", "status", datos_id).lower():
+                break
+        except RuntimeError as e:
+            logger.info(f"Avatar: no se puede preguntar el estado del dataset ({str(e)[-80:]}); se espera 2 minutos")
+            time.sleep(120)
             break
         time.sleep(10)
     codigo = entrada.parent / "kernel"
