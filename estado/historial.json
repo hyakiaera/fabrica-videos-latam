@@ -331,5 +331,15 @@
   "estilo": "noticiero",
   "titulo": "Tragedia en el fútbol: Muere Jesús de Miguel tras fuerte colisión",
   "archivo": "salida/2026-11-03/deportes/fallecimiento-de-jesus-de-miguel #036.mp4"
+ },
+ {
+  "mezcla": "musica",
+  "numero": 37,
+  "fecha": "2026-11-03T23:38",
+  "tema": "¿La IA reemplazará a los compositores? El boom y las demandas de Suno",
+  "categoria": "tecnologia",
+  "estilo": "realista",
+  "titulo": "La IA en la música: ¿reemplazo o pesadilla?",
+  "archivo": "salida/2026-11-03/tecnologia/la-ia-reemplazara-a-los-compositores-el-boom-y-las-demandas- #037.mp4"
  }
 ]
