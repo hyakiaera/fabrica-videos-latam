@@ -65,7 +65,7 @@ Estilo visual del video: {estilo.nombre} ({estilo.descripcion})
 
 Devuelve este JSON:
 {{"titulo": "título para la plataforma, máx 80 caracteres, con gancho",
- "guion": "texto narrado completo, unas {palabras} palabras, sin emojis ni acotaciones",
+ "guion": "texto narrado completo, unas {palabras} palabras, con puntuación normal (puntos al final de cada oración, comas, signos ¿? ¡!), oraciones cortas, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
  "tono": "una palabra: triste, reflexivo, inspirador, motivador, alegre, divertido, épico, serio, urgente o informativo",
@@ -117,6 +117,7 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
     if not datos.get("guion") or not datos.get("escenas"):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
+    datos["guion"] = puntuar(cfg, datos["guion"])
     if fotos_propias:
         asignar_fotos_propias(datos["escenas"], fotos_propias, llenar=tema.get("prioridad_fotos_propias", False))
     return datos
@@ -157,3 +158,22 @@ def asignar_fotos_propias(escenas: list[dict], fotos_propias: dict, llenar: bool
                 break
             if not e.get("grafica") and e.get("foto_propia") not in fotos_propias:
                 e["foto_propia"] = libres.pop(0)
+
+
+def puntuar(cfg: dict, guion: str) -> str:
+    """Si el guion llegó sin puntos (todo seguido), se le pide a la IA que solo le ponga la
+    puntuación. La voz y los subtítulos necesitan los puntos para leer bien."""
+    puntos = len(re.findall(r"[.!?¿¡]", guion))
+    if len(guion) < 300 or puntos >= len(guion) / 250:
+        return guion
+    sistema = "Corriges textos en español. Respondes SOLO JSON válido."
+    usuario = ("Agrega la puntuación correcta (puntos, comas, ¿?, ¡!) y las tildes que falten a este texto, "
+               "sin cambiar, quitar ni agregar palabras. Devuelve {\"texto\": \"...\"}.\n\n" + guion)
+    try:
+        nuevo = ia.pedir_json(cfg, sistema, usuario, temperatura=0).get("texto", "")
+    except Exception:
+        return guion
+    # Solo se acepta si son las mismas palabras (no se reescribió el guion).
+    if nuevo and abs(len(nuevo.split()) - len(guion.split())) <= max(3, len(guion.split()) // 20):
+        return nuevo
+    return guion

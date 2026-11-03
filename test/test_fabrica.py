@@ -1009,5 +1009,22 @@ class TestMezcla(unittest.TestCase):
         self.assertEqual(temas[0]["mezcla"], "deportes")
 
 
+class TestGuionSinPuntos(unittest.TestCase):
+    def test_se_pide_puntuacion_si_falta(self):
+        sin_puntos = " ".join(["palabra"] * 120)
+        con_puntos = ". ".join(["palabra"] * 120) + "."
+        with mock.patch.object(ia, "pedir_json", return_value={"texto": con_puntos}) as pj:
+            self.assertEqual(guion.puntuar({}, sin_puntos), con_puntos)
+        pj.assert_called_once()
+        with mock.patch.object(ia, "pedir_json") as pj:
+            self.assertEqual(guion.puntuar({}, con_puntos), con_puntos)
+        pj.assert_not_called()
+
+    def test_no_acepta_si_reescribe(self):
+        sin_puntos = " ".join(["palabra"] * 120)
+        with mock.patch.object(ia, "pedir_json", return_value={"texto": "Otra cosa totalmente distinta."}):
+            self.assertEqual(guion.puntuar({}, sin_puntos), sin_puntos)
+
+
 if __name__ == "__main__":
     unittest.main()

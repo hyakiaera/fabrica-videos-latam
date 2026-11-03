@@ -28,7 +28,20 @@ from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 texto_ruta, muestra, salida, cfg_weight, exageracion, por_pedazo = sys.argv[1:7]
 texto = open(texto_ruta, encoding="utf-8").read()
 # Varias oraciones juntas para que la entonación fluya (cada pedazo "arranca de cero").
-oraciones = [f.strip() for f in re.split(r"(?<=[.!?])\s+", texto) if f.strip()]
+oraciones = []
+for f in re.split(r"(?<=[.!?])\s+", texto):
+    f = f.strip()
+    # Una "oración" larguísima (guion sin puntos) se parte en comas o, si no hay, cada ~25
+    # palabras: si la IA recibe un texto muy largo de un jalón, se pierde y balbucea.
+    while len(f) > 240:
+        corte = max(f.rfind(",", 0, 240), f.rfind(";", 0, 240))
+        if corte < 80:
+            palabras = f[:240].split(" ")
+            corte = len(" ".join(palabras[:-1]))
+        oraciones.append(f[:corte + 1].strip().rstrip(",;") + ".")
+        f = f[corte + 1:].strip()
+    if f:
+        oraciones.append(f)
 frases, actual, cuenta = [], "", 0
 for o in oraciones:
     if actual and (cuenta >= int(por_pedazo) or len(actual) + len(o) > 300):

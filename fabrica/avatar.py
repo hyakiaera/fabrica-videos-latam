@@ -238,6 +238,13 @@ def _cubrir(ancho: int, alto: int) -> str:
     return f"scale={ancho}:{alto}:force_original_aspect_ratio=increase,crop={ancho}:{alto},setsar=1"
 
 
+def _cara(lado: int) -> str:
+    """Recorte cuadrado para el círculo, enfocado en la cara: en tus videos verticales la
+    cabeza está en la parte de arriba, no en el centro (antes salía cortada)."""
+    return (f"crop='min(iw,ih)':'min(iw,ih)':'(iw-min(iw,ih))/2':'max(0,min(ih-min(iw,ih),ih*0.32-min(iw,ih)/2))',"
+            f"scale={lado}:{lado},setsar=1")
+
+
 def componer(video: Path, avatar: Path, m: str, intro: float, cierre: float, salida: Path) -> Path:
     """Pone el avatar (solo su imagen; el audio sigue siendo el del video) según el modo."""
     total = _duracion(video)
@@ -251,7 +258,7 @@ def componer(video: Path, avatar: Path, m: str, intro: float, cierre: float, sal
                   f"[v1][b]overlay=0:0:eof_action=pass:enable='gte(t,{total - cierre})'[v]")
     elif m == "esquina":
         lado = 380
-        filtro = (f"[1:v]{_cubrir(lado, lado)},format=rgba,"
+        filtro = (f"[1:v]{_cara(lado)},format=rgba,"
                   f"geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
                   f"a='if(lte(hypot(X-{lado / 2},Y-{lado / 2}),{lado / 2 - 4}),255,0)'[a];"
                   f"[0:v][a]overlay=W-w-40:H*0.08:eof_action=pass[v]")
@@ -261,7 +268,7 @@ def componer(video: Path, avatar: Path, m: str, intro: float, cierre: float, sal
     else:  # mixto
         lado = 380
         filtro = (f"[1:v]split=2[c][e];[c]{_cubrir(W, H)}[full];"
-                  f"[e]{_cubrir(lado, lado)},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
+                  f"[e]{_cara(lado)},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
                   f"a='if(lte(hypot(X-{lado / 2},Y-{lado / 2}),{lado / 2 - 4}),255,0)'[circ];"
                   f"[0:v][circ]overlay=W-w-40:H*0.08:eof_action=pass:"
                   f"enable='between(t,{intro},{total - cierre})'[v1];"
