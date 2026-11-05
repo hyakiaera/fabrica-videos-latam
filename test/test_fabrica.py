@@ -1049,5 +1049,23 @@ class TestLimpiarVoz(unittest.TestCase):
         self.assertLess(volumen(limpia, 1.2), volumen(c / "a.wav", 1.2) - 10)  # el soplido bajó mucho
 
 
+class TestMapas(unittest.TestCase):
+    def test_mapa_animado(self):
+        from PIL import Image
+        from fabrica import graficas, mapas
+        salida = Path(tempfile.mkdtemp()) / "m.mp4"
+        with mock.patch.object(mapas, "geocodificar", return_value=(26.7, -80.05, "Palm Beach, Florida")), \
+             mock.patch.object(mapas, "_tesela", return_value=Image.new("RGB", (512, 512), (200, 220, 200))):
+            graficas.clip({"tipo": "mapa", "lugar": "Palm Beach", "titulo": "Palm Beach",
+                           "zoom_inicio": 8, "zoom_final": 10}, 1, "9:16", "", salida)
+        self.assertGreater(salida.stat().st_size, 1000)
+
+    def test_coordenadas_en_el_mapa(self):
+        from fabrica import mapas
+        x, y = mapas._mundo(0, 0, 0)
+        self.assertAlmostEqual(x, 256)
+        self.assertAlmostEqual(y, 256)
+
+
 if __name__ == "__main__":
     unittest.main()

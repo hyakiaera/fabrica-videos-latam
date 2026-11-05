@@ -86,6 +86,9 @@ goles, récords, rankings), pon en "grafica" en vez de null:
  - barras: {{"tipo": "barras", "titulo": "máx 30 letras", "datos": [["Intel", -29], ["Nasdaq", -2.4]], "unidad": "%", "fuente": "medio"}}
  - una cifra grande: {{"tipo": "cifra", "titulo": "máx 30 letras", "valor": -29, "unidad": "%", "detalle": "texto corto"}}
  - una tarjeta de texto (ofertas, datos de contacto, conclusión): {{"tipo": "tarjeta", "titulo": "máx 24 letras", "lineas": ["máx 5 líneas cortas"]}}
+ - un MAPA animado cuando la noticia pasa en un lugar concreto (accidente, partido, tormenta, ciudad, negocio):
+   {{"tipo": "mapa", "lugar": "lugar buscable con país (ej. 'Palm Beach, Florida, Estados Unidos')", "titulo": "nombre corto", "detalle": "qué pasó ahí, máx 35 letras"}}
+   Úsalo en la escena donde se dice DÓNDE ocurrió (máximo uno por video).
  Solo números reales de las fuentes (nunca inventados). Máximo una gráfica cada 3 escenas.
  En temas de finanzas, economía o deportes con datos, úsalas siempre que haya números.
 Usa exactamente {escenas} escenas, en el mismo orden que el guion.

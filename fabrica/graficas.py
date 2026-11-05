@@ -91,6 +91,9 @@ def _tarjeta(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, let
 
 
 def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> Path:
+    if g.get("tipo") == "mapa" and g.get("lugar"):
+        from fabrica import mapas
+        return mapas.clip(g, segundos, aspecto, salida)
     if g.get("tipo") not in ("barras", "cifra", "tarjeta") or (g["tipo"] == "barras" and not g.get("datos")):
         raise ValueError("gráfica sin datos")
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
