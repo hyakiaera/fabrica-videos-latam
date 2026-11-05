@@ -35,6 +35,8 @@ ir sin mapa (con "foto_real" de un monumento, documento o personaje histórico).
  - "nombres_estados": "México"   (muestra el nombre de todos sus estados/provincias)
  - "pregunta": "¿NORTEAMÉRICA?"  (texto grande inclinado; úsalo en el gancho y en los giros)
  - "mantener": true   (lo pintado en la escena anterior sigue visible: para ir armando el mapa)
+ - "estilo_mapa": "antiguo"   (mapa de papel viejo, sepia: para escenas de HISTORIA, siglos pasados)
+ - en "resaltar", "bandera": true pone la bandera del país encima (úsalo al presentar países)
 Colores: verde, rojo, azul, celeste, amarillo, naranja, morado, rosa, lila, turquesa, dorado.
 Iconos: emojis que digan algo de la región (🏭 industria, 🌽 agricultura, 🛢️ petróleo, 🏖️ playas,
 🌵 desierto, ⛰️ montañas, 🏛️ capital, 🛕 ruinas, ☕ café, 🐟 pesca, 🍓 cultivos, ⚽ fútbol).

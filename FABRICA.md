@@ -305,6 +305,9 @@ grandes inclinadas ("¿NORTEAMÉRICA?"). El mapa se va armando escena tras escen
 - En **automático** también puede salir: la categoría curiosidades incluye geografía e historia.
 - Los **otros estilos** que necesitan un mapa (una noticia en un lugar) ahora usan este mapa
   satelital; si no carga, queda el mapa de calles de antes.
+- **Mapa antiguo** (papel viejo, sepia) en las escenas de historia, y **banderas** que aparecen sobre
+  los países (banderas de dominio público de flagcdn.com).
+- Satélite con detalle de ciudad: Sentinel-2 cloudless 2016 de EOX (CC BY 4.0, el crédito sale en el video).
 - Datos: Natural Earth y NASA (libres). Si la NASA no responde, se dibuja el mapa con contornos.
 
 **Ganchos en todos los videos:** el guion empieza con una pregunta o un dato que sorprende, mete

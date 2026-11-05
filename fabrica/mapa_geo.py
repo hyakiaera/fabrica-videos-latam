@@ -118,8 +118,45 @@ def _paises() -> list[tuple[set, str, object]]:
         p = f["properties"]
         nombres = {_norm(p.get(k)) for k in ("NAME", "NAME_LONG", "ADMIN", "NAME_EN", "NAME_ES",
                                               "NAME_SORT", "NAME_ALT", "FORMAL_EN", "ISO_A3") if p.get(k)}
-        salida.append((nombres - {""}, p.get("NAME_ES") or p.get("NAME"), _forma(f["geometry"])))
+        mostrar = p.get("NAME_ES") or p.get("NAME")
+        iso = p.get("ISO_A2_EH") if p.get("ISO_A2") in (None, "", "-99") else p.get("ISO_A2")
+        if iso and iso != "-99":
+            _ISO[mostrar] = iso.lower()
+        salida.append((nombres - {""}, mostrar, _forma(f["geometry"])))
     return salida
+
+
+_ISO: dict[str, str] = {}
+
+
+@lru_cache(maxsize=64)
+def bandera(nombre_pais: str, alto: int = 70) -> Image.Image | None:
+    """Bandera del país (flagcdn.com, banderas de dominio público) con borde blanco y sombra."""
+    _paises()
+    iso = _ISO.get(nombre_pais)
+    if not iso:
+        return None
+    ruta = DATOS / "banderas" / f"{iso}.png"
+    try:
+        if not ruta.exists():
+            ruta.parent.mkdir(parents=True, exist_ok=True)
+            r = requests.get(f"https://flagcdn.com/w320/{iso}.png", headers=CABECERAS, timeout=20)
+            if not (r.ok and r.headers.get("content-type", "").startswith("image")):
+                return None
+            ruta.write_bytes(r.content)
+        img = Image.open(ruta).convert("RGBA")
+        img = img.resize((int(alto * img.width / img.height), alto), Image.LANCZOS)
+        marco = Image.new("RGBA", (img.width + 16, img.height + 16), (0, 0, 0, 0))
+        sombra = Image.new("RGBA", marco.size, (0, 0, 0, 0))
+        ImageDraw.Draw(sombra).rounded_rectangle([6, 9, marco.width - 2, marco.height - 1], 10, fill=(0, 0, 0, 140))
+        marco.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(4)))
+        ImageDraw.Draw(marco).rounded_rectangle([2, 2, marco.width - 6, marco.height - 6], 10, fill=(255, 255, 255, 255))
+        mascara = Image.new("L", img.size, 0)
+        ImageDraw.Draw(mascara).rounded_rectangle([0, 0, img.width - 1, img.height - 1], 7, fill=255)
+        marco.paste(img, (4, 4), mascara)
+        return marco
+    except Exception:
+        return None
 
 
 @lru_cache(maxsize=1)
@@ -608,7 +645,8 @@ def preparar(m: dict) -> dict:
         lugar = buscar(r.get("lugar", ""))
         if lugar and lugar.forma is not None:
             capas.append({"tipo": "relleno", "forma": lugar.forma, "color": _color(r.get("color"), k + 5),
-                          "etiqueta": r.get("etiqueta") or "", "punto": lugar.punto})
+                          "etiqueta": r.get("etiqueta") or "", "punto": lugar.punto,
+                          "bandera": lugar.nombre if (r.get("bandera") and lugar.tipo == "pais") else ""})
             formas.append(lugar)
         elif lugar:
             capas.append({"tipo": "punto", "punto": lugar.punto, "texto": r.get("etiqueta") or lugar.nombre})
@@ -676,6 +714,7 @@ def preparar(m: dict) -> dict:
             logger.warning(f"Mapa: sin nombres de estados ({e})")
     camara = buscar(m["camara"]) if isinstance(m.get("camara"), str) and m.get("camara") else None
     return {"capas": capas, "formas": [camara] if camara else formas, "pregunta": m.get("pregunta") or "",
+            "antiguo": _norm(m.get("estilo_mapa") or "") in ("antiguo", "papel", "historico", "viejo"),
             "mantener": bool(m.get("mantener")), "zoom": m.get("zoom")}
 
 
@@ -720,7 +759,37 @@ def _volar(a, b, t):
     return lon, lat, z
 
 
+@lru_cache(maxsize=1)
+def _papel() -> tuple[Image.Image, Image.Image]:
+    """Textura de papel viejo (manchas suaves y fibras) y viñeta de bordes quemados, hechas aquí."""
+    rnd = random.Random(7)
+    chico = Image.new("L", (ANCHO // 8, ALTO // 8))
+    chico.putdata([rnd.randint(90, 160) for _ in range(chico.width * chico.height)])
+    manchas = chico.resize((ANCHO, ALTO), Image.BICUBIC).filter(ImageFilter.GaussianBlur(18))
+    fibras = Image.effect_noise((ANCHO, ALTO), 28).filter(ImageFilter.GaussianBlur(0.6))
+    textura = Image.blend(manchas, fibras, 0.35)
+    vineta = Image.new("L", (ANCHO, ALTO), 0)
+    d = ImageDraw.Draw(vineta)
+    for k in range(60):
+        d.rounded_rectangle([k * 3, k * 3, ANCHO - k * 3, ALTO - k * 3], 40, outline=int(255 * (1 - k / 60) ** 2), width=4)
+    return textura, vineta.filter(ImageFilter.GaussianBlur(25))
+
+
+def antiguo(cuadro: Image.Image) -> Image.Image:
+    """Convierte el mapa satelital en un mapa de papel antiguo (sepia, papel, bordes quemados)."""
+    from PIL import ImageOps
+    textura, vineta = _papel()
+    gris = ImageOps.autocontrast(cuadro.convert("L"), cutoff=2)
+    sepia = ImageOps.colorize(gris, black=(70, 45, 22), mid=(176, 140, 92), white=(242, 224, 186))
+    papel = ImageOps.colorize(textura, black=(150, 115, 70), white=(245, 230, 195))
+    mezcla = Image.blend(sepia, papel, 0.38)
+    quemado = Image.new("RGB", cuadro.size, (60, 35, 15))
+    return Image.composite(quemado, mezcla, vineta)
+
+
 def _dibujar(cuadro: Image.Image, cam, escena: dict, t: float, segundos: float, previas: list):
+    if escena.get("antiguo"):
+        cuadro = antiguo(cuadro)
     proy = Proyector(cam)
     capa = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
     brillo = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
@@ -763,6 +832,16 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
             _texto(textos, (x, y), c["etiqueta"], tam * _rebote(edad / 0.4), alfa=alfa,
                    brillo=(255, 230, 120) if c.get("iconos") is not None else None,
                    giro=-12 if c.get("iconos") is None and len(c["etiqueta"]) > 5 else 0)
+        if c.get("bandera") and edad > 0.25:
+            img = bandera(c["bandera"])
+            if img:
+                e = _rebote((edad - 0.25) / 0.4)
+                img = img.resize((max(1, int(img.width * e)), max(1, int(img.height * e))))
+                x, y = proy(*c["punto"])
+                y -= 70 if c.get("etiqueta") else 0
+                x = min(max(x, img.width / 2 + 8), ANCHO - img.width / 2 - 8)
+                if 0 < y < ALTO:
+                    textos.alpha_composite(img, (int(x - img.width / 2), int(y - img.height / 2)))
         for k, (emoji, punto) in enumerate(c.get("iconos") or []):
             e = edad - 0.35 - k * 0.3
             if e > 0:

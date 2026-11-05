@@ -1390,3 +1390,17 @@ class TestGeografiaSiempreMapa(unittest.TestCase):
         r = subprocess.run([ff, "-i", str(salida), "-af", "atrim=1.25:1.55,volumedetect", "-f", "null", "-"],
                            capture_output=True, text=True)
         self.assertIn("max_volume: -9", r.stderr)  # silencio digital (~ -91 dB)
+
+
+class TestMapaAntiguo(unittest.TestCase):
+    def test_mapa_antiguo_es_sepia(self):
+        from PIL import Image
+        from fabrica import mapa_geo
+        img = Image.new("RGB", (mapa_geo.ANCHO, mapa_geo.ALTO), (20, 80, 160))
+        viejo = mapa_geo.antiguo(img)
+        r, g, b = viejo.getpixel((mapa_geo.ANCHO // 2, mapa_geo.ALTO // 2))
+        self.assertGreater(r, b)  # café, no azul
+
+    def test_bandera_sin_internet_no_rompe(self):
+        from fabrica import mapa_geo
+        self.assertIsNone(mapa_geo.bandera("País que no existe"))
