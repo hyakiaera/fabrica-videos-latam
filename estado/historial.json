@@ -493,5 +493,28 @@
   ],
   "publicado": false,
   "credito_musica": "Música: «Hiding Your Reality» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/"
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 48,
+  "fecha": "2026-11-05T21:38",
+  "tema": "Giras latinas 2026 en EE.UU.",
+  "categoria": "entretenimiento",
+  "estilo": "cinematografico",
+  "titulo": "Giras latinas 2026 en Estados Unidos lo que se viene",
+  "archivo": "salida/2026-11-05/entretenimiento/giras-latinas-2026-en-ee-uu #048.mp4",
+  "automatico": true,
+  "nota": 52.0,
+  "drive": "2026-11-05/entretenimiento/giras-latinas-2026-en-ee-uu #048.mp4",
+  "hashtags": [
+   "#GirasLatinas",
+   "#MusicaLatina",
+   "#Billboard2026",
+   "#Conciertos",
+   "#Entretenimiento",
+   "#LatinosEnEEUU"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
