@@ -1329,3 +1329,30 @@ class TestGeografia(unittest.TestCase):
                            estilos.obtener("geografia"))
         self.assertIn("MAPA SATELITAL", capturado["usuario"])
         self.assertIn("ENTRETENER", capturado["sistema"])
+
+
+class TestFicha(unittest.TestCase):
+    def test_ficha_junta_wikipedia_y_wikidata(self):
+        from fabrica import ficha
+
+        def falso(url, params, timeout=25):
+            if "list" in params:
+                return {"query": {"search": [{"title": "México"}]}}
+            if "prop" in params:
+                return {"query": {"pages": [{"title": "México", "pageprops": {"wikibase_item": "Q96"},
+                                             "extract": "México es un país.\n== Toponimia ==\nViene del náhuatl.\n== Deportes ==\nFútbol."}]}}
+            if params.get("props") == "claims":
+                return {"entities": {"Q96": {"claims": {
+                    "P36": [{"mainsnak": {"datavalue": {"value": {"id": "Q1489"}}}}],
+                    "P1082": [{"mainsnak": {"datavalue": {"value": {"amount": "+126014024"}}},
+                               "qualifiers": {"P585": [{"datavalue": {"value": {"time": "+2020-00-00"}}}]}}]}}}}
+            if params.get("props") == "labels":
+                return {"entities": {"Q1489": {"labels": {"es": {"value": "Ciudad de México"}}}}}
+            return None
+
+        with mock.patch.object(ficha, "_get", side_effect=falso):
+            texto = ficha.datos("Cómo se divide México")
+        self.assertIn("Capital: Ciudad de México", texto)
+        self.assertIn("126 014 024", texto)
+        self.assertIn("[Toponimia] Viene del náhuatl.", texto)
+        self.assertNotIn("Fútbol", texto)

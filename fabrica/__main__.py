@@ -83,6 +83,13 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         # El estilo de videos de stock no usa fotos: con tus fotos se usa uno de imágenes.
         estilo = estilos.obtener("cinematografico")
         tema["estilo"] = "cinematografico"
+    if tema["estilo"] == "geografia" and not tema.get("ficha"):
+        # Datos reales del lugar para que el guion no invente cifras.
+        from fabrica import ficha
+        try:
+            tema["ficha"] = ficha.datos(tema["tema"])
+        except Exception as e:
+            logger.warning(f"Ficha de datos: no disponible ({e})")
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     datos.setdefault("categoria", tema.get("categoria", ""))
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")

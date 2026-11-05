@@ -83,6 +83,10 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
                   "ninguno. La última escena lleva una grafica tipo \"tarjeta\" con el nombre del negocio, "
                   "la oferta y cómo llegar o contactar.\n")
+    if tema.get("ficha"):
+        extra += ("\nDATOS REALES del lugar (Wikipedia/Wikidata). Son tu fuente principal: usa estas "
+                  "cifras y hechos tal cual, elige los más sorprendentes y no inventes otros:\n"
+                  f"{tema['ficha']}\n")
     if "geografia" in estilo.nombre.lower() or "geografía" in estilo.nombre.lower():
         extra += GEOGRAFIA
     sistema = (

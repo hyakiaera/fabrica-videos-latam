@@ -285,6 +285,11 @@ def buscar(texto: str) -> Lugar | None:
             return hallado
     except Exception as e:
         logger.warning(f"Mapa: datos de Natural Earth no disponibles ({e})")
+    # Lo que no está en Natural Earth (municipios, ciudades, islas, parques...): su contorno de
+    # OpenStreetMap (idea de ficha_lugar.py); si no tiene contorno, un punto.
+    forma = contorno_osm(texto)
+    if forma is not None:
+        return Lugar(partes[0], forma, "estado")
     try:
         from fabrica import mapas
         lat, lon, nombre = mapas.geocodificar(texto)
@@ -292,6 +297,22 @@ def buscar(texto: str) -> Lugar | None:
     except Exception:
         logger.warning(f"Mapa: no encontré '{texto}'")
         return None
+
+
+def contorno_osm(texto: str):
+    try:
+        import time
+        time.sleep(1.1)  # Nominatim pide máximo una consulta por segundo
+        r = requests.get("https://nominatim.openstreetmap.org/search", headers=CABECERAS, timeout=30,
+                         params={"q": texto, "format": "json", "limit": 3, "polygon_geojson": 1,
+                                 "polygon_threshold": 0.005, "accept-language": "es"})
+        for x in (r.json() if r.ok else []):
+            g = x.get("geojson") or {}
+            if g.get("type") in ("Polygon", "MultiPolygon"):
+                return _forma(g)
+    except Exception:
+        pass
+    return None
 
 
 def frontera(a: Lugar, b: Lugar):
