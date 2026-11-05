@@ -80,7 +80,7 @@ simultaneas = 3             # imágenes que se piden a la vez (más = más rápi
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
 clips = true                # clips de video reales (Pixabay/Pexels) en realista, noticiero y cinematográfico
 clips_proporcion = 0.4      # más o menos qué parte de las escenas lleva clip
-estilizar_fotos = true      # en caricatura, 3D, cómic...: las fotos reales se pasan al estilo
+estilizar_fotos = false     # true = pasar fotos reales al estilo dibujado (puede deformar caras)
 guardar_generadas = true    # las imágenes IA van a "mis fotos/generadas/<categoría>" para reusarlas
 fotos_web = true            # fotos reales de las noticias (RSS) y de Openverse
 max_fotos_propias = 40      # fotos de "mis fotos" que se consideran por categoría

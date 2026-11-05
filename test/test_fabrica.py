@@ -205,7 +205,7 @@ class TestImagenesYRespaldo(unittest.TestCase):
             rutas, _, _ = imagenes.para_escenas({}, escenas, estilos.obtener("caricatura"), "9:16",
                                              self.carpeta, visual_global="Salvadoran pupusas in El Salvador")
         self.assertEqual(rutas[0].name, "escena-00b.jpg")
-        self.assertTrue(prompts[0].startswith("cartoon caricature illustration of Salvadoran pupusas"))
+        self.assertTrue(prompts[0].startswith("high quality 2D cartoon illustration of Salvadoran pupusas"))
 
     def test_ia_no_reintenta_si_pide_pago(self):
         cobro = mock.Mock(status_code=402, text="pay")
@@ -948,7 +948,8 @@ class TestFotosAlEstilo(unittest.TestCase):
              mock.patch.object(imagenes, "estilizar", side_effect=estilizar), \
              mock.patch.object(ia, "imagen_encaja", return_value=True):
             rutas, _, conteo = imagenes.para_escenas(
-                {"imagenes": {"fotos_web": False}}, [{"imagen": "stadium", "foto_real": "Estadio Azteca"}],
+                {"imagenes": {"fotos_web": False, "estilizar_fotos": self.estilizar}},
+                [{"imagen": "stadium", "foto_real": "Estadio Azteca"}],
                 estilos.obtener(estilo), "9:16", foto.parent)
         return rutas[0], estilizadas, conteo
 
@@ -959,10 +960,18 @@ class TestFotosAlEstilo(unittest.TestCase):
         Image.new(modo, (900, 1600), color + ((0,) if transparente else ())).save(c / "f.png")
         return c / "f.png"
 
+    estilizar = True
+
+    def test_por_defecto_la_foto_real_queda_limpia(self):
+        self.estilizar = False
+        ruta, estilizadas, conteo = self._correr("caricatura", self._foto())
+        self.assertEqual(estilizadas, [])
+        self.assertEqual(conteo["estilizadas"], 0)
+
     def test_caricatura_pasa_la_foto_al_estilo(self):
         ruta, estilizadas, conteo = self._correr("caricatura", self._foto())
         self.assertEqual(ruta.name, "x-estilo.png")
-        self.assertIn("cartoon caricature", estilizadas[0])
+        self.assertIn("2D cartoon", estilizadas[0])
         self.assertEqual(conteo["estilizadas"], 1)
 
     def test_realista_y_logos_quedan_reales(self):

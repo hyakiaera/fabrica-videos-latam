@@ -335,8 +335,9 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 conteo["rechazadas"] += len(rutas) - len(buenos)
         return buenos
 
-    # Estilos dibujados: las fotos reales se pasan al estilo para que el video se vea parejo.
-    estilizable = (im.get("estilizar_fotos", True) and estilo.fuentes and estilo.fuentes[0] == "ia"
+    # Pasar fotos reales al estilo dibujado (img2img) quedó APAGADO por defecto: el modelo gratis
+    # deformaba las caras (ni foto ni dibujo). Las fotos reales se muestran limpias.
+    estilizable = (im.get("estilizar_fotos", False) and estilo.fuentes and estilo.fuentes[0] == "ia"
                    and "photo" not in estilo.plantilla)
 
     def al_estilo(ruta, descripcion):

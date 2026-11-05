@@ -7,7 +7,9 @@ from dataclasses import dataclass, field
 # Se agrega a todas las imágenes generadas con IA. Marcas, equipos y lugares sí
 # se pueden mostrar; lo que se evita es inventar la cara de personas reales
 # (para eso se usan fotos reales con licencia) y letras deformadas.
-REGLAS_IMAGEN = "no watermark, no garbled text, no realistic faces of real famous people"
+REGLAS_IMAGEN = ("professional high quality artwork, well-proportioned anatomy, natural symmetrical faces, "
+                 "correct hands, clean composition, no watermark, no garbled text, "
+                 "no realistic faces of real famous people")
 
 
 @dataclass(frozen=True)
@@ -40,8 +42,8 @@ ESTILOS: dict[str, Estilo] = {
     "caricatura": Estilo(
         "Caricatura",
         "Dibujo animado con contornos gruesos y colores vivos.",
-        "cartoon caricature illustration of {escena}, bold black outlines, vibrant flat colors, "
-        "exaggerated funny expressions, playful",
+        "high quality 2D cartoon illustration of {escena}, modern animated TV series style, "
+        "clean bold outlines, vibrant flat colors, appealing character design, friendly expressive faces",
         temas_ideales=["entretenimiento", "farandula", "deportes", "virales"],
     ),
     "comic": Estilo(
