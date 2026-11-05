@@ -105,6 +105,8 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         total = voz.duracion_archivo(audio_propio or audio_edge)
         clips = movimiento.clips_de_escenas(cfg, datos["escenas"], imagenes, estilo_clave(estilo),
                                             total + 0.6, trabajo / "clips", tono=datos.get("tono", ""))
+        from fabrica import efectos
+        datos["cortes"] = efectos.cortes_de(clips)
         # Las escenas ya traen sus cortes dinámicos: sin transiciones de MoneyPrinterTurbo
         # (sus fundidos dejaban el primer cuadro del video en negro).
         params["video_transition_mode"] = None

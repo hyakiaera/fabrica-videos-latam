@@ -1067,5 +1067,23 @@ class TestMapas(unittest.TestCase):
         self.assertAlmostEqual(y, 256)
 
 
+class TestEfectos(unittest.TestCase):
+    def test_whoosh_en_los_cortes(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import efectos
+        c = Path(tempfile.mkdtemp())
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+                        "color=c=blue:s=320x568:d=6:r=25", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+                        "-t", "6", "-c:v", "libx264", "-c:a", "aac", str(c / "v.mp4")], check=True)
+        salida = efectos.agregar({}, c / "v.mp4", [2.0, 4.0], c / "e.mp4")
+        self.assertEqual(salida, c / "e.mp4")
+        r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-ss", "1.8", "-t", "0.4", "-i", str(salida),
+                            "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+        import re
+        self.assertGreater(float(re.search(r"max_volume: (-?[\d.]+)", r.stderr).group(1)), -40)
+        self.assertAlmostEqual(efectos.duracion(salida), 6, delta=0.2)
+
+
 if __name__ == "__main__":
     unittest.main()

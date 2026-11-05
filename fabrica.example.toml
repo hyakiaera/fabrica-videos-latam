@@ -155,6 +155,10 @@ intro_segundos = 5
 cierre_segundos = 5
 espera_max_segundos = 5400
 
+[efectos]
+activos = true      # "whoosh" suave en cada cambio de escena
+volumen = 0.35
+
 [firma]
 # Autor que aparece en los datos del archivo de video (propiedades / metadatos).
 autor = "DESVERGUEOFFICIAL"

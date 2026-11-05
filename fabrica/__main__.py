@@ -108,6 +108,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
             direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
+    from fabrica import efectos
+    crudo = efectos.agregar(cfg, crudo, datos.get("cortes", []), trabajo / "con-efectos.mp4")
     from fabrica import avatar
     crudo = avatar.agregar(cfg, crudo, datos, _slug(tema.get("categoria", "general")), trabajo, numero)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
