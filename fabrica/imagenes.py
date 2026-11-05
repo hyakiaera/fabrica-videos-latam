@@ -18,7 +18,7 @@ from loguru import logger
 
 from fabrica import ia
 from fabrica.config import secreto
-from fabrica.estilos import Estilo, prompt_imagen
+from fabrica.estilos import ESTILOS, Estilo, prompt_imagen
 
 CABECERAS = {"User-Agent": "FabricaVideos/1.0 (videos educativos; contacto via GitHub)"}
 LICENCIAS_LIBRES = ("cc0", "public domain", "cc by", "cc-by", "pd")
@@ -305,7 +305,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
     revisar = bool(im.get("revisar", True))
-    conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0, "estilizadas": 0}
+    conteo = {"ia": 0, "real": 0, "stock": 0, "propias": 0, "rechazadas": 0, "estilizadas": 0, "clips": 0}
     generadas: list[tuple[Path, str]] = []
     fotos_propias = fotos_propias or {}
     banco = None
@@ -351,6 +351,37 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     def de_internet(consulta, descripcion):
         return banco.mejor(consulta, descripcion, elegir) if banco and consulta else None
 
+    # Clips de video reales en los estilos fotográficos: cada tanto, una escena se mueve de verdad.
+    estilos_clip = im.get("clips_estilos", ["realista", "noticiero", "cinematografico"])
+    usar_clips = bool(im.get("clips", True)) and any(ESTILOS.get(k) is estilo for k in estilos_clip)
+    cada_clip = max(1, int(round(1 / max(0.05, float(im.get("clips_proporcion", 0.4))))))
+
+    def de_clip(i, escena, descripcion):
+        from fabrica import fotos_web
+        consulta = escena.get("busqueda_stock") or escena.get("busqueda_foto") or tema
+        candidatos = fotos_web.clips_stock(consulta)[:6]
+        miniaturas = []
+        for k, (url, mini, _) in enumerate(candidatos):
+            ruta = fotos_web._bajar(mini, carpeta / f"clip-{i:02d}-{k}.jpg") if mini else None
+            miniaturas.append(ruta)
+        validas = [(k, m) for k, m in enumerate(miniaturas) if m]
+        if not validas:
+            return None
+        buenos = elegir([m for _, m in validas], descripcion)
+        if not buenos:
+            return None
+        url, _, credito = candidatos[validas[buenos[0]][0]]
+        destino = carpeta / f"clip-{i:02d}.mp4"
+        try:
+            r = requests.get(url, timeout=120)
+            if r.ok and len(r.content) > 50_000:
+                destino.write_bytes(r.content)
+                sumar("clips")
+                return destino, credito
+        except requests.RequestException:
+            pass
+        return None
+
     def una(indice_escena):
         nonlocal revisar
         i, escena = indice_escena
@@ -390,6 +421,10 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 if hallado:
                     sumar("real")
                     return al_estilo(hallado[0], escena_completa), hallado[1]
+        if usar_clips and not real and i % cada_clip == cada_clip - 1:
+            hallado = de_clip(i, escena, escena_completa)
+            if hallado:
+                return hallado
         ia_de_respaldo = None
         for fuente in estilo.fuentes:
             if fuente == "web" and banco:

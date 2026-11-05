@@ -40,7 +40,8 @@ def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> 
     if not m.get("activa", True):
         return None
     try:
-        fondo_ruta = next((Path(i) for i in imagenes if i and Path(i).exists()), None)
+        fondo_ruta = next((Path(i) for i in imagenes if i and Path(i).exists()
+                           and Path(i).suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")), None)
         if fondo_ruta is None or fondo_ruta.suffix.lower() not in (".jpg", ".jpeg", ".png", ".webp"):
             fondo_ruta = _cuadro(video, 2.5, salida.with_name("cuadro.jpg"))
         fondo = ImageOps.fit(Image.open(fondo_ruta).convert("RGB"), (W, H))

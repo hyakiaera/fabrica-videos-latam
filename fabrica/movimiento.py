@@ -94,6 +94,18 @@ def clip_de_imagen(imagen: Path, segundos: float, efecto: str, aspecto: str, sal
     return salida
 
 
+def clip_de_video(video: Path, segundos: float, aspecto: str, salida: Path) -> Path:
+    """Un clip real a pantalla completa en vertical, del largo de la escena (se repite si es corto)."""
+    ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-stream_loop", "-1",
+                    "-i", str(video), "-t", f"{segundos:.3f}",
+                    "-vf", f"scale={ancho}:{alto}:force_original_aspect_ratio=increase,crop={ancho}:{alto},"
+                           f"fps={FPS},format=yuv420p",
+                    "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", str(salida)],
+                   check=True, timeout=300)
+    return salida
+
+
 def duraciones(escenas: list[dict], total: float) -> list[float]:
     """Reparte la duración del audio según cuánto texto se narra en cada escena."""
     pesos = [max(1, len((e.get("texto") or "").strip())) for e in escenas]
@@ -122,6 +134,15 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
             imagen = disponibles[0]
         if imagen is None:
             continue
+        if Path(imagen).suffix.lower() in (".mp4", ".mov", ".webm"):
+            try:  # clip de video real: se usa tal cual, recortado a la duración de la escena
+                clips.append(clip_de_video(Path(imagen), segundos, aspecto, salida))
+                continue
+            except Exception as e:
+                logger.warning(f"Escena {i}: el clip de video no sirvió ({e})")
+                imagen = next((d for d in disponibles if Path(d).suffix.lower() not in (".mp4", ".mov", ".webm")), None)
+                if imagen is None:
+                    continue
         # Movimiento distinto al de la escena anterior, para que no se vea repetido.
         efecto = random.choice([e for e in EFECTOS if e != ultimo_efecto])
         clips.append(clip_de_imagen(imagen, segundos, efecto, aspecto, salida, ritmo, primera=not clips))

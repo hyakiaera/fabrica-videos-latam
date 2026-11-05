@@ -224,3 +224,36 @@ class Banco:
             if aceptar(ruta):
                 return ruta, credito
         return None
+
+
+# ---------- Clips de video reales (Pixabay y Pexels, gratis) ----------
+
+def clips_stock(consulta: str, maximo: int = 6) -> list[tuple[str, str, str]]:
+    """[(url_video, url_miniatura, crédito)] de bancos de video gratis."""
+    import os
+    resultados = []
+    clave = os.environ.get("PIXABAY_API_KEY", "").strip()
+    if clave:
+        try:
+            r = requests.get("https://pixabay.com/api/videos/", timeout=30, params={
+                "key": clave, "q": consulta[:100], "per_page": 10, "safesearch": "true"})
+            for hit in (r.json().get("hits", []) if r.ok else [])[:maximo]:
+                tam = hit.get("videos", {}).get("medium") or hit.get("videos", {}).get("small") or {}
+                if tam.get("url"):
+                    resultados.append((tam["url"], tam.get("thumbnail", ""), f"Video: {hit.get('user', '')} / Pixabay"))
+        except Exception:
+            pass
+    clave = os.environ.get("PEXELS_API_KEY", "").strip()
+    if clave:
+        try:
+            r = requests.get("https://api.pexels.com/videos/search", headers={"Authorization": clave}, timeout=30,
+                             params={"query": consulta, "orientation": "portrait", "per_page": maximo})
+            for v in (r.json().get("videos", []) if r.ok else []):
+                archivos = sorted((f for f in v.get("video_files", []) if (f.get("width") or 0) <= 1080),
+                                  key=lambda f: -(f.get("width") or 0))
+                if archivos:
+                    resultados.append((archivos[0]["link"], v.get("image", ""),
+                                       f"Video: {v.get('user', {}).get('name', '')} / Pexels"))
+        except Exception:
+            pass
+    return resultados

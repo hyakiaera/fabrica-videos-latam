@@ -14,7 +14,7 @@ _ORIGINALES = {}
 def setUpModule():
     # Las pruebas no deben salir a internet a buscar fotos de noticias.
     from fabrica import fotos_web
-    for nombre in ("noticias", "openverse", "bing_imagenes", "imagen_wikipedia", "noticias_texto"):
+    for nombre in ("noticias", "openverse", "bing_imagenes", "imagen_wikipedia", "noticias_texto", "clips_stock"):
         _ORIGINALES[nombre] = getattr(fotos_web, nombre)
         parche = mock.patch.object(fotos_web, nombre, return_value=[])
         parche.start()
@@ -1120,6 +1120,38 @@ class TestMiniatura(unittest.TestCase):
         r = miniaturas.crear({"logo": {"texto": "DESVERGUEOFFICIAL"}}, {"titulo": "Un título de prueba largo"},
                              [None, c / "f.jpg"], c / "no.mp4", c / "m.jpg")
         self.assertEqual(Image.open(r).size, (1080, 1920))
+
+
+class TestClipsReales(unittest.TestCase):
+    def test_escena_con_clip_real(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import fotos_web, movimiento
+        c = Path(tempfile.mkdtemp())
+        video = c / "fuente.mp4"
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+                        "testsrc2=s=640x360:d=2:r=25", "-c:v", "libx264", str(video)], check=True)
+
+        def bajar(url, ruta):
+            ruta.write_bytes(b"x" * 30000)
+            return ruta
+
+        escenas = [{"imagen": "ambulance", "busqueda_stock": "ambulance"}, {"imagen": "road night"}]
+        with mock.patch.object(fotos_web, "clips_stock", return_value=[("http://v/1.mp4", "http://v/1.jpg", "Video: x")]), \
+             mock.patch.object(fotos_web, "_bajar", side_effect=bajar), \
+             mock.patch.object(ia, "elegir_imagenes", return_value=[0]), \
+             mock.patch("requests.get", return_value=mock.Mock(ok=True, content=video.read_bytes())), \
+             mock.patch.object(imagenes, "cloudflare", return_value=None), \
+             mock.patch.object(imagenes, "pollinations", return_value=None), \
+             mock.patch.object(imagenes, "wikimedia", return_value=None):
+            rutas, creditos, conteo = imagenes.para_escenas(
+                {"imagenes": {"clips_proporcion": 1, "fotos_web": False}}, escenas,
+                estilos.obtener("realista"), "9:16", c)
+        self.assertEqual(conteo["clips"], 2 if rutas[1] else 1)
+        self.assertTrue(str(rutas[0]).endswith(".mp4"))
+        salida = movimiento.clip_de_video(rutas[0], 3.0, "9:16", c / "out.mp4")
+        from fabrica import efectos
+        self.assertAlmostEqual(efectos.duracion(salida), 3.0, delta=0.15)
 
 
 if __name__ == "__main__":

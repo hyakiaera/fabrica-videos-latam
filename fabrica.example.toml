@@ -75,6 +75,8 @@ modelo_pollinations = "flux"
 url_pollinations = "https://image.pollinations.ai/prompt/"
 simultaneas = 3             # imágenes que se piden a la vez (más = más rápido)
 revisar = true              # Gemini revisa cada imagen y rehace la que no encaja con el guion
+clips = true                # clips de video reales (Pixabay/Pexels) en realista, noticiero y cinematográfico
+clips_proporcion = 0.4      # más o menos qué parte de las escenas lleva clip
 estilizar_fotos = true      # en caricatura, 3D, cómic...: las fotos reales se pasan al estilo
 guardar_generadas = true    # las imágenes IA van a "mis fotos/generadas/<categoría>" para reusarlas
 fotos_web = true            # fotos reales de las noticias (RSS) y de Openverse
