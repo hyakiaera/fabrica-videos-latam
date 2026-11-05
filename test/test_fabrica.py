@@ -1443,3 +1443,24 @@ class TestPegatinas(unittest.TestCase):
                                   pegatina)
         self.assertEqual(pedidas, ["barco de carga", "guia"])
         self.assertEqual([c["tipo"] for c in e["capas"]], ["pegatina", "pegatina"])
+
+
+class TestMusicaLibre(unittest.TestCase):
+    def test_geografia_usa_musica_libre_con_credito(self):
+        from fabrica import musica
+        c = Path(tempfile.mkdtemp())
+        with mock.patch.object(musica, "_de_drive", return_value=None):
+            cancion = musica.elegir({}, "misterio", "curiosidades", c, "geografia")
+        self.assertEqual(cancion.name, "fabrica-misterio.mp3")
+        self.assertIn("Kevin MacLeod", musica.CREDITO["texto"])
+        self.assertIn("CC BY 4.0", musica.CREDITO["texto"])
+
+    def test_otros_estilos_no_usan_la_libre(self):
+        from fabrica import musica
+        with mock.patch.object(musica, "_de_drive", return_value=None):
+            self.assertIsNone(musica.elegir({}, "alegre", "deportes", Path(tempfile.mkdtemp()), "caricatura"))
+        self.assertEqual(musica.CREDITO["texto"], "")
+
+    def test_el_credito_va_en_la_publicacion_y_la_ficha(self):
+        datos = {"titulo": "T", "guion": "g", "hashtags": ["#a"], "descripcion": "", "credito_musica": "Música: X (CC BY 4.0)"}
+        self.assertIn("CRÉDITO OBLIGATORIO", salidas.ficha_texto(datos, {"tema": "t", "categoria": "c", "fuentes": []}, []))

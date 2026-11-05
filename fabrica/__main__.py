@@ -168,7 +168,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
                      "archivo": str(guardado.relative_to(config.RAIZ)) if guardado.is_relative_to(config.RAIZ) else str(guardado),
                      "automatico": bool(tema.get("automatico")), "nota": datos.get("nota"),
                      "drive": f"{ruta_relativa}/{nombre}.mp4" if en_drive else "",
-                     "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado})
+                     "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado,
+                     "credito_musica": datos.get("credito_musica", "")})
     _guardar_historial(entradas)
     return guardado
 

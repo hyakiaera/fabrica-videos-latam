@@ -312,6 +312,10 @@ grandes inclinadas ("¿NORTEAMÉRICA?"). El mapa se va armando escena tras escen
   `Fabrica de Videos/pegatinas` en tu Drive. Puedes poner ahí tus propios PNG con fondo
   transparente (el nombre del archivo es el nombre de la pegatina; `guia.png` cambia el guía).
   El avión o el barco viaja por las rutas.
+- **Música libre incluida** (Kevin MacLeod, CC BY 4.0): si tu carpeta `musica` de Drive no tiene
+  nada para el tono, los videos de geografía usan «Hiding Your Reality» (curioso) o «Dark Fog»
+  (misterio). El **crédito obligatorio** se agrega solo al publicar y sale en la ficha `.txt`;
+  si publicas a mano, cópialo en la descripción.
 - Letras libres (OFL): Montserrat en mapas y subtítulos, EB Garamond en el mapa antiguo.
 - Satélite con detalle de ciudad: Sentinel-2 cloudless 2016 de EOX (CC BY 4.0, el crédito sale en el video).
 - Datos: Natural Earth y NASA (libres). Si la NASA no responde, se dibuja el mapa con contornos.

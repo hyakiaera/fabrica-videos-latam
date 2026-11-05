@@ -57,16 +57,19 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
 
     # Música según el tono (tus beats de la carpeta "musica" en Drive); si no hay, la de siempre.
     from app.services import bgm as mpt_bgm
-    from fabrica import musica
+    from fabrica import estilos, musica
     try:
+        clave_estilo = next((k for k, e in estilos.ESTILOS.items() if e is estilo), "")
         cancion = musica.elegir(cfg, datos.get("tono", ""), datos.get("categoria", ""),
-                                Path(mpt_bgm.uploaded_bgm_dir(create=True)))
+                                Path(mpt_bgm.uploaded_bgm_dir(create=True)), clave_estilo)
     except Exception as e:
         logger.warning(f"Música: no se pudo elegir por tono ({e})")
         cancion = None
     if cancion and v.get("musica", "random"):
         params["bgm_file"] = str(cancion)
         datos["musica_usada"] = cancion.name.removeprefix("fabrica-")
+        if musica.CREDITO["texto"]:
+            datos["credito_musica"] = musica.CREDITO["texto"]
 
     audio_propio = None
     audio_edge = None

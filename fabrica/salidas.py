@@ -27,6 +27,8 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
         lineas += [f"ESCENAS ANIMADAS CON IA: {datos['animadas']}"]
     if datos.get("musica_usada"):
         lineas += [f"MÚSICA: {datos['musica_usada']}"]
+    if datos.get("credito_musica"):
+        lineas += ["", "CRÉDITO OBLIGATORIO (pégalo en la descripción al publicar):", datos["credito_musica"]]
     if datos.get("nota") is not None:
         lineas += [f"NOTA PARA 'MEJOR DEL DÍA': {datos['nota']}/100" + (f" — {datos['nota_por_que']}" if datos.get("nota_por_que") else "")]
     if datos.get("avatar_usado"):
@@ -89,7 +91,10 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
         "upload_post_username": secreto("UPLOAD_POST_USERNAME") or p.get("usuario", ""),
         "upload_post_enabled": True,
     }
-    titulo = f"{datos['titulo']} {' '.join(datos.get('hashtags', [])[:5])}"[:2000]
+    titulo = f"{datos['titulo']} {' '.join(datos.get('hashtags', [])[:5])}"
+    if datos.get("credito_musica"):  # obligatorio por la licencia CC BY de la música
+        titulo += f"\n\n{datos['credito_musica']}"
+    titulo = titulo[:2000]
     resultado = cross_post_video(
         str(video), titulo, platforms=p.get("plataformas", ["tiktok", "youtube", "instagram"]),
         youtube_extra={"selfDeclaredMadeForKids": False}, account=cuenta,

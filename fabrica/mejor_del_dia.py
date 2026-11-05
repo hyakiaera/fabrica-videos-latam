@@ -135,7 +135,8 @@ def publicar(cfg: dict, entradas: list[dict], guardar) -> bool:
         return False
     logger.info(f"Mejor del día: «{mejor.get('titulo', mejor.get('tema'))}» con {mejor['nota']}/100")
     resultado = salidas.publicar(cfg, video, {"titulo": mejor.get("titulo", mejor.get("tema", "")),
-                                              "hashtags": mejor.get("hashtags", [])})
+                                              "hashtags": mejor.get("hashtags", []),
+                                              "credito_musica": mejor.get("credito_musica", "")})
     if temporal:
         shutil.rmtree(temporal, ignore_errors=True)
     if resultado.get("success"):
