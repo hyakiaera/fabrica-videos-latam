@@ -1085,5 +1085,31 @@ class TestEfectos(unittest.TestCase):
         self.assertAlmostEqual(efectos.duracion(salida), 6, delta=0.2)
 
 
+class TestMusica(unittest.TestCase):
+    def test_animo_segun_tono(self):
+        from fabrica import musica
+        self.assertEqual(musica.animo_de("Épico"), "epica")
+        self.assertEqual(musica.animo_de("triste"), "triste")
+        self.assertEqual(musica.animo_de("urgente"), "tension")
+        self.assertEqual(musica.animo_de("algo raro"), "neutral")
+
+    def test_elige_cancion_de_la_carpeta_del_animo(self):
+        from fabrica import musica
+        destino = Path(tempfile.mkdtemp())
+
+        def correr(cmd, **kw):
+            if cmd[1] == "lsf":
+                return mock.Mock(stdout="epica/beat1.mp3\ntriste/piano.mp3\ndeportes/himno.mp3\n")
+            Path(cmd[3]).write_bytes(b"x")
+            return mock.Mock(returncode=0)
+
+        with mock.patch("shutil.which", return_value="/usr/bin/rclone"), \
+             mock.patch("subprocess.run", side_effect=correr):
+            r = musica.elegir({}, "épico", "deportes", destino)
+            r2 = musica.elegir({}, "alegre", "deportes", destino)
+        self.assertEqual(r.name, "fabrica-beat1.mp3")
+        self.assertEqual(r2.name, "fabrica-himno.mp3")  # no hay "alegre": usa la de la categoría
+
+
 if __name__ == "__main__":
     unittest.main()

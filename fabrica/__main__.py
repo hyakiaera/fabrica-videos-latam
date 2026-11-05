@@ -84,6 +84,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         estilo = estilos.obtener("cinematografico")
         tema["estilo"] = "cinematografico"
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
+    datos.setdefault("categoria", tema.get("categoria", ""))
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}

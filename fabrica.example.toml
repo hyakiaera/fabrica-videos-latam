@@ -155,6 +155,10 @@ intro_segundos = 5
 cierre_segundos = 5
 espera_max_segundos = 5400
 
+[musica]
+por_tono = true     # usar tus canciones de Drive "Fabrica de Videos/musica/<ánimo>" según el tono
+carpeta = "musica"
+
 [efectos]
 activos = true      # "whoosh" suave en cada cambio de escena
 volumen = 0.35

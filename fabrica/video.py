@@ -55,6 +55,19 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         n_threads=int(v.get("hilos", 2)),
     )
 
+    # Música según el tono (tus beats de la carpeta "musica" en Drive); si no hay, la de siempre.
+    from app.services import bgm as mpt_bgm
+    from fabrica import musica
+    try:
+        cancion = musica.elegir(cfg, datos.get("tono", ""), datos.get("categoria", ""),
+                                Path(mpt_bgm.uploaded_bgm_dir(create=True)))
+    except Exception as e:
+        logger.warning(f"Música: no se pudo elegir por tono ({e})")
+        cancion = None
+    if cancion and v.get("musica", "random"):
+        params["bgm_file"] = str(cancion)
+        datos["musica_usada"] = cancion.name.removeprefix("fabrica-")
+
     audio_propio = None
     audio_edge = None
     voz.anotar(f"Edge ({voz.voz_edge(cfg)})")
