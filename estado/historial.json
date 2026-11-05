@@ -423,5 +423,28 @@
    "#Geografia"
   ],
   "publicado": false
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 45,
+  "fecha": "2026-11-05T12:38",
+  "tema": "Bitcoin se dispara y roza los $81,000",
+  "categoria": "economia",
+  "estilo": "explicativo",
+  "titulo": "¡BITCOIN EXPLOTA! Supera los $80,000 y va por más 🚀",
+  "archivo": "salida/2026-11-05/economia/bitcoin-se-dispara-y-roza-los-81-000 #045.mp4",
+  "automatico": true,
+  "nota": 87.0,
+  "drive": "2026-11-05/economia/bitcoin-se-dispara-y-roza-los-81-000 #045.mp4",
+  "hashtags": [
+   "#Bitcoin",
+   "#Criptomonedas",
+   "#Economía",
+   "#BTC",
+   "#Finanzas",
+   "#BitcoinNews",
+   "#CryptoRally"
+  ],
+  "publicado": false
  }
 ]
