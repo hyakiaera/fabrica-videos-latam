@@ -98,13 +98,37 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
     import os
     elegidas = os.environ.get("PLATAFORMAS", "").strip()
     plataformas = ([x.strip().lower() for x in elegidas.split(",") if x.strip()] if elegidas
-                   else p.get("plataformas", ["tiktok", "youtube", "instagram"]))
+                   else p.get("plataformas", ["youtube", "facebook", "x"]))
+    # X (Twitter) solo acepta 280 letras: va aparte, con el título corto, el crédito de la música
+    # (obligatorio) y menos hashtags.
+    corto = f"{datos['titulo']} {' '.join(datos.get('hashtags', [])[:2])}"
+    if datos.get("credito_musica"):
+        corto = f"{datos['titulo'][:90]}\n{datos['credito_musica']}"
+    corto = corto[:280]
 
     def subir(redes):
-        return cross_post_video(str(video), titulo, platforms=redes,
+        texto = corto if redes == ["x"] else titulo
+        return cross_post_video(str(video), texto, platforms=redes,
                                 youtube_extra={"selfDeclaredMadeForKids": False}, account=cuenta)
 
-    resultado = subir(plataformas)
+    if "x" in plataformas and len(plataformas) > 1:
+        otras = [r for r in plataformas if r != "x"]
+        r_otras, r_x = subir(otras), subir(["x"])
+        if r_otras.get("success") and r_x.get("success"):
+            logger.success(f"Publicado en {plataformas}")
+            return {"success": True, "plataformas": plataformas}
+        if r_otras.get("success") or r_x.get("success"):
+            # una de las dos tandas salió: se reintenta solo lo que falló, red por red
+            plataformas = ["x"] if r_otras.get("success") else otras
+            ya = otras if r_otras.get("success") else ["x"]
+            for red in plataformas:
+                if subir([red]).get("success"):
+                    ya.append(red)
+            logger.success(f"Publicado en {ya}")
+            return {"success": True, "plataformas": ya}
+        resultado = r_otras
+    else:
+        resultado = subir(plataformas)
     if resultado.get("success"):
         logger.success(f"Publicado en {plataformas}")
         return resultado

@@ -1502,4 +1502,5 @@ class TestPublicarRedPorRed(unittest.TestCase):
             r = salidas.publicar({}, Path("/v.mp4"), {"titulo": "T", "hashtags": []})
         self.assertTrue(r["success"])
         self.assertEqual(r["plataformas"], ["youtube"])
-        self.assertEqual(llamadas[0], ["tiktok", "youtube", "instagram"])
+        self.assertEqual(llamadas[0], ["youtube", "facebook"])
+        self.assertEqual(llamadas[1], ["x"])
