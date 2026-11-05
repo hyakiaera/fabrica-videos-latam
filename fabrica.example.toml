@@ -159,6 +159,11 @@ espera_max_segundos = 5400
 por_tono = true     # usar tus canciones de Drive "Fabrica de Videos/musica/<ánimo>" según el tono
 carpeta = "musica"
 
+[miniatura]
+activa = true       # portada con texto grande y tu cara si hay avatar
+color_1 = "#FFE600"
+color_2 = "#FFFFFF"
+
 [efectos]
 activos = true      # "whoosh" suave en cada cambio de escena
 volumen = 0.35

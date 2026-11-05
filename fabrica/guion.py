@@ -67,6 +67,7 @@ Devuelve este JSON:
 {{"titulo": "título para la plataforma, máx 80 caracteres, con gancho",
  "guion": "texto narrado completo, unas {palabras} palabras, con puntuación normal (puntos al final de cada oración, comas, signos ¿? ¡!), oraciones cortas, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
+ "titulo_miniatura": "2 a 4 palabras MUY llamativas para la portada (ej. '¡CAYÓ EN PLENA CALLE!', 'NADIE LO VIO VENIR'), sin mentir",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
  "tono": "una palabra: triste, reflexivo, inspirador, motivador, alegre, divertido, épico, serio, urgente o informativo",
  "tipo_contenido": "noticia, deporte, finanzas, consejo/mensaje, historia, aprendizaje, entretenimiento o anuncio",

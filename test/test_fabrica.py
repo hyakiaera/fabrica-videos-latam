@@ -1111,5 +1111,16 @@ class TestMusica(unittest.TestCase):
         self.assertEqual(r2.name, "fabrica-himno.mp3")  # no hay "alegre": usa la de la categoría
 
 
+class TestMiniatura(unittest.TestCase):
+    def test_miniatura_llamativa(self):
+        from PIL import Image
+        from fabrica import miniaturas
+        c = Path(tempfile.mkdtemp())
+        Image.new("RGB", (800, 800), (40, 120, 200)).save(c / "f.jpg")
+        r = miniaturas.crear({"logo": {"texto": "DESVERGUEOFFICIAL"}}, {"titulo": "Un título de prueba largo"},
+                             [None, c / "f.jpg"], c / "no.mp4", c / "m.jpg")
+        self.assertEqual(Image.open(r).size, (1080, 1920))
+
+
 if __name__ == "__main__":
     unittest.main()

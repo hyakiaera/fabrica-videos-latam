@@ -114,7 +114,9 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     from fabrica import avatar
     crudo = avatar.agregar(cfg, crudo, datos, _slug(tema.get("categoria", "general")), trabajo, numero)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
-    mini = video.miniatura(final, trabajo / f"{nombre}.jpg")
+    from fabrica import miniaturas
+    mini = (miniaturas.crear(cfg, datos, fotos, final, trabajo / f"{nombre}.jpg")
+            or video.miniatura(final, trabajo / f"{nombre}.jpg"))
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
     if cfg.get("imagenes", {}).get("guardar_generadas", True) and conteo.get("_generadas"):
         from fabrica import mis_fotos

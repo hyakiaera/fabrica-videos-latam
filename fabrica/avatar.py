@@ -302,6 +302,7 @@ def agregar(cfg: dict, video: Path, datos: dict, categoria: str, trabajo: Path, 
         hablado = en_kaggle(entrada, carpeta / "avatar.mp4", int(a.get("espera_max_segundos", 5400)))
         guardar(cfg, hablado, categoria, numero)
         datos["avatar_usado"] = m
+        datos["avatar_clip"] = str(hablado)
         return componer(video, hablado, m, intro, cierre, trabajo / "con-avatar.mp4")
     except Exception as e:
         logger.error(f"Avatar: no se pudo ({e}); el video sale sin avatar")
