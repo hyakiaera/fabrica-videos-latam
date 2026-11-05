@@ -1,0 +1,75 @@
+name: Analizar videos de ejemplo
+
+# Baja de tu Drive los videos que quieres imitar y saca lo necesario para estudiarlos:
+# fotogramas, cortes de escena, texto de lo que se dice y datos técnicos.
+# El resultado queda en la rama "analisis" del repositorio (carpeta analisis/).
+
+on:
+  workflow_dispatch:
+    inputs:
+      link:
+        description: "Link de la carpeta (o del video) de Drive"
+        required: true
+        default: "https://drive.google.com/drive/folders/1xEiyyR_CTm43WhASS5z2E9bCT7yNPMIM"
+
+permissions:
+  contents: write
+
+jobs:
+  analizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Instalar
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
+          pip install -q faster-whisper
+
+      - name: Configurar Google Drive (rclone)
+        env:
+          RCLONE_DRIVE_TOKEN: ${{ secrets.RCLONE_DRIVE_TOKEN || secrets.RCLONE }}
+        run: |
+          mkdir -p ~/.config/rclone
+          TOKEN=$(python3 -c '
+          import base64, json, os
+          t = os.environ["RCLONE_DRIVE_TOKEN"].strip()
+          t = t.split("--->")[-1].split("<---")[0].strip()
+          if not t.startswith("{"):
+              t = json.loads(base64.b64decode(t + "=" * (-len(t) % 4)).decode())["token"]
+          print(json.dumps(json.loads(t)))
+          ')
+          printf '[drive]\ntype = drive\nscope = drive\ntoken = %s\n' "$TOKEN" > ~/.config/rclone/rclone.conf
+
+      - name: Bajar los videos
+        env:
+          LINK: ${{ inputs.link }}
+        run: |
+          mkdir -p entrada
+          ID=$(python3 -c 'import os,re; l=os.environ["LINK"]; m=re.search(r"(?:folders/|/d/|id=)([\w-]{20,})", l); print(m.group(1) if m else l)')
+          if [[ "$LINK" == *folders* ]]; then
+            rclone copy "drive:" entrada --drive-root-folder-id "$ID" --include "*.{mp4,mov,webm,mkv,MP4,MOV}" --max-depth 1
+          else
+            rclone backend copyid drive: "$ID" entrada/
+          fi
+          ls -la entrada
+
+      - name: Analizar
+        run: python .github/analizar_video.py entrada salida-analisis
+
+      - name: Guardar en la rama analisis
+        run: |
+          git config user.name "fabrica-bot"
+          git config user.email "fabrica-bot@users.noreply.github.com"
+          git fetch origin analisis 2>/dev/null && git checkout analisis 2>/dev/null || git checkout --orphan analisis
+          git rm -rq --cached . 2>/dev/null || true
+          mkdir -p analisis && cp -r salida-analisis/* analisis/
+          git add analisis
+          git commit -qm "Análisis de videos de ejemplo" || exit 0
+          git push origin analisis
