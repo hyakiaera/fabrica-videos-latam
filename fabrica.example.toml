@@ -25,6 +25,9 @@ curiosidades = 18     # cómo hacer, sabías que, consejos, motivación, ideas d
 finanzas = 10         # cripto, bolsa, Wall Street, memecoins, apps para invertir
 musica = 8            # música latina/urbana, top 5, El Hyako Mayor, Hyakiaera Records, estudio, VST, Suno
 
+# segun_vistas: con YOUTUBE_API_KEY y YOUTUBE_CANAL, la mezcla se inclina hacia lo que más vistas tiene
+segun_vistas = true
+
 [tendencias]
 categorias = ["deportes", "entretenimiento", "tecnologia", "economia", "mundo", "ciencia"]
 titulares_por_categoria = 8

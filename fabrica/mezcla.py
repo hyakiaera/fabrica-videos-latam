@@ -41,7 +41,13 @@ CATEGORIAS = {
 
 def _pesos(cfg: dict) -> dict[str, float]:
     m = cfg.get("mezcla", {})
-    return {k: float(m.get(k, v[0])) for k, v in CATEGORIAS.items()}
+    pesos = {k: float(m.get(k, v[0])) for k, v in CATEGORIAS.items()}
+    if m.get("segun_vistas", True):
+        from fabrica import estadisticas
+        for k, factor in estadisticas.leer().get("factores", {}).items():
+            if k in pesos:
+                pesos[k] *= factor  # lo que más vistas tiene en tu canal sale un poco más seguido
+    return pesos
 
 
 def elegir_categorias(cfg: dict, historial: list[dict], cantidad: int) -> list[str]:
@@ -123,6 +129,9 @@ def repetido(tema: str, historial: list[dict], dias: int = 4) -> bool:
 
 
 def temas_de_la_ronda(cfg: dict, cantidad: int, historial: list[dict], estilo: str) -> list[dict]:
+    from fabrica import estadisticas
+    rendimiento = estadisticas.actualizar(cfg, historial)
+    exitos = "; ".join(f"{v['titulo']} ({v['vistas']} vistas)" for v in rendimiento.get("mejores", [])[:5])
     recientes = [e.get("tema", "") for e in historial]
     temas = []
     for categoria in elegir_categorias(cfg, historial, cantidad):
@@ -132,8 +141,10 @@ def temas_de_la_ronda(cfg: dict, cantidad: int, historial: list[dict], estilo: s
                 opciones = [tema_sin_noticias(cfg, recientes, estilo) for _ in range(2)]
             else:
                 lista = candidatos(cfg, categoria) or tendencias.recolectar(cfg)
-                opciones = tendencias.elegir_temas(cfg, lista, 3, recientes, estilo,
-                                                   enfoque=CATEGORIAS[categoria][1])
+                enfoque = CATEGORIAS[categoria][1]
+                if exitos:
+                    enfoque += f". En este canal funcionaron muy bien: {exitos}; prefiere temas con ese gancho"
+                opciones = tendencias.elegir_temas(cfg, lista, 3, recientes, estilo, enfoque=enfoque)
         except Exception as e:
             logger.warning(f"Mezcla: falló '{categoria}' ({e}); se usa el sistema general")
             opciones = tendencias.elegir_temas(cfg, tendencias.recolectar(cfg), 3, recientes, estilo)

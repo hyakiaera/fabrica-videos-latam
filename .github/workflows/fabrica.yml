@@ -146,6 +146,8 @@ jobs:
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
           ANIMAR: ${{ vars.ANIMAR }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_CANAL: ${{ vars.YOUTUBE_CANAL }}
         run: |
           cp config.example.toml config.toml
           MARCA=()
@@ -196,7 +198,7 @@ jobs:
         run: |
           git config user.name "fabrica-bot"
           git config user.email "fabrica-bot@users.noreply.github.com"
-          git add estado/historial.json estado/avatares.json 2>/dev/null || git add estado/historial.json 2>/dev/null || exit 0
+          git add estado/historial.json estado/avatares.json estado/rendimiento.json 2>/dev/null || git add estado/historial.json estado/avatares.json 2>/dev/null || git add estado/historial.json 2>/dev/null || exit 0
           git diff --cached --quiet && exit 0
           git commit -q -m "Historial de temas"
           # Si mientras tanto se subió otro cambio, se junta y se reintenta.

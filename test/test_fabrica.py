@@ -976,7 +976,7 @@ class TestFotosAlEstilo(unittest.TestCase):
 class TestMezcla(unittest.TestCase):
     def test_porcentajes_suman_100(self):
         from fabrica import mezcla
-        self.assertEqual(sum(mezcla._pesos({}).values()), 100)
+        self.assertEqual(sum(mezcla._pesos({"mezcla": {"segun_vistas": False}}).values()), 100)
 
     def test_con_el_tiempo_respeta_los_porcentajes(self):
         from fabrica import mezcla
@@ -1195,6 +1195,26 @@ class TestAnimar(unittest.TestCase):
             r = animar.animar({}, [{"imagen": "x"}], [c / "i.jpg"], c, datos)
         self.assertEqual(r, [c / "i.jpg"])
         self.assertIn("ocupado", datos["animadas"])
+
+
+class TestEstadisticas(unittest.TestCase):
+    def test_factores_por_categoria(self):
+        from fabrica import estadisticas
+        historial = ([{"titulo": f"Gol del América número {k}", "mezcla": "deportes"} for k in range(4)]
+                     + [{"titulo": f"Bitcoin sube otra vez día {k}", "mezcla": "finanzas"} for k in range(4)])
+        videos = ([{"titulo": f"Gol del América número {k}", "vistas": 9000} for k in range(4)]
+                  + [{"titulo": f"Bitcoin sube otra vez día {k}", "vistas": 1000} for k in range(4)])
+        r = estadisticas.calcular(historial, videos)
+        self.assertEqual(r["factores"]["deportes"], 1.4)
+        self.assertEqual(r["factores"]["finanzas"], 0.7)
+        self.assertEqual(r["mejores"][0]["mezcla"], "deportes")
+
+    def test_la_mezcla_se_inclina_hacia_lo_que_funciona(self):
+        from fabrica import estadisticas, mezcla
+        with mock.patch.object(estadisticas, "leer", return_value={"factores": {"deportes": 1.4}}):
+            self.assertAlmostEqual(mezcla._pesos({})["deportes"], 17 * 1.4)
+        with mock.patch.object(estadisticas, "leer", return_value={}):
+            self.assertEqual(mezcla._pesos({})["deportes"], 17)
 
 
 if __name__ == "__main__":
