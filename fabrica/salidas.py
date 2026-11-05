@@ -95,12 +95,30 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
     if datos.get("credito_musica"):  # obligatorio por la licencia CC BY de la música
         titulo += f"\n\n{datos['credito_musica']}"
     titulo = titulo[:2000]
-    resultado = cross_post_video(
-        str(video), titulo, platforms=p.get("plataformas", ["tiktok", "youtube", "instagram"]),
-        youtube_extra={"selfDeclaredMadeForKids": False}, account=cuenta,
-    )
+    import os
+    elegidas = os.environ.get("PLATAFORMAS", "").strip()
+    plataformas = ([x.strip().lower() for x in elegidas.split(",") if x.strip()] if elegidas
+                   else p.get("plataformas", ["tiktok", "youtube", "instagram"]))
+
+    def subir(redes):
+        return cross_post_video(str(video), titulo, platforms=redes,
+                                youtube_extra={"selfDeclaredMadeForKids": False}, account=cuenta)
+
+    resultado = subir(plataformas)
     if resultado.get("success"):
-        logger.success(f"Publicado en {p.get('plataformas')}")
-    else:
-        logger.error(f"Publicar falló: {resultado.get('error')}")
+        logger.success(f"Publicado en {plataformas}")
+        return resultado
+    logger.error(f"Publicar falló: {resultado.get('error')}")
+    if len(plataformas) > 1 and "unconfirmed" not in str(resultado.get("error", "")):
+        # Si una red no está conectada en Upload-Post, se rechaza todo: se prueba una por una.
+        bien = []
+        for red in plataformas:
+            r = subir([red])
+            if r.get("success"):
+                bien.append(red)
+            else:
+                logger.warning(f"Publicar en {red}: {r.get('error')}")
+        if bien:
+            logger.success(f"Publicado en {bien} (las demás redes fallaron)")
+            return {"success": True, "plataformas": bien}
     return resultado

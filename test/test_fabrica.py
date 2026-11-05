@@ -1320,7 +1320,8 @@ class TestGeografia(unittest.TestCase):
         capturado = {}
 
         def pedir(cfg, sistema, usuario, temperatura=0.7):
-            capturado["usuario"], capturado["sistema"] = usuario, sistema
+            capturado.setdefault("usuario", usuario)
+            capturado.setdefault("sistema", sistema)
             return {"guion": "Hola. Esto es una prueba.", "escenas": [{"texto": "x", "mapa": {}}], "hashtags": []}
 
         with mock.patch.object(ia, "pedir_json", side_effect=pedir), \
@@ -1368,7 +1369,8 @@ class TestGeografiaSiempreMapa(unittest.TestCase):
             {"texto": "e", "grafica": {"tipo": "cifra", "valor": 247}}]}
         guion.asegurar_mapas(datos, {"tema": "San Miguel"})
         e = datos["escenas"]
-        self.assertEqual(e[1]["mapa"]["resaltar"][0]["lugar"], "San Miguel, El Salvador")
+        self.assertEqual(e[1]["mapa"]["resaltar"][0]["lugar"], "El Salvador")  # respaldo variado
+        self.assertTrue(e[1]["mapa"]["resaltar"][0]["bandera"])
         self.assertNotIn("mapa", e[2])
         self.assertIn("_mapa_respaldo", e[2])
         self.assertEqual(e[3]["mapa"]["puntos"][0]["lugar"], "Volcán Chaparrastique")
@@ -1464,3 +1466,40 @@ class TestMusicaLibre(unittest.TestCase):
     def test_el_credito_va_en_la_publicacion_y_la_ficha(self):
         datos = {"titulo": "T", "guion": "g", "hashtags": ["#a"], "descripcion": "", "credito_musica": "Música: X (CC BY 4.0)"}
         self.assertIn("CRÉDITO OBLIGATORIO", salidas.ficha_texto(datos, {"tema": "t", "categoria": "c", "fuentes": []}, []))
+
+
+class TestStoryboardMapas(unittest.TestCase):
+    def test_pide_los_mapas_si_la_ia_los_olvido(self):
+        datos = {"lugar_principal": "Usulután, El Salvador",
+                 "escenas": [{"texto": "Usulután está en el oriente."}, {"texto": "Tiene la Bahía de Jiquilisco."}]}
+        respuesta = {"mapas": [{"resaltar": ["Usulután, El Salvador"]},
+                               {"puntos": [{"lugar": "Bahía de Jiquilisco, El Salvador"}]}]}
+        with mock.patch.object(ia, "pedir_json", return_value=respuesta) as pj:
+            guion.storyboard_de_mapas({}, datos, {"tema": "Usulután"})
+        pj.assert_called_once()
+        self.assertEqual(datos["escenas"][1]["mapa"]["puntos"][0]["lugar"], "Bahía de Jiquilisco, El Salvador")
+
+    def test_respaldos_distintos_en_cada_escena(self):
+        datos = {"lugar_principal": "Usulután, El Salvador", "escenas": [{"texto": f"frase {k}"} for k in range(5)]}
+        guion.asegurar_mapas(datos, {})
+        distintos = {str(sorted(e["mapa"].keys())) for e in datos["escenas"]}
+        self.assertGreaterEqual(len(distintos), 4)
+
+
+class TestPublicarRedPorRed(unittest.TestCase):
+    def test_si_todas_fallan_prueba_una_por_una(self):
+        import sys, types
+        llamadas = []
+
+        def cross(video, titulo, platforms, youtube_extra, account):
+            llamadas.append(list(platforms))
+            return {"success": platforms == ["youtube"], "error": "400 Bad Request"}
+
+        falso = types.ModuleType("app.services.upload_post")
+        falso.cross_post_video = cross
+        with mock.patch.dict(sys.modules, {"app.services.upload_post": falso}), \
+             mock.patch.object(salidas, "secreto", side_effect=lambda k: "x"):
+            r = salidas.publicar({}, Path("/v.mp4"), {"titulo": "T", "hashtags": []})
+        self.assertTrue(r["success"])
+        self.assertEqual(r["plataformas"], ["youtube"])
+        self.assertEqual(llamadas[0], ["tiktok", "youtube", "instagram"])

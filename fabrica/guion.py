@@ -181,6 +181,7 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
     datos["guion"] = puntuar(cfg, datos["guion"])
     if "geograf" in estilo.nombre.lower():
+        storyboard_de_mapas(cfg, datos, tema)
         asegurar_mapas(datos, tema)
     if fotos_propias:
         asignar_fotos_propias(datos["escenas"], fotos_propias, llenar=tema.get("prioridad_fotos_propias", False))
@@ -243,11 +244,65 @@ def puntuar(cfg: dict, guion: str) -> str:
     return guion
 
 
+def _con_mapa(e: dict) -> bool:
+    return isinstance(e.get("mapa"), dict) and bool(e["mapa"])
+
+
+def storyboard_de_mapas(cfg: dict, datos: dict, tema: dict) -> None:
+    """Si la IA se olvidó de los mapas (pasa con los modelos de respaldo), se le pide SOLO el mapa
+    de cada escena en una segunda consulta corta, que siguen mucho mejor."""
+    escenas = datos.get("escenas", [])
+    if not escenas or sum(_con_mapa(e) for e in escenas) >= len(escenas) / 2:
+        return
+    lugar = datos.get("lugar_principal") or tema.get("tema", "")
+    lista = "\n".join(f"{k}. {e.get('texto', '')}" for k, e in enumerate(escenas))
+    usuario = (f"Video de geografía sobre: {lugar}\nEscenas narradas:\n{lista}\n\n"
+               "Para CADA escena, en orden, di qué hace el mapa animado. Debe CAMBIAR en cada escena "
+               "(otra cámara, otro lugar resaltado, una frontera, una ruta, nombres de estados, puntos de "
+               "ciudades con su icono, una pregunta grande) y seguir lo que se narra.\n" + GEOGRAFIA +
+               '\nResponde SOLO JSON: {"mapas": [ {mapa de la escena 0}, {mapa de la escena 1}, ... ]}')
+    try:
+        r = ia.pedir_json(cfg, "Eres director de animación de mapas para videos de geografía. Respondes SOLO JSON.",
+                          usuario, temperatura=0.6)
+        mapas = r.get("mapas") if isinstance(r, dict) else None
+    except Exception:
+        mapas = None
+    if not isinstance(mapas, list):
+        return
+    for e, m in zip(escenas, mapas):
+        if isinstance(m, dict) and m and not _con_mapa(e) and not e.get("grafica"):
+            e["mapa"] = m
+
+
+def _lugares_del_texto(texto: str, pais: str) -> list[str]:
+    """Nombres propios de la frase que podrían estar en el mapa (ciudades, volcanes, ríos...)."""
+    import re as _re
+    vistos = []
+    for m in _re.finditer(r"(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+(?:de|del|la|las|los|el|San|Santa)?\s*[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)", texto):
+        nombre = m.group(0).strip()
+        if len(nombre) > 3 and m.start() > 0 and nombre not in vistos:
+            vistos.append(nombre)
+    return [f"{n}, {pais}" if pais else n for n in vistos[:3]]
+
+
 def asegurar_mapas(datos: dict, tema: dict) -> None:
     """En el estilo geografía casi todo es mapa: la escena que la IA dejó sin "mapa" y sin una
     foto real que buscar recibe uno que encuadra el lugar del video. Las que sí tienen foto real
     guardan un mapa de respaldo por si la foto no aparece."""
     lugar = datos.get("lugar_principal") or tema.get("tema", "")
+    pais = lugar.split(",")[-1].strip() if "," in lugar else ""
+    # Respaldos que van cambiando, para que el mapa nunca se quede igual todo el video.
+    variados = [
+        lambda e: {"resaltar": [{"lugar": lugar, "color": "amarillo", "etiqueta": lugar.split(",")[0].upper()}],
+                   "pregunta": e.get("texto_pantalla", "")},
+        lambda e: {"resaltar": [{"lugar": pais or lugar, "color": "verde", "bandera": True},
+                                {"lugar": lugar, "color": "amarillo"}]},
+        lambda e: {"puntos": [{"lugar": x} for x in _lugares_del_texto(e.get("texto", ""), pais)]
+                   or [{"lugar": lugar}], "mantener": True},
+        lambda e: {"nombres_estados": pais or lugar, "resaltar": [{"lugar": lugar, "color": "rojo"}]},
+        lambda e: {"camara": pais or lugar, "resaltar": [{"lugar": lugar, "color": "naranja",
+                                                         "etiqueta": lugar.split(",")[0].upper()}]},
+    ]
     for k, e in enumerate(datos.get("escenas", [])):
         if isinstance(e.get("grafica"), dict) and e["grafica"].get("tipo") == "mapa" and not e.get("mapa"):
             g = e.pop("grafica")
@@ -255,7 +310,7 @@ def asegurar_mapas(datos: dict, tema: dict) -> None:
                          "mantener": True}
         if isinstance(e.get("mapa"), dict) and e["mapa"]:
             continue
-        respaldo = {"resaltar": [{"lugar": lugar, "color": "amarillo"}], "mantener": k > 0}
+        respaldo = variados[k % len(variados)](e)
         if e.get("foto_real") and not e.get("grafica"):
             e["_mapa_respaldo"] = respaldo
         elif not e.get("grafica"):

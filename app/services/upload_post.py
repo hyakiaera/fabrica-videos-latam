@@ -273,6 +273,9 @@ class UploadPostService:
                         "Upload-Post upload returned an unexpected redirect"
                     )
 
+                if response.status_code >= 400:
+                    # The body says why (platform not connected, limit reached...).
+                    logger.error(f"Upload-Post {response.status_code}: {response.text[:600]}")
                 response.raise_for_status()
                 try:
                     result = response.json()
