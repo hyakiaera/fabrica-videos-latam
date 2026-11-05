@@ -42,11 +42,15 @@ for video in sorted(p for p in entrada.iterdir() if p.is_file()):
             "-vf", "tile=6x3:padding=4", "-q:v", "4", str(dest / "hoja-%02d.jpg")])
 
     # Texto con tiempos
-    from faster_whisper import WhisperModel
-    modelo = WhisperModel("small", device="cpu", compute_type="int8")
-    segmentos, datos = modelo.transcribe(str(video), word_timestamps=False)
-    lineas = [f"[{s.start:6.2f} - {s.end:6.2f}] {s.text.strip()}" for s in segmentos]
-    (dest / "texto.txt").write_text(f"Idioma: {datos.language}\n" + "\n".join(lineas), encoding="utf-8")
+    try:
+        from faster_whisper import WhisperModel
+        modelo = WhisperModel("small", device="cpu", compute_type="int8")
+        segmentos, datos = modelo.transcribe(str(video), word_timestamps=False)
+        lineas = [f"[{s.start:6.2f} - {s.end:6.2f}] {s.text.strip()}" for s in segmentos]
+        texto = f"Idioma: {datos.language}\n" + "\n".join(lineas)
+    except Exception as e:  # p. ej. el video no trae audio
+        texto = f"No se pudo sacar el texto ({type(e).__name__}: {e}); ¿el video tiene audio?"
+    (dest / "texto.txt").write_text(texto, encoding="utf-8")
 
     # Volumen
     r = correr(["ffmpeg", "-i", str(video), "-af", "ebur128", "-f", "null", "-"])
