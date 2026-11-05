@@ -62,7 +62,7 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     if voz_yo.activo(cfg):
         try:
             audio_propio = voz_yo.generar(cfg, datos["guion"], trabajo / "voz-yo")
-            if "pulida" in audio_propio.name:
+            if "pulida" in audio_propio.name:  # (también "…-pulida-limpia.wav")
                 voz.anotar("yo (la IA lectora imitando tu forma de hablar + tu modelo HYAKO_LOCUTOR)")
             elif cfg.get("voz", {}).get("yo_pulir", True):
                 voz.anotar("yo (la IA lectora imitando tu forma de hablar) — NO se pulió con tu modelo",

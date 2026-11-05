@@ -189,7 +189,8 @@ def preparar_muestra(grabaciones: list[Path], salida: Path, segundos_total: floa
         pedazo = salida.with_name(f"pedazo{k}.wav")
         subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-ss", f"{inicio:.1f}", "-i", str(audio),
                         "-t", f"{por_cada:.1f}", "-ac", "1", "-ar", "24000",
-                        "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm",
+                        # Muestra limpia: sin zumbido grave, sin ruido de fondo, sin silencio al inicio.
+                        "-af", "highpass=f=70,afftdn=nf=-30,silenceremove=start_periods=1:start_threshold=-45dB,loudnorm",
                         str(pedazo)], check=True)
         pedazos.append(pedazo)
     if len(pedazos) == 1:
@@ -228,8 +229,29 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
         try:
             pulido = voz_applio.convertir(cfg, leido, carpeta / "voz-yo-pulida.wav")
             if pulido.exists() and pulido.stat().st_size > 1000:
-                return pulido
+                return limpiar(cfg, pulido)
         except Exception as e:
             logger.warning(f"Voz yo: no se pudo pulir con tu modelo ({e}); se usa la lectura tal cual")
             ERROR_PULIDO["motivo"] = f"{type(e).__name__}: {str(e)[-250:]}"
-    return leido
+    return limpiar(cfg, leido)
+
+
+def limpiar(cfg: dict, audio: Path) -> Path:
+    """Quita el soplido y el zumbido de los silencios entre frases: el modelo de voz a veces
+    convierte el silencio en aire, y las muestras pueden traer ruido de fondo. La voz no se toca."""
+    v = cfg.get("voz", {})
+    if not v.get("yo_limpiar", True):
+        return audio
+    salida = audio.with_name(audio.stem + "-limpia.wav")
+    umbral = v.get("yo_umbral_silencio", "-38dB")
+    filtros = ("highpass=f=70,"                 # zumbido grave
+               "afftdn=nf=-28,"                 # ruido de fondo parejo (aire, siseo)
+               f"agate=threshold={umbral}:range=0.02:attack=5:release=180,"  # silencio de verdad entre frases
+               "loudnorm=I=-16:TP=-1.5:LRA=11")
+    try:
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(audio),
+                        "-af", filtros, "-ar", "44100", str(salida)], check=True, timeout=600)
+        return salida if salida.exists() and salida.stat().st_size > 1000 else audio
+    except Exception as e:
+        logger.warning(f"Voz yo: no se pudo limpiar el audio ({e}); se usa tal cual")
+        return audio

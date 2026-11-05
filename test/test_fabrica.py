@@ -1026,5 +1026,28 @@ class TestGuionSinPuntos(unittest.TestCase):
             self.assertEqual(guion.puntuar({}, sin_puntos), sin_puntos)
 
 
+class TestLimpiarVoz(unittest.TestCase):
+    def test_silencios_quedan_limpios(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import voz_yo
+        c = Path(tempfile.mkdtemp())
+        # 1 s de "voz", 1 s de soplido suave, 1 s de "voz"
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error",
+                        "-f", "lavfi", "-i", "sine=f=220:d=1", "-f", "lavfi", "-i", "anoisesrc=d=1:a=0.004",
+                        "-f", "lavfi", "-i", "sine=f=220:d=1", "-filter_complex", "[0][1][2]concat=n=3:v=0:a=1",
+                        str(c / "a.wav")], check=True)
+        limpia = voz_yo.limpiar({}, c / "a.wav")
+        self.assertTrue(limpia.name.endswith("-limpia.wav"))
+
+        def volumen(ruta, desde):
+            r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-ss", str(desde), "-t", "0.6", "-i", str(ruta),
+                                "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+            import re
+            return float(re.search(r"mean_volume: (-?[\d.]+)", r.stderr).group(1))
+
+        self.assertLess(volumen(limpia, 1.2), volumen(c / "a.wav", 1.2) - 10)  # el soplido bajó mucho
+
+
 if __name__ == "__main__":
     unittest.main()

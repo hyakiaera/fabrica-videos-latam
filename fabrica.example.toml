@@ -111,6 +111,8 @@ yo_oraciones_por_pedazo = 3  # 1 = como antes (oración por oración)
 yo_ritmo = 0.4               # más bajo = más pausado
 yo_expresion = 0.5           # más alto = más emoción
 yo_pulir = true              # pasar por tu modelo (HYAKO_LOCUTOR) al final
+yo_limpiar = true            # quitar soplido/zumbido de los silencios entre frases
+yo_umbral_silencio = "-38dB" # más alto (ej. -32dB) = silencios más limpios; muy alto corta finales de palabra
 # Solo si motor = "comando": recibe {entrada} y debe crear {salida}
 comando_clonar = ""
 
