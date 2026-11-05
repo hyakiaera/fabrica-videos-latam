@@ -288,7 +288,8 @@ def _elegir_escenas(escenas: list[dict], maximo: int, propias: dict | None = Non
     (con otro movimiento). Así no se gasta la cuota diaria gratis de imágenes."""
     propias = propias or {}
     con_foto_propia = {i for i, e in enumerate(escenas) if e.get("foto_propia") in propias}
-    candidatas = [i for i, e in enumerate(escenas) if not e.get("grafica") and i not in con_foto_propia]
+    candidatas = [i for i, e in enumerate(escenas)
+                  if not e.get("grafica") and not e.get("mapa") and i not in con_foto_propia]
     if len(candidatas) <= maximo:
         return set(candidatas) | con_foto_propia
     paso = len(candidatas) / maximo
@@ -493,7 +494,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         resultados = dict(zip(sorted(elegidas), grupo.map(una, [(i, escenas[i]) for i in sorted(elegidas)])))
     imagenes = [resultados.get(i, (None, None))[0] for i in range(len(escenas))]
     creditos = [c for _, c in resultados.values() if c]
-    if not any(imagenes) and not any(e.get("grafica") for e in escenas):
+    if not any(imagenes) and not any(e.get("grafica") or e.get("mapa") for e in escenas):
         raise RuntimeError("No se consiguió ninguna imagen que encaje (¿se acabó la cuota diaria de "
                            "Cloudflare?). Prueba más tarde o agrega POLLINATIONS_TOKEN.")
     conteo["_generadas"] = generadas

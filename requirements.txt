@@ -36,3 +36,4 @@ yt-dlp
 trafilatura
 gdown
 num2words
+shapely>=2.0  # mapas de geografía

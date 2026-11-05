@@ -109,6 +109,14 @@ ESTILOS: dict[str, Estilo] = {
         fuentes=("web", "wikimedia", "pexels", "ia"),
         temas_ideales=["productos", "compras", "tecnologia", "lugares", "general"],
     ),
+    "geografia": Estilo(
+        "Geografía (mapas animados)",
+        "Mapa satelital animado: la cámara vuela, países y regiones se pintan, fronteras que se "
+        "dibujan, rutas, preguntas e iconos. Para geografía, historia y curiosidades de países y lugares.",
+        "realistic photo of {escena}, natural light, high detail",
+        fuentes=("wikimedia", "web", "ia"),
+        temas_ideales=["geografia", "historia", "curiosidades de paises", "lugares", "fronteras", "mundo"],
+    ),
     "videos_stock": Estilo(
         "Videos de stock (original de MoneyPrinterTurbo)",
         "Videos de stock de Pexels/Pixabay; bueno para temas generales sin nombres propios.",

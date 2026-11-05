@@ -1270,3 +1270,62 @@ class TestMejorDelDia(unittest.TestCase):
             self.assertEqual(mejor_del_dia.puntuar({}, datos, {"tema": "t"}, {"ia": 3}), 88.0)
         self.assertIn("NOTA PARA", salidas.ficha_texto({**datos, "descripcion": "", "hashtags": []},
                                                        {"tema": "t", "categoria": "c", "fuentes": []}, []))
+
+
+class TestGeografia(unittest.TestCase):
+    def test_estilo_geografia_existe(self):
+        e = estilos.obtener("geografia")
+        self.assertIn("Geografía", e.nombre)
+
+    def test_escenas_con_mapa_no_piden_imagen(self):
+        escenas = [{"texto": "a", "mapa": {"resaltar": ["México"]}}, {"texto": "b", "imagen": "x"}]
+        self.assertEqual(imagenes._elegir_escenas(escenas, 10), {1})
+
+    def test_escena_con_mapa_usa_el_mapa_animado(self):
+        from fabrica import mapa_geo, movimiento
+        c = Path(tempfile.mkdtemp())
+        llamadas = []
+
+        def falso(m, segundos, aspecto, salida, estado):
+            llamadas.append((m, estado))
+            salida.write_bytes(b"x")
+            return salida
+
+        with mock.patch.object(mapa_geo, "clip", side_effect=falso):
+            clips = movimiento.clips_de_escenas(
+                {}, [{"texto": "uno", "mapa": {"resaltar": ["México"]}, "texto_pantalla": "¿MÉXICO?"},
+                     {"texto": "dos", "mapa": {"frontera": ["México", "Guatemala"], "mantener": True}}],
+                [None, None], "geografia", 6, c)
+        self.assertEqual(len(clips), 2)
+        self.assertEqual(llamadas[0][0]["pregunta"], "¿MÉXICO?")
+        self.assertIs(llamadas[0][1], llamadas[1][1])  # la cámara sigue de una escena a otra
+
+    def test_grafica_mapa_de_otros_estilos(self):
+        from fabrica import mapa_geo
+        pais = mapa_geo.Lugar("Honduras", None, "punto", (-86.0, 14.0))
+        with mock.patch.object(mapa_geo, "buscar", return_value=pais):
+            m = mapa_geo.desde_grafica({"tipo": "mapa", "lugar": "Tegucigalpa, Honduras", "detalle": "aquí pasó"})
+        self.assertEqual(m["puntos"][0]["lugar"], "Tegucigalpa, Honduras")
+        self.assertEqual(m["pregunta"], "AQUÍ PASÓ")
+
+    def test_texto_en_pantalla(self):
+        from PIL import Image
+        from fabrica import movimiento
+        c = Path(tempfile.mkdtemp())
+        Image.new("RGB", (600, 900), (20, 90, 30)).save(c / "a.png")
+        salida = movimiento.texto_en_pantalla(c / "a.png", "¡nadie lo sabía!", "9:16", c / "t.png")
+        self.assertEqual(Image.open(salida).size, (1080, 1920))
+
+    def test_guion_geografia_pide_mapas(self):
+        capturado = {}
+
+        def pedir(cfg, sistema, usuario, temperatura=0.7):
+            capturado["usuario"], capturado["sistema"] = usuario, sistema
+            return {"guion": "Hola. Esto es una prueba.", "escenas": [{"texto": "x", "mapa": {}}], "hashtags": []}
+
+        with mock.patch.object(ia, "pedir_json", side_effect=pedir), \
+             mock.patch.object(guion, "puntuar", side_effect=lambda cfg, t: t):
+            guion.escribir({}, {"tema": "Cómo se divide México", "categoria": "curiosidades"},
+                           estilos.obtener("geografia"))
+        self.assertIn("MAPA SATELITAL", capturado["usuario"])
+        self.assertIn("ENTRETENER", capturado["sistema"])

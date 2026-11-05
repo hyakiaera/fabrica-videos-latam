@@ -21,7 +21,7 @@ on:
         description: "Estilo"
         type: choice
         default: auto
-        options: [auto, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista, videos_stock]
+        options: [auto, geografia, explicativo, caricatura, comic, artistico, acuarela, pizarra, anime, 3d, cinematografico, noticiero, realista, videos_stock]
       tema:
         description: "Tema, pedido o link de YouTube/TikTok/noticia (vacío = tendencias)"
         default: ""
@@ -76,11 +76,17 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-color-emoji > /dev/null
           curl -fsSL https://rclone.org/install.sh | sudo bash > /dev/null
           pip install -q -r requirements.txt
           pip install -q -U yt-dlp trafilatura gdown edge-tts num2words kaggle
           pip install -q --no-deps gTTS  # voz de respaldo (sin cambiar otras librerías)
+
+      - name: Recordar los datos de mapas (Natural Earth)
+        uses: actions/cache@v4
+        with:
+          path: storage/geo
+          key: mapas-natural-earth-v1
 
       - name: Recordar el motor de voz clonada (StudioVoz/Applio)
         uses: actions/cache@v4

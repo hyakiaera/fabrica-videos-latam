@@ -26,7 +26,9 @@ CATEGORIAS = {
                          "famosos latinos", "reality show"]),
     "curiosidades": (18, "curiosidades y valor: cómo hacer algo, sabías que, consejos, reflexiones, motivación, "
                          "ideas de negocio, ofertas, top 5 / top 10 (ej. máquinas para empezar un negocio), "
-                         "cómo gastar mejor 500 dólares", []),
+                         "cómo gastar mejor 500 dólares, geografía e historia de Latinoamérica y del mundo "
+                         "(cómo se divide un país, fronteras raras, por qué un país tiene esa forma; estos "
+                         "van con el estilo geografia)", []),
     "finanzas": (10, "cripto y bolsa: resumen del mercado del día, Wall Street, memecoins, bitcoin, ahorrar "
                      "en BTC, mejores apps para invertir, mejores exchanges",
                  ["bitcoin hoy", "Wall Street hoy", "bolsa de valores hoy", "memecoin", "criptomonedas"]),

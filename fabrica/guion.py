@@ -8,6 +8,42 @@ from fabrica import ia
 from fabrica.estilos import Estilo
 
 
+ENTRETENIDO = (
+    "No es leer un texto: es ENTRETENER. La primera frase es una pregunta intrigante o un dato que "
+    "rompe lo que la gente cree (ej. '¿Sabías que México no es un solo país... geográficamente?'); "
+    "nunca empieces con 'Hoy te voy a contar' ni con saludos. Cada 2 o 3 frases mete algo que "
+    "mantenga la atención: una pregunta al público, un 'pero aquí viene lo bueno', una comparación "
+    "que se pueda imaginar o un dato que sorprenda. Habla como un amigo que cuenta algo increíble. "
+    "Cierra con una pregunta que invite a comentar (ej. '¿Tú de qué región eres? Te leo'). "
+)
+
+GEOGRAFIA = """
+ESTILO GEOGRAFÍA (como los canales de mapas): el video se cuenta SOBRE UN MAPA SATELITAL ANIMADO.
+Cuenta geografía, historia, fronteras, curiosidades y preguntas del lugar. Datos verificables;
+si no estás seguro de una cifra, no la pongas.
+Casi TODAS las escenas llevan "mapa" (en vez de imagen). Solo una o dos escenas de historia pueden
+ir sin mapa (con "foto_real" de un monumento, documento o personaje histórico).
+"mapa" es un objeto con lo que hace el mapa en ESA escena (usa solo lo que sirva):
+ - "camara": lugar a donde vuela la cámara (si se omite, encuadra lo resaltado)
+ - "resaltar": [{"lugar": "México", "color": "verde", "etiqueta": "MÉXICO"}]   (países o estados)
+ - "frontera": {"entre": ["México", "Estados Unidos"], "dato": "3,169 km"}  (se dibuja la línea)
+ - "regiones": [{"nombre": "Norte", "pais": "México", "color": "rojo",
+                 "estados": ["Sonora", "Chihuahua", "Coahuila"], "iconos": ["🏭", "🌵"]}]
+ - "puntos": [{"lugar": "Ciudad de México, México", "texto": "CDMX", "icono": "🏛️"}]
+ - "ruta": {"lugares": ["Sevilla, España", "Veracruz, México"], "texto": "1519"}  (viajes, migraciones, conquistas)
+ - "etiquetas": ["Océano Pacífico", "Golfo de México"]   (mares, ríos, montañas)
+ - "nombres_estados": "México"   (muestra el nombre de todos sus estados/provincias)
+ - "pregunta": "¿NORTEAMÉRICA?"  (texto grande inclinado; úsalo en el gancho y en los giros)
+ - "mantener": true   (lo pintado en la escena anterior sigue visible: para ir armando el mapa)
+Colores: verde, rojo, azul, celeste, amarillo, naranja, morado, rosa, lila, turquesa, dorado.
+Iconos: emojis que digan algo de la región (🏭 industria, 🌽 agricultura, 🛢️ petróleo, 🏖️ playas,
+🌵 desierto, ⛰️ montañas, 🏛️ capital, 🛕 ruinas, ☕ café, 🐟 pesca, 🍓 cultivos, ⚽ fútbol).
+Nombres de lugares como aparecen en los mapas, con el país cuando haga falta ("Sonora, México").
+Arma el video como una historia que avanza: de lejos (continente) a cerca (país, regiones), con
+"mantener": true para que el mapa se vaya llenando, y al final un mapa completo que resuma todo.
+"""
+
+
 def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None = None) -> dict:
     g = cfg.get("guion", {})
     segundos = int(g.get("duracion_segundos", 60))
@@ -47,10 +83,13 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
                   "ninguno. La última escena lleva una grafica tipo \"tarjeta\" con el nombre del negocio, "
                   "la oferta y cómo llegar o contactar.\n")
+    if "geografia" in estilo.nombre.lower() or "geografía" in estilo.nombre.lower():
+        extra += GEOGRAFIA
     sistema = (
         "Eres guionista de videos cortos virales en español latino neutro. Escribes con gancho "
         "fuerte en los primeros 3 segundos, frases cortas, tono cercano y cierre con pregunta o "
         "llamado a seguir el canal. Si la información viene en inglés, la traduces y adaptas. "
+        + ENTRETENIDO +
         "REGLA DE ORO: usa solo los hechos de los titulares y del contenido dados; no inventes "
         "cifras, fechas, nombres, historias de fondo ni declaraciones. Si falta un dato, habla en "
         "general o plantéalo como pregunta. Respondes SOLO JSON válido."
@@ -81,6 +120,7 @@ Devuelve este JSON:
    "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios",
    "foto_propia": "nombre exacto de una foto propia si encaja, si no vacío",
    "movimiento": "en INGLÉS, qué se mueve en la escena si se anima (ej. 'the jet flies low over the houses, smoke rising', 'fans jumping and waving flags')",
+   "texto_pantalla": "SOLO en momentos clave (la primera escena SIEMPRE, giros, el dato más sorprendente; máximo 1 de cada 3 escenas): 1 a 3 palabras GRANDES en pantalla, ej. '¿POR QUÉ?', '¡NADIE LO SABÍA!', '3,169 KM'. Si no, vacío",
    "grafica": null}}]}}
 
 GRÁFICAS: cuando una escena da CIFRAS que están en los titulares o el contenido (precios, %,

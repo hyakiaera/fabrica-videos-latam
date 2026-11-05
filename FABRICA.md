@@ -292,6 +292,26 @@ Los videos siguen llegando a Drive igual. Recomendación: activa la etiqueta de 
 alterado o sintético** en YouTube y la de **contenido generado con IA** en TikTok cuando el video
 tenga voz clonada, avatar o imágenes realistas: lo piden las plataformas y no baja el alcance.
 
+## 15. Estilo Geografía (mapas animados)
+
+Como los canales de geografía: el video entero pasa sobre un **mapa satelital** (NASA Blue Marble).
+La cámara vuela de un lugar a otro, los países y regiones se pintan de colores, las fronteras se
+dibujan con una línea brillante y su dato ("3,169 km"), aparecen rutas (viajes, conquistas,
+migraciones), mares y ríos con su nombre, iconos en cada región (🏭 🌽 🛢️ 🏖️) y preguntas
+grandes inclinadas ("¿NORTEAMÉRICA?"). El mapa se va armando escena tras escena.
+
+- **Cómo usarlo:** Run workflow → Estilo **geografia** → en Tema escribe, por ejemplo,
+  "Cómo se divide México", "Por qué Chile es tan largo", "La frontera más rara de Centroamérica".
+- En **automático** también puede salir: la categoría curiosidades incluye geografía e historia.
+- Los **otros estilos** que necesitan un mapa (una noticia en un lugar) ahora usan este mapa
+  satelital; si no carga, queda el mapa de calles de antes.
+- Datos: Natural Earth y NASA (libres). Si la NASA no responde, se dibuja el mapa con contornos.
+
+**Ganchos en todos los videos:** el guion empieza con una pregunta o un dato que sorprende, mete
+algo cada 2-3 frases para que no se vayan (preguntas al público, "pero aquí viene lo bueno") y
+cierra con una pregunta para comentar. En los momentos clave sale un **texto grande en pantalla**
+("¿POR QUÉ?", "3,169 KM").
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

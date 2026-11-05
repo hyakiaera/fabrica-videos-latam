@@ -106,6 +106,26 @@ def clip_de_video(video: Path, segundos: float, aspecto: str, salida: Path) -> P
     return salida
 
 
+def texto_en_pantalla(imagen, texto: str, aspecto: str, salida: Path) -> Path:
+    """Texto grande e inclinado (gancho, pregunta, dato clave) sobre la imagen, en la
+    parte de arriba para no chocar con los subtítulos. Si algo falla, queda la imagen."""
+    try:
+        from PIL import Image, ImageOps
+        from fabrica import mapa_geo
+        ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
+        img = ImageOps.fit(Image.open(imagen).convert("RGB"), (ancho, alto)).convert("RGBA")
+        capa = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        texto = str(texto).strip().upper()[:28]
+        tam = int(min(150, ancho * 1.5 / max(6, len(texto))))
+        mapa_geo._texto(capa, (ancho / 2, alto * 0.2), texto, tam, giro=-6)
+        img.alpha_composite(capa)
+        img.convert("RGB").save(salida)
+        return salida
+    except Exception as e:
+        logger.warning(f"No se pudo poner el texto en pantalla: {e}")
+        return imagen
+
+
 def duraciones(escenas: list[dict], total: float) -> list[float]:
     """Reparte la duración del audio según cuánto texto se narra en cada escena."""
     pesos = [max(1, len((e.get("texto") or "").strip())) for e in escenas]
@@ -121,8 +141,21 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
     carpeta.mkdir(parents=True, exist_ok=True)
     clips, ultima, ultimo_efecto = [], None, None
     disponibles = [img for img in imagenes if img]
+    estado_mapa = None
     for i, (escena, segundos) in enumerate(zip(escenas, duraciones(escenas, duracion_total))):
         salida = carpeta / f"clip-{i:02d}.mp4"
+        if escena.get("mapa"):
+            # Mapa satelital animado: la cámara sigue desde donde quedó en la escena anterior.
+            try:
+                from fabrica import mapa_geo
+                estado_mapa = estado_mapa or mapa_geo.Estado()
+                mapa = dict(escena["mapa"])
+                if escena.get("texto_pantalla") and not mapa.get("pregunta"):
+                    mapa["pregunta"] = escena["texto_pantalla"]
+                clips.append(mapa_geo.clip(mapa, segundos, aspecto, salida, estado_mapa))
+                continue
+            except Exception as e:
+                logger.warning(f"Escena {i}: no se pudo dibujar el mapa ({e}); se usa imagen")
         if escena.get("grafica"):
             try:
                 clips.append(graficas.clip(escena["grafica"], segundos, aspecto, estilo_clave, salida))
@@ -145,7 +178,11 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
                     continue
         # Movimiento distinto al de la escena anterior, para que no se vea repetido.
         efecto = random.choice([e for e in EFECTOS if e != ultimo_efecto])
-        clips.append(clip_de_imagen(imagen, segundos, efecto, aspecto, salida, ritmo, primera=not clips))
+        con_texto = imagen
+        if escena.get("texto_pantalla"):
+            con_texto = texto_en_pantalla(imagen, escena["texto_pantalla"], aspecto,
+                                          carpeta / f"texto-{i:02d}.png")
+        clips.append(clip_de_imagen(con_texto, segundos, efecto, aspecto, salida, ritmo, primera=not clips))
         ultima, ultimo_efecto = imagen, efecto
     if not clips:
         raise RuntimeError("No hay imágenes ni gráficas para armar el video")

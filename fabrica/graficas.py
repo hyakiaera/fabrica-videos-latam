@@ -92,6 +92,13 @@ def _tarjeta(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, let
 
 def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> Path:
     if g.get("tipo") == "mapa" and g.get("lugar"):
+        # Primero el mapa satelital animado (estilo canales de geografía); si falla, el de calles.
+        try:
+            from fabrica import mapa_geo
+            return mapa_geo.clip(mapa_geo.desde_grafica(g), segundos, aspecto, salida)
+        except Exception as e:
+            from loguru import logger
+            logger.warning(f"Mapa satelital no disponible ({e}); se usa el mapa de calles")
         from fabrica import mapas
         return mapas.clip(g, segundos, aspecto, salida)
     if g.get("tipo") not in ("barras", "cifra", "tarjeta") or (g["tipo"] == "barras" and not g.get("datos")):
