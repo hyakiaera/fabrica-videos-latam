@@ -346,22 +346,43 @@ def _lonlat(x: float, y: float, z: float) -> tuple[float, float]:
     return lon, lat
 
 
-_PLANTILLA = {"url": None, "probada": False}
+# Fuentes satelitales, en orden. EOX Sentinel-2 cloudless 2016 (licencia CC BY 4.0, se puede usar
+# en videos con crédito) tiene detalle hasta ciudades; NASA Blue Marble (dominio público) solo
+# hasta países/regiones.
+FUENTES_SAT = [
+    {"nombre": "eox", "zmax": 13, "credito": "Sentinel-2 cloudless 2016 by EOX (CC BY 4.0) · Natural Earth",
+     "urls": ["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"]},
+    {"nombre": "nasa", "zmax": 8, "credito": CREDITO, "urls": TESELAS_NASA},
+]
+_PLANTILLA = {"url": None, "probada": False, "fuente": None}
+_MALAS: set = set()
+
+
+def zoom_maximo() -> float:
+    f = _PLANTILLA["fuente"]
+    return (f["zmax"] + 0.4) if f else Z_MAX
 
 
 def _tesela_nasa(z: int, x: int, y: int) -> Image.Image | None:
-    plantillas = [_PLANTILLA["url"]] if _PLANTILLA["url"] else ([] if _PLANTILLA["probada"] else TESELAS_NASA)
-    for url in plantillas:
-        try:
-            r = requests.get(url.format(z=z, x=x, y=y), headers=CABECERAS, timeout=20)
-            if r.ok and r.headers.get("content-type", "").startswith("image"):
-                _PLANTILLA["url"] = url
-                return Image.open(BytesIO(r.content)).convert("RGB")
-        except requests.RequestException:
-            pass
-    if not _PLANTILLA["url"]:
-        if not _PLANTILLA["probada"]:
-            logger.warning("Mapa: NASA no respondió; se dibuja el mapa con los contornos de Natural Earth")
+    """Tesela satelital de la primera fuente que responda (el nombre quedó por compatibilidad)."""
+    for fuente in FUENTES_SAT:
+        if fuente["nombre"] in _MALAS or z > fuente["zmax"]:
+            continue
+        urls = ([_PLANTILLA["url"]] if _PLANTILLA["fuente"] is fuente and _PLANTILLA["url"] else fuente["urls"])
+        for url in urls:
+            try:
+                r = requests.get(url.format(z=z, x=x, y=y), headers=CABECERAS, timeout=20)
+                if r.ok and r.headers.get("content-type", "").startswith("image"):
+                    if _PLANTILLA["fuente"] is None or FUENTES_SAT.index(fuente) < FUENTES_SAT.index(_PLANTILLA["fuente"]):
+                        _PLANTILLA.update(url=url, fuente=fuente)
+                        logger.info(f"Mapa: imagen satelital de {fuente['nombre'].upper()}")
+                    return Image.open(BytesIO(r.content)).convert("RGB")
+            except requests.RequestException:
+                pass
+        if _PLANTILLA["fuente"] is not fuente:
+            _MALAS.add(fuente["nombre"])
+    if not _PLANTILLA["fuente"] and not _PLANTILLA["probada"]:
+        logger.warning("Mapa: el mapa satelital no respondió; se dibuja con los contornos de Natural Earth")
         _PLANTILLA["probada"] = True
     return None
 
@@ -401,7 +422,7 @@ def _tesela(z: int, x: int, y: int) -> Image.Image:
 def base(cam: tuple[float, float, float]) -> Image.Image:
     """El mapa satelital que ve la cámara (lon, lat, zoom con decimales)."""
     lon, lat, z = cam
-    zi = max(0, min(8, math.ceil(z - 0.15)))
+    zi = max(0, min(int(zoom_maximo()), math.ceil(z - 0.15)))
     escala = 2 ** (z - zi)                       # < 1 se ve más lejos que el nivel zi
     w, h = ANCHO / escala, ALTO / escala
     cx, cy = _mundo(lon, lat, zi)
@@ -658,6 +679,13 @@ def preparar(m: dict) -> dict:
             "mantener": bool(m.get("mantener")), "zoom": m.get("zoom")}
 
 
+def _zoom_tope() -> float:
+    """Hasta dónde puede acercarse la cámara: se prueba una tesela para saber qué fuente hay."""
+    if not _PLANTILLA["fuente"] and not _PLANTILLA["probada"]:
+        _tesela(3, 2, 3)
+    return min(12.5, zoom_maximo())
+
+
 def encuadre(formas: list[Lugar], margen: float = 0.1, zoom=None) -> tuple[float, float, float] | None:
     cajas = [f.caja() for f in formas if f]
     if not cajas:
@@ -676,7 +704,7 @@ def encuadre(formas: list[Lugar], margen: float = 0.1, zoom=None) -> tuple[float
         except (TypeError, ValueError):
             pass
     lon, lat = _lonlat((x0 + x1) / 2, (y0 + y1) / 2, 0)
-    return lon, lat, max(1.2, min(Z_MAX, z))
+    return lon, lat, max(1.2, min(_zoom_tope(), z))
 
 
 def _volar(a, b, t):
@@ -716,7 +744,7 @@ def _dibujar(cuadro: Image.Image, cam, escena: dict, t: float, segundos: float, 
     cuadro.alpha_composite(capa)
     cuadro.alpha_composite(textos)
     d = ImageDraw.Draw(cuadro)
-    credito = CREDITO if _PLANTILLA["url"] else "Natural Earth"
+    credito = _PLANTILLA["fuente"]["credito"] if _PLANTILLA["fuente"] else "Natural Earth"
     d.text((ANCHO - 10, ALTO - 10), credito, font=_letra(14), fill=(255, 255, 255, 150), anchor="rd")
     return cuadro.convert("RGB")
 
@@ -820,7 +848,8 @@ def clip(m: dict, segundos: float, aspecto: str, salida: Path, estado: Estado | 
     if destino is None:
         raise ValueError("el mapa no tiene ningún lugar que se encuentre")
     if estado.camara is None:  # primera escena: entra desde lejos, como un dron
-        origen = (destino[0], destino[1] - 4, max(1.2, destino[2] - 2.2))
+        # Primera escena: entra desde el continente y "cae" hasta el lugar, como un dron.
+        origen = (destino[0], destino[1] - 3, max(2.0, destino[2] - 4.0))
     else:
         origen = estado.camara
     vuelo = 0.28 if math.dist(origen[:2], destino[:2]) > 0.5 or abs(origen[2] - destino[2]) > 0.3 else 0.0
@@ -866,4 +895,4 @@ def desde_grafica(g: dict) -> dict:
         return {"resaltar": [{"lugar": g["lugar"], "color": "amarillo", "etiqueta": titulo.upper()}],
                 "pregunta": (g.get("detalle") or "")[:26].upper()}
     return {"puntos": [{"lugar": g.get("lugar", ""), "texto": titulo}],
-            "pregunta": (g.get("detalle") or "")[:26].upper(), "zoom": 6.5}
+            "pregunta": (g.get("detalle") or "")[:26].upper(), "zoom": 10.5}

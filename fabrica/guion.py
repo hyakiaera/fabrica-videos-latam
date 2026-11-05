@@ -41,6 +41,10 @@ Iconos: emojis que digan algo de la región (🏭 industria, 🌽 agricultura, �
 Nombres de lugares como aparecen en los mapas, con el país cuando haga falta ("Sonora, México").
 Arma el video como una historia que avanza: de lejos (continente) a cerca (país, regiones), con
 "mantener": true para que el mapa se vaya llenando, y al final un mapa completo que resuma todo.
+Agrega al JSON principal "lugar_principal": el lugar del video tal como sale en un mapa
+(ej. "San Miguel, El Salvador"). Cada escena lleva su clave "mapa" (objeto), aunque sea solo
+{"camara": "...", "puntos": [...], "mantener": true}. NO pidas imágenes de mapas: el mapa lo
+dibuja el programa; las imágenes con IA de mapas salen con letras falsas.
 """
 
 
@@ -167,6 +171,8 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
     datos["guion"] = puntuar(cfg, datos["guion"])
+    if "geograf" in estilo.nombre.lower():
+        asegurar_mapas(datos, tema)
     if fotos_propias:
         asignar_fotos_propias(datos["escenas"], fotos_propias, llenar=tema.get("prioridad_fotos_propias", False))
     return datos
@@ -226,3 +232,23 @@ def puntuar(cfg: dict, guion: str) -> str:
     if nuevo and abs(len(nuevo.split()) - len(guion.split())) <= max(3, len(guion.split()) // 20):
         return nuevo
     return guion
+
+
+def asegurar_mapas(datos: dict, tema: dict) -> None:
+    """En el estilo geografía casi todo es mapa: la escena que la IA dejó sin "mapa" y sin una
+    foto real que buscar recibe uno que encuadra el lugar del video. Las que sí tienen foto real
+    guardan un mapa de respaldo por si la foto no aparece."""
+    lugar = datos.get("lugar_principal") or tema.get("tema", "")
+    for k, e in enumerate(datos.get("escenas", [])):
+        if isinstance(e.get("grafica"), dict) and e["grafica"].get("tipo") == "mapa" and not e.get("mapa"):
+            g = e.pop("grafica")
+            e["mapa"] = {"puntos": [{"lugar": g.get("lugar") or lugar, "texto": g.get("titulo", "")}],
+                         "mantener": True}
+        if isinstance(e.get("mapa"), dict) and e["mapa"]:
+            continue
+        respaldo = {"resaltar": [{"lugar": lugar, "color": "amarillo"}], "mantener": k > 0}
+        if e.get("foto_real") and not e.get("grafica"):
+            e["_mapa_respaldo"] = respaldo
+        elif not e.get("grafica"):
+            e["mapa"] = respaldo
+

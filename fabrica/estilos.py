@@ -114,7 +114,7 @@ ESTILOS: dict[str, Estilo] = {
         "Mapa satelital animado: la cámara vuela, países y regiones se pintan, fronteras que se "
         "dibujan, rutas, preguntas e iconos. Para geografía, historia y curiosidades de países y lugares.",
         "realistic photo of {escena}, natural light, high detail",
-        fuentes=("wikimedia", "web", "ia"),
+        fuentes=("wikimedia", "web"),
         temas_ideales=["geografia", "historia", "curiosidades de paises", "lugares", "fronteras", "mundo"],
     ),
     "videos_stock": Estilo(

@@ -1047,7 +1047,7 @@ class TestLimpiarVoz(unittest.TestCase):
                         "-f", "lavfi", "-i", "sine=f=220:d=1", "-filter_complex", "[0][1][2]concat=n=3:v=0:a=1",
                         str(c / "a.wav")], check=True)
         limpia = voz_yo.limpiar({}, c / "a.wav")
-        self.assertTrue(limpia.name.endswith("-limpia.wav"))
+        self.assertTrue(limpia.name.endswith("-limpia.wav") or limpia.name.endswith("-limpia-pausas.wav"))
 
         def volumen(ruta, desde):
             r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-ss", str(desde), "-t", "0.6", "-i", str(ruta),
@@ -1356,3 +1356,37 @@ class TestFicha(unittest.TestCase):
         self.assertIn("126 014 024", texto)
         self.assertIn("[Toponimia] Viene del náhuatl.", texto)
         self.assertNotIn("Fútbol", texto)
+
+
+class TestGeografiaSiempreMapa(unittest.TestCase):
+    def test_escenas_sin_mapa_reciben_uno(self):
+        datos = {"lugar_principal": "San Miguel, El Salvador", "escenas": [
+            {"texto": "a", "mapa": {"puntos": ["San Miguel, El Salvador"]}},
+            {"texto": "b", "imagen": "volcano"},
+            {"texto": "c", "foto_real": "Catedral de San Miguel"},
+            {"texto": "d", "grafica": {"tipo": "mapa", "lugar": "Volcán Chaparrastique", "titulo": "Volcán"}},
+            {"texto": "e", "grafica": {"tipo": "cifra", "valor": 247}}]}
+        guion.asegurar_mapas(datos, {"tema": "San Miguel"})
+        e = datos["escenas"]
+        self.assertEqual(e[1]["mapa"]["resaltar"][0]["lugar"], "San Miguel, El Salvador")
+        self.assertNotIn("mapa", e[2])
+        self.assertIn("_mapa_respaldo", e[2])
+        self.assertEqual(e[3]["mapa"]["puntos"][0]["lugar"], "Volcán Chaparrastique")
+        self.assertNotIn("mapa", e[4])
+
+    def test_geografia_no_usa_ia_para_imagenes(self):
+        self.assertNotIn("ia", estilos.obtener("geografia").fuentes)
+
+    def test_pausas_en_silencio(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import voz_yo
+        c = Path(tempfile.mkdtemp())
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        subprocess.run([ff, "-v", "error", "-y", "-f", "lavfi", "-i", "sine=f=220:d=1", "-f", "lavfi", "-i",
+                        "anoisesrc=d=0.8:a=0.01", "-f", "lavfi", "-i", "sine=f=300:d=1", "-filter_complex",
+                        "[0][1][2]concat=n=3:v=0:a=1", str(c / "t.wav")], check=True)
+        salida = voz_yo.silenciar_pausas(c / "t.wav")
+        r = subprocess.run([ff, "-i", str(salida), "-af", "atrim=1.25:1.55,volumedetect", "-f", "null", "-"],
+                           capture_output=True, text=True)
+        self.assertIn("max_volume: -9", r.stderr)  # silencio digital (~ -91 dB)

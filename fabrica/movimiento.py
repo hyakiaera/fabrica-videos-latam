@@ -144,6 +144,8 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
     estado_mapa = None
     for i, (escena, segundos) in enumerate(zip(escenas, duraciones(escenas, duracion_total))):
         salida = carpeta / f"clip-{i:02d}.mp4"
+        if not escena.get("mapa") and escena.get("_mapa_respaldo") and not (i < len(imagenes) and imagenes[i]):
+            escena = {**escena, "mapa": escena["_mapa_respaldo"]}
         if escena.get("mapa"):
             # Mapa satelital animado: la cámara sigue desde donde quedó en la escena anterior.
             try:

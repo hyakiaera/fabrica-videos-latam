@@ -151,7 +151,7 @@ jobs:
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           IN_DETALLES: ${{ inputs.detalles }}
-          VAR_PUBLICAR: ${{ vars.PUBLICAR }}
+          VAR_PUBLICAR: ${{ vars.PUBLICAR || secrets.PUBLICAR }}
           ANIMAR: ${{ vars.ANIMAR }}
           EFECTOS: ${{ vars.EFECTOS }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}

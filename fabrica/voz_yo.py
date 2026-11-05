@@ -251,7 +251,52 @@ def limpiar(cfg: dict, audio: Path) -> Path:
     try:
         subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(audio),
                         "-af", filtros, "-ar", "44100", str(salida)], check=True, timeout=600)
-        return salida if salida.exists() and salida.stat().st_size > 1000 else audio
+        if not (salida.exists() and salida.stat().st_size > 1000):
+            return audio
     except Exception as e:
         logger.warning(f"Voz yo: no se pudo limpiar el audio ({e}); se usa tal cual")
         return audio
+    try:
+        return silenciar_pausas(salida, float(v.get("yo_pausa_db", 24)))
+    except Exception as e:
+        logger.warning(f"Voz yo: no se pudieron limpiar las pausas ({e})")
+        return salida
+
+
+def silenciar_pausas(audio: Path, debajo_db: float = 24) -> Path:
+    """Silencio digital en las pausas. El "loudnorm" sube lo bajito y el soplido que dejó el
+    modelo vuelve a oírse; aquí, DESPUÉS de nivelar, todo lo que esté `debajo_db` por debajo
+    de la voz se apaga con rampas suaves. Los finales de palabra se respetan (120 ms)."""
+    import numpy as np
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    tasa = 44100
+    crudo = subprocess.run([ff, "-loglevel", "error", "-i", str(audio), "-f", "f32le", "-ac", "1",
+                            "-ar", str(tasa), "-"], capture_output=True, check=True, timeout=600).stdout
+    x = np.frombuffer(crudo, dtype=np.float32).copy()
+    ventana = int(tasa * 0.02)
+    n = len(x) // ventana
+    if n < 10:
+        return audio
+    cuadros = x[: n * ventana].reshape(n, ventana)
+    rms = np.sqrt(np.mean(cuadros ** 2, axis=1) + 1e-12)
+    db = 20 * np.log10(rms)
+    voz = np.percentile(db, 90)
+    umbral = max(voz - debajo_db, -60.0)
+    # El soplido es "plano" (todas las frecuencias por igual); la voz tiene tono. Se queda lo que
+    # suena a voz, más 120 ms alrededor para no cortar las "s" y los finales de palabra.
+    espectro = np.abs(np.fft.rfft(cuadros * np.hanning(ventana), axis=1)) + 1e-9
+    plano = np.exp(np.mean(np.log(espectro), axis=1)) / np.mean(espectro, axis=1)
+    activo = (db > umbral) & ((plano < 0.35) | (db > voz - 12))
+    margen = 6  # 120 ms antes y después de cada parte con voz
+    activo = np.convolve(activo.astype(float), np.ones(2 * margen + 1), mode="same") > 0
+    ganancia = np.repeat(activo.astype(np.float32), ventana)
+    ganancia = np.concatenate([ganancia, np.full(len(x) - len(ganancia), ganancia[-1], np.float32)])
+    rampa = int(tasa * 0.015)
+    ganancia = np.convolve(ganancia, np.ones(rampa, np.float32) / rampa, mode="same")
+    y = (x * ganancia).astype(np.float32)
+    salida = audio.with_name(audio.stem + "-pausas.wav")
+    subprocess.run([ff, "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(tasa), "-ac", "1", "-i", "-",
+                    "-c:a", "pcm_s16le", str(salida)], input=y.tobytes(), check=True, timeout=600)
+    apagado = 1 - activo.mean()
+    logger.info(f"Voz yo: pausas en silencio total ({apagado:.0%} del audio, umbral {umbral:.0f} dB)")
+    return salida
