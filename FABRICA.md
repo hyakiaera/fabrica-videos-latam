@@ -248,6 +248,37 @@ Si algo falla, el video sale sin avatar y la ficha dice por qué.
 Cada ronda toma la categoría que más falta según los últimos 40 videos. Se cambia en `[mezcla]`.
 Además, no se repite un tema parecido a otro de los últimos 4 días.
 
+## 12. Más vida en los videos
+
+- **Mapas animados:** en noticias de un lugar, zoom desde lejos hasta el sitio exacto con marcador.
+- **Efectos de sonido:** "whoosh" suave en cada cambio de escena (`[efectos]`).
+- **Música según el tono:** pon tus canciones en `Fabrica de Videos › musica › epica / tension / alegre /
+  triste / motivacion / neutral` (o una carpeta por categoría, ej. `deportes`). Si no hay, la de siempre.
+- **Miniaturas llamativas:** texto grande con borde, tu cara si hay avatar y tu marca.
+- **Clips de video reales** (Pixabay/Pexels) en realista, noticiero y cinematográfico.
+- **Escenas animadas con IA** (LTX-Video en Kaggle): variable `ANIMAR` = `si`. Tarda 10-25 min más
+  por video y gasta minutos de GitHub mientras espera; por eso viene apagado.
+
+## 13. Lo que funciona en tu canal (estadísticas de YouTube)
+
+1. Google Cloud Console → crea un proyecto → **APIs y servicios → Biblioteca → YouTube Data API v3 →
+   Habilitar** → **Credenciales → Crear credenciales → Clave de API**.
+2. Guárdala como secreto `YOUTUBE_API_KEY` y crea la variable `YOUTUBE_CANAL` con tu `@usuario`.
+
+Una vez al día la fábrica lee las vistas de tus videos, sube un poco las categorías que más funcionan
+(hasta 1.4 veces) y baja las demás (hasta 0.7 veces, nunca desaparecen). Además le pasa a la IA tus
+videos más vistos como ejemplo.
+
+## 14. Publicar automáticamente (TikTok, YouTube Shorts, Instagram)
+
+1. Crea una cuenta en https://upload-post.com y conecta ahí tus redes.
+2. Guarda los secretos `UPLOAD_POST_API_KEY` y `UPLOAD_POST_USERNAME`.
+3. Crea la variable `PUBLICAR` = `si`.
+
+Los videos siguen llegando a Drive igual. Recomendación: activa la etiqueta de **contenido
+alterado o sintético** en YouTube y la de **contenido generado con IA** en TikTok cuando el video
+tenga voz clonada, avatar o imágenes realistas: lo piden las plataformas y no baja el alcance.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y
