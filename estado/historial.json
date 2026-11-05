@@ -401,5 +401,27 @@
   "estilo": "caricatura",
   "titulo": "¡De estrella del tex-mex a la política! El giro de Bobby Pulido",
   "archivo": "salida/2026-11-05/entretenimiento/bobby-pulido-de-estrella-tex-mex-a-la-politica-de-ee-uu #043.mp4"
+ },
+ {
+  "mezcla": "",
+  "numero": 44,
+  "fecha": "2026-11-05T05:29",
+  "tema": "San Miguel, El Salvador",
+  "categoria": "mundo",
+  "estilo": "geografia",
+  "titulo": "¿Sabías que El Salvador tiene un volcán activo en San Miguel?",
+  "archivo": "salida/2026-11-05/mundo/san-miguel-el-salvador #044.mp4",
+  "automatico": false,
+  "nota": null,
+  "drive": "2026-11-05/mundo/san-miguel-el-salvador #044.mp4",
+  "hashtags": [
+   "#SanMiguel",
+   "#ElSalvador",
+   "#Chaparrastique",
+   "#Volcan",
+   "#CentroAmerica",
+   "#Geografia"
+  ],
+  "publicado": false
  }
 ]
