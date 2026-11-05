@@ -1219,3 +1219,45 @@ class TestEstadisticas(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMejorDelDia(unittest.TestCase):
+    def test_elige_el_de_mas_nota_de_las_ultimas_24_horas(self):
+        from datetime import datetime
+        from fabrica import mejor_del_dia
+        ahora = datetime(2026, 11, 5, 22, 0)
+        entradas = [
+            {"numero": 1, "fecha": "2026-11-04T07:00", "automatico": True, "drive": "a.mp4", "nota": 99},
+            {"numero": 2, "fecha": "2026-11-05T07:00", "automatico": True, "drive": "b.mp4", "nota": 70},
+            {"numero": 3, "fecha": "2026-11-05T12:00", "automatico": True, "drive": "c.mp4", "nota": 85},
+            {"numero": 4, "fecha": "2026-11-05T13:00", "automatico": False, "drive": "d.mp4", "nota": 95},
+            {"numero": 5, "fecha": "2026-11-05T16:00", "automatico": True, "drive": "", "nota": 90},
+        ]
+        self.assertEqual(mejor_del_dia.elegir(entradas, ahora)["numero"], 3)
+
+    def test_no_publica_dos_el_mismo_dia(self):
+        from datetime import datetime
+        from fabrica import mejor_del_dia
+        ahora = datetime(2026, 11, 5, 22, 0)
+        entradas = [
+            {"numero": 1, "fecha": "2026-11-05T07:00", "automatico": True, "drive": "a.mp4", "nota": 60,
+             "publicado": True, "publicado_mejor": True},
+            {"numero": 2, "fecha": "2026-11-05T12:00", "automatico": True, "drive": "b.mp4", "nota": 80},
+        ]
+        self.assertIsNone(mejor_del_dia.elegir(entradas, ahora))
+
+    def test_nota_baja_si_la_voz_fallo_o_hubo_rechazos(self):
+        from fabrica import mejor_del_dia
+        bien = mejor_del_dia.nota_tecnica({"voz_usada": {"voz": "yo (...) + tu modelo"}}, {"ia": 10})
+        mal = mejor_del_dia.nota_tecnica({"voz_usada": {"voz": "Edge — la voz 'yo' falló"},
+                                          "avatar_usado": "no — error"}, {"ia": 5, "rechazadas": 5})
+        self.assertEqual(bien, 40)
+        self.assertLess(mal, 20)
+
+    def test_puntuar_junta_ia_y_calidad(self):
+        from fabrica import mejor_del_dia
+        datos = {"titulo": "x", "guion": "y"}
+        with mock.patch.object(ia, "pedir_json", return_value={"nota": 8, "por_que": "buen gancho"}):
+            self.assertEqual(mejor_del_dia.puntuar({}, datos, {"tema": "t"}, {"ia": 3}), 88.0)
+        self.assertIn("NOTA PARA", salidas.ficha_texto({**datos, "descripcion": "", "hashtags": []},
+                                                       {"tema": "t", "categoria": "c", "fuentes": []}, []))

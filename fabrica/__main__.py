@@ -120,6 +120,12 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     from fabrica import miniaturas
     mini = (miniaturas.crear(cfg, datos, fotos, final, trabajo / f"{nombre}.jpg")
             or video.miniatura(final, trabajo / f"{nombre}.jpg"))
+    if tema.get("automatico"):
+        from fabrica import mejor_del_dia
+        try:
+            mejor_del_dia.puntuar(cfg, datos, tema, conteo)
+        except Exception as e:
+            logger.warning(f"No se pudo calificar el video: {e}")
     ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
     if cfg.get("imagenes", {}).get("guardar_generadas", True) and conteo.get("_generadas"):
         from fabrica import mis_fotos
@@ -135,6 +141,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     carpeta_dia = carpeta_dia / ruta_relativa
     guardado = salidas.guardar_local(carpeta_dia, nombre, final, ficha, mini)
 
+    en_drive = False
     if "drive" in opciones_salida:
         # Se sube solo este video (y su ficha), no toda la carpeta del día.
         temporal = trabajo / "para-drive"
@@ -143,14 +150,18 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             origen = carpeta_dia / f"{nombre}{ext}"
             if origen.exists():
                 (temporal / origen.name).write_bytes(origen.read_bytes())
-        salidas.subir_drive(cfg, temporal, ruta_relativa)
+        en_drive = salidas.subir_drive(cfg, temporal, ruta_relativa)
+    publicado = False
     if "publicar" in opciones_salida:
-        salidas.publicar(cfg, guardado, datos)
+        publicado = bool(salidas.publicar(cfg, guardado, datos).get("success"))
 
     entradas = _historial()
     entradas.append({"mezcla": tema.get("mezcla", ""), "numero": numero, "fecha": datetime.now().isoformat(timespec="minutes"), "tema": tema["tema"],
                      "categoria": tema["categoria"], "estilo": tema["estilo"], "titulo": datos["titulo"],
-                     "archivo": str(guardado.relative_to(config.RAIZ)) if guardado.is_relative_to(config.RAIZ) else str(guardado)})
+                     "archivo": str(guardado.relative_to(config.RAIZ)) if guardado.is_relative_to(config.RAIZ) else str(guardado),
+                     "automatico": bool(tema.get("automatico")), "nota": datos.get("nota"),
+                     "drive": f"{ruta_relativa}/{nombre}.mp4" if en_drive else "",
+                     "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado})
     _guardar_historial(entradas)
     return guardado
 
@@ -183,6 +194,8 @@ def una_ronda(cfg: dict, args) -> int:
         if not temas:
             logger.error("No se encontró ningún tema nuevo")
             return 1
+        for t in temas:
+            t["automatico"] = True
 
     if args.detalles:
         for t in temas:
@@ -222,6 +235,8 @@ def main(argv=None) -> int:
     p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
     p.add_argument("--avatar", help="no, intro y cierre, esquina, dividida o mixto")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
+    p.add_argument("--publicar-mejor", action="store_true",
+                   help="al terminar, publicar el automático con mejor nota de las últimas 24 horas")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
     p.add_argument("--repetir-cada", type=float, metavar="HORAS", help="modo PC: repetir cada N horas")
     p.add_argument("--estilos", action="store_true", help="listar estilos y salir")
@@ -271,6 +286,12 @@ def main(argv=None) -> int:
         return 0
     while True:
         codigo = una_ronda(cfg, args)
+        if args.publicar_mejor:
+            from fabrica import mejor_del_dia
+            try:
+                mejor_del_dia.publicar(cfg, _historial(), _guardar_historial)
+            except Exception as e:
+                logger.exception(f"Mejor del día: falló la publicación: {e}")
         if not args.repetir_cada:
             return codigo
         logger.info(f"Esperando {args.repetir_cada} horas para la próxima ronda (Ctrl+C para parar)")

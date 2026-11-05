@@ -186,7 +186,7 @@ La fábrica lo pone como obligatorio en el guion.
 
 Para que las rondas automáticas usen siempre lo mismo, crea **variables** (Settings → Secrets and
 variables → Actions → Variables): `TEXTO_MARCA` o `LOGO_LINK`, `LOGO_POSICION`, `DURACION`,
-`VOZ` (hombre/mujer/mi voz), `MODELO_VOZ_LINK`, `PUBLICAR` (si).
+`VOZ` (hombre/mujer/mi voz), `MODELO_VOZ_LINK`, `PUBLICAR` (mejor, manual, si).
 
 ## 8b. Texto como logo
 
@@ -273,7 +273,20 @@ videos más vistos como ejemplo.
 
 1. Crea una cuenta en https://upload-post.com y conecta ahí tus redes.
 2. Guarda los secretos `UPLOAD_POST_API_KEY` y `UPLOAD_POST_USERNAME`.
-3. Crea la variable `PUBLICAR` = `si` (publica todos) o `manual` (solo los que pides con Run workflow).
+3. Crea la variable `PUBLICAR` con uno de estos valores:
+
+| Valor | Qué publica |
+|---|---|
+| `mejor` | **1 al día**: el automático con mejor nota de las últimas 24 horas (se publica en la ronda de las 10pm) |
+| `mejor,manual` | lo mismo, y además los que pides con Run workflow |
+| `manual` | solo los que pides con Run workflow |
+| `si` | todos |
+| *(sin variable)* | ninguno |
+
+**Cómo se elige el mejor:** cada video automático recibe una nota de 0 a 100. Hasta 60 puntos
+los pone la IA (fuerza del gancho, interés del tema hoy para latinos, ganas de comentar) y hasta
+40 la calidad (imágenes que encajaron, voz bien pulida, avatar). La nota sale en la ficha `.txt`
+("NOTA PARA 'MEJOR DEL DÍA'") y en el registro de la ronda de las 10pm verás las notas de todos.
 
 Los videos siguen llegando a Drive igual. Recomendación: activa la etiqueta de **contenido
 alterado o sintético** en YouTube y la de **contenido generado con IA** en TikTok cuando el video

@@ -127,6 +127,7 @@ jobs:
           UPLOAD_POST_API_KEY: ${{ secrets.UPLOAD_POST_API_KEY }}
           UPLOAD_POST_USERNAME: ${{ secrets.UPLOAD_POST_USERNAME }}
           EVENTO: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
           IN_CANTIDAD: ${{ inputs.cantidad || '1' }}
           IN_ESTILO: ${{ inputs.estilo || 'auto' }}
           IN_TEMA: ${{ inputs.tema }}
@@ -164,10 +165,15 @@ jobs:
 
           SALIDAS="descargar"
           SALIDAS="$SALIDAS,drive"
-          # PUBLICAR = si (todos) | manual (solo los que pides con Run workflow) | vacío (ninguno)
-          if [ "$VAR_PUBLICAR" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
-          if [ "$VAR_PUBLICAR" = "manual" ] && [ "$EVENTO" = "workflow_dispatch" ]; then SALIDAS="$SALIDAS,publicar"; fi
+          # PUBLICAR = si (todos) | manual (solo los que pides con Run workflow)
+          #          | mejor (1 al día: el automático con mejor nota, en la ronda de las 10pm)
+          #          | mejor,manual (las dos cosas) | vacío (ninguno)
+          PUB="$(echo "$VAR_PUBLICAR" | tr '[:upper:]' '[:lower:]' | tr -d ' ')"
+          if [ "$PUB" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
+          if [[ ",$PUB," == *,manual,* ]] && [ "$EVENTO" = "workflow_dispatch" ]; then SALIDAS="$SALIDAS,publicar"; fi
           ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION" --avatar "$IN_AVATAR")
+          # La ronda de las 10pm (la última del día) publica el mejor de las últimas 24 horas.
+          if [[ ",$PUB," == *,mejor,* ]] && [ "$CRON" = "5 4 * * *" ]; then ARGS+=(--publicar-mejor); fi
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
           # Si pegaste el link de tu modelo en el formulario, se usa tu voz aunque la casilla diga hombre.

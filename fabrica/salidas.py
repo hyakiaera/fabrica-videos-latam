@@ -27,6 +27,8 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
         lineas += [f"ESCENAS ANIMADAS CON IA: {datos['animadas']}"]
     if datos.get("musica_usada"):
         lineas += [f"MÚSICA: {datos['musica_usada']}"]
+    if datos.get("nota") is not None:
+        lineas += [f"NOTA PARA 'MEJOR DEL DÍA': {datos['nota']}/100" + (f" — {datos['nota_por_que']}" if datos.get("nota_por_que") else "")]
     if datos.get("avatar_usado"):
         lineas += [f"AVATAR: {datos['avatar_usado']}"]
     if conteo:
