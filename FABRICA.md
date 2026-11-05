@@ -273,7 +273,7 @@ videos más vistos como ejemplo.
 
 1. Crea una cuenta en https://upload-post.com y conecta ahí tus redes.
 2. Guarda los secretos `UPLOAD_POST_API_KEY` y `UPLOAD_POST_USERNAME`.
-3. Crea la variable `PUBLICAR` = `si`.
+3. Crea la variable `PUBLICAR` = `si` (publica todos) o `manual` (solo los que pides con Run workflow).
 
 Los videos siguen llegando a Drive igual. Recomendación: activa la etiqueta de **contenido
 alterado o sintético** en YouTube y la de **contenido generado con IA** en TikTok cuando el video

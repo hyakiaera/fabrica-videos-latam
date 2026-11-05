@@ -164,7 +164,9 @@ jobs:
 
           SALIDAS="descargar"
           SALIDAS="$SALIDAS,drive"
+          # PUBLICAR = si (todos) | manual (solo los que pides con Run workflow) | vacío (ninguno)
           if [ "$VAR_PUBLICAR" = "si" ]; then SALIDAS="$SALIDAS,publicar"; fi
+          if [ "$VAR_PUBLICAR" = "manual" ] && [ "$EVENTO" = "workflow_dispatch" ]; then SALIDAS="$SALIDAS,publicar"; fi
           ARGS=(--salidas "$SALIDAS" --cantidad "$IN_CANTIDAD" --estilo "$IN_ESTILO" --duracion "$IN_DURACION" --avatar "$IN_AVATAR")
           if [ -n "$IN_TEMA" ]; then ARGS+=(--tema "$IN_TEMA"); fi
           if [ -n "$IN_DETALLES" ]; then ARGS+=(--detalles "$IN_DETALLES"); fi
