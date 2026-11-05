@@ -62,7 +62,10 @@ TESELAS_NASA = [
     "GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
 ]
 CABECERAS = {"User-Agent": "FabricaVideos/1.0 (generador de videos; github.com/hyakiaera/fabrica-videos-latam)"}
-NEGRITA = RAIZ / "resource" / "fonts" / "BeVietnamPro-Bold.ttf"
+NEGRITA = RAIZ / "resource" / "fonts" / "Montserrat-ExtraBold.ttf"   # libre (OFL)
+NEGRITA_RESPALDO = RAIZ / "resource" / "fonts" / "BeVietnamPro-Bold.ttf"
+ANTIGUA = RAIZ / "resource" / "fonts" / "EBGaramond-Variable.ttf"     # libre (OFL), para mapas antiguos
+_SERIF = {"activa": False}
 EMOJIS = [Path("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"),
           Path("/usr/share/fonts/noto/NotoColorEmoji.ttf")]
 TAMANOS = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080)}
@@ -485,12 +488,25 @@ def _rebote(t: float) -> float:
     return 1 + 2.2 * (t - 1) ** 3 + 1.2 * (t - 1) ** 2 if t < 1 else 1.0
 
 
-@lru_cache(maxsize=16)
 def _letra(tam: int) -> ImageFont.FreeTypeFont:
-    try:
-        return ImageFont.truetype(str(NEGRITA), tam)
-    except OSError:
-        return ImageFont.load_default()
+    return _letra_de(tam, _SERIF["activa"])
+
+
+@lru_cache(maxsize=48)
+def _letra_de(tam: int, serif: bool) -> ImageFont.FreeTypeFont:
+    if serif:
+        try:
+            letra = ImageFont.truetype(str(ANTIGUA), tam)
+            letra.set_variation_by_name("Bold")
+            return letra
+        except Exception:
+            pass
+    for ruta in (NEGRITA, NEGRITA_RESPALDO):
+        try:
+            return ImageFont.truetype(str(ruta), tam)
+        except OSError:
+            continue
+    return ImageFont.load_default()
 
 
 @lru_cache(maxsize=128)
@@ -633,7 +649,7 @@ def _color(nombre, k=0):
     return COLORES.get(_norm(nombre or ""), COLORES[ORDEN_COLORES[k % len(ORDEN_COLORES)]])
 
 
-def preparar(m: dict) -> dict:
+def preparar(m: dict, pegatina=None) -> dict:
     """Convierte lo que escribió la IA en capas con sus formas ya buscadas."""
     capas, formas = [], []
 
@@ -683,9 +699,21 @@ def preparar(m: dict) -> dict:
         paradas = [buscar(x) for x in ruta.get("lugares") or []]
         paradas = [p for p in paradas if p]
         if len(paradas) >= 2:
+            viajero = pegatina(ruta["viajero"]) if pegatina and ruta.get("viajero") else None
             capas.append({"tipo": "ruta", "puntos": [p.punto for p in paradas], "texto": ruta.get("texto") or "",
-                          "nombres": [p.nombre for p in paradas]})
+                          "nombres": [p.nombre for p in paradas], "viajero": viajero})
             formas += paradas
+    for k, pg in enumerate(m.get("pegatinas") or []):
+        pg = {"objeto": pg} if isinstance(pg, str) else dict(pg or {})
+        ruta_png = pegatina(pg.get("objeto", ""), pg.get("descripcion", "")) if pegatina else None
+        lugar = buscar(pg["lugar"]) if pg.get("lugar") else None
+        if ruta_png:
+            capas.append({"tipo": "pegatina", "png": ruta_png, "punto": lugar.punto if lugar else None,
+                          "orden": k})
+    if m.get("guia") and pegatina:
+        ruta_png = pegatina("guia")
+        if ruta_png:
+            capas.append({"tipo": "pegatina", "png": ruta_png, "punto": None, "orden": 0, "guia": True})
     for p in m.get("puntos") or []:
         p = item(p)
         lugar = buscar(p.get("lugar", ""))
@@ -788,6 +816,7 @@ def antiguo(cuadro: Image.Image) -> Image.Image:
 
 
 def _dibujar(cuadro: Image.Image, cam, escena: dict, t: float, segundos: float, previas: list):
+    _SERIF["activa"] = bool(escena.get("antiguo"))
     if escena.get("antiguo"):
         cuadro = antiguo(cuadro)
     proy = Proyector(cam)
@@ -883,6 +912,13 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
         if c.get("texto") and edad > 0.6:
             x, y = curva[len(curva) // 2]
             _texto(textos, (x, y - 40), c["texto"], 46 * _rebote((edad - 0.6) / 0.4), color=(255, 240, 150))
+        if c.get("viajero") and len(parcial) > 1:
+            img = _png(str(c["viajero"]), 120)
+            if img:  # el avión/barco va en la punta de la ruta, mirando hacia donde avanza
+                (x0, y0), (x1, y1) = parcial[max(0, len(parcial) - 3)], parcial[-1]
+                if x1 < x0:
+                    img = img.transpose(Image.FLIP_LEFT_RIGHT)
+                textos.alpha_composite(img, (int(x1 - img.width / 2), int(y1 - img.height / 2)))
     elif tipo == "punto":
         x, y = proy(*c["punto"])
         caida = _suave(edad / 0.35)
@@ -903,6 +939,23 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
     elif tipo == "etiqueta":
         x, y = proy(*c["punto"])
         _texto(textos, (x, y), c["texto"], 30, color=(255, 255, 255), alfa=alfa * 0.95)
+    elif tipo == "pegatina":
+        e = edad - c.get("orden", 0) * 0.35
+        if e <= 0:
+            return
+        guia = c.get("guia")
+        tam = 230 if guia else 170
+        img = _png(str(c["png"]), int(tam * _rebote(e / 0.45)))
+        if not img:
+            return
+        flota = math.sin(e * 2.6) * 6  # sube y baja suave, como si estuviera vivo
+        if guia or c.get("punto") is None:
+            x, y = (ANCHO - img.width / 2 - 20, ALTO * 0.62) if guia else (ANCHO * 0.3, ALTO * 0.6)
+        else:
+            x, y = proy(*c["punto"])
+            y -= img.height * 0.35
+        if -img.width < x < ANCHO + img.width and -img.height < y < ALTO + img.height:
+            textos.alpha_composite(img, (int(x - img.width / 2), int(y - img.height / 2 + flota)))
     elif tipo == "nombre":
         x, y = proy(*c["punto"])
         if -20 < x < ANCHO + 20 and -20 < y < ALTO + 20:
@@ -912,17 +965,29 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
             _texto(textos, (x, y), c["texto"], 16, color=(230, 255, 230), alfa=alfa)
 
 
-class Estado:
-    """Lo que se arrastra de una escena a la siguiente: dónde quedó la cámara y lo pintado."""
+@lru_cache(maxsize=64)
+def _png(ruta: str, alto: int) -> Image.Image | None:
+    try:
+        img = Image.open(ruta).convert("RGBA")
+        alto = max(4, alto)
+        return img.resize((max(1, int(img.width * alto / img.height)), alto), Image.LANCZOS)
+    except Exception:
+        return None
 
-    def __init__(self):
+
+class Estado:
+    """Lo que se arrastra de una escena a la siguiente: dónde quedó la cámara y lo pintado.
+    `pegatina(nombre, descripcion)` devuelve el PNG de un personaje u objeto (o None)."""
+
+    def __init__(self, pegatina=None):
         self.camara = None
         self.pintado: list[dict] = []
+        self.pegatina = pegatina
 
 
 def clip(m: dict, segundos: float, aspecto: str, salida: Path, estado: Estado | None = None) -> Path:
     estado = estado or Estado()
-    escena = preparar(m)
+    escena = preparar(m, estado.pegatina)
     destino = encuadre(escena["formas"], zoom=escena.get("zoom")) or estado.camara
     if destino is None:
         raise ValueError("el mapa no tiene ningún lugar que se encuentre")

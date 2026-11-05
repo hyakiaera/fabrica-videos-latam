@@ -1404,3 +1404,42 @@ class TestMapaAntiguo(unittest.TestCase):
     def test_bandera_sin_internet_no_rompe(self):
         from fabrica import mapa_geo
         self.assertIsNone(mapa_geo.bandera("País que no existe"))
+
+
+class TestPegatinas(unittest.TestCase):
+    def test_recorta_el_fondo_blanco(self):
+        from PIL import Image, ImageDraw
+        from fabrica import pegatinas
+        c = Path(tempfile.mkdtemp())
+        img = Image.new("RGB", (400, 400), (255, 255, 255))
+        ImageDraw.Draw(img).ellipse([100, 100, 300, 300], fill=(200, 30, 30))
+        img.save(c / "cruda.png")
+        salida = pegatinas.recortar(c / "cruda.png", c / "p.png")
+        hecha = Image.open(salida)
+        self.assertEqual(hecha.mode, "RGBA")
+        self.assertEqual(hecha.getpixel((2, 2))[3], 0)  # esquina transparente
+        self.assertGreater(hecha.getpixel((hecha.width // 2, hecha.height // 2))[3], 250)
+
+    def test_usa_la_de_drive_sin_generar(self):
+        from fabrica import pegatinas
+        c = Path(tempfile.mkdtemp())
+        (c / "barco-de-carga.png").write_bytes(b"x")
+        with mock.patch.object(pegatinas, "LOCAL", c), \
+             mock.patch.object(pegatinas, "_sincronizar"), \
+             mock.patch.object(imagenes, "cloudflare") as cf:
+            self.assertEqual(pegatinas.obtener({}, "Barco de carga"), c / "barco-de-carga.png")
+        cf.assert_not_called()
+
+    def test_mapa_pide_pegatinas_y_guia(self):
+        from fabrica import mapa_geo
+        pedidas = []
+
+        def pegatina(nombre, desc=""):
+            pedidas.append(nombre)
+            return Path("/x.png")
+
+        with mock.patch.object(mapa_geo, "buscar", return_value=mapa_geo.Lugar("Puerto", None, "punto", (-5, 36))):
+            e = mapa_geo.preparar({"pegatinas": [{"objeto": "barco de carga", "lugar": "Algeciras"}], "guia": True},
+                                  pegatina)
+        self.assertEqual(pedidas, ["barco de carga", "guia"])
+        self.assertEqual([c["tipo"] for c in e["capas"]], ["pegatina", "pegatina"])

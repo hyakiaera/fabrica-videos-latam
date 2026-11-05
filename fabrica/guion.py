@@ -36,6 +36,13 @@ ir sin mapa (con "foto_real" de un monumento, documento o personaje histórico).
  - "pregunta": "¿NORTEAMÉRICA?"  (texto grande inclinado; úsalo en el gancho y en los giros)
  - "mantener": true   (lo pintado en la escena anterior sigue visible: para ir armando el mapa)
  - "estilo_mapa": "antiguo"   (mapa de papel viejo, sepia: para escenas de HISTORIA, siglos pasados)
+ - "pegatinas": [{"objeto": "nombre corto en español", "descripcion": "en INGLÉS cómo se ve",
+                  "lugar": "dónde va en el mapa"}]   (personajes y objetos tipo juguete 3D: un barco
+   en el puerto, un castillo, un soldado, un volcán, un avión; máximo 2 por escena y solo si ayudan
+   a contar; reutiliza los mismos nombres en todo el video, ej. "barco de carga")
+ - en "ruta", "viajero": "avion" o "barco" (el objeto viaja por la línea)
+ - "guia": true   (nuestro personaje guía aparece en la esquina: úsalo en el gancho, en preguntas
+   al público y en el cierre)
  - en "resaltar", "bandera": true pone la bandera del país encima (úsalo al presentar países)
 Colores: verde, rojo, azul, celeste, amarillo, naranja, morado, rosa, lila, turquesa, dorado.
 Iconos: emojis que digan algo de la región (🏭 industria, 🌽 agricultura, 🛢️ petróleo, 🏖️ playas,

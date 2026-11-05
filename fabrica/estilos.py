@@ -115,6 +115,7 @@ ESTILOS: dict[str, Estilo] = {
         "dibujan, rutas, preguntas e iconos. Para geografía, historia y curiosidades de países y lugares.",
         "realistic photo of {escena}, natural light, high detail",
         fuentes=("wikimedia", "web"),
+        fuente_letra="Montserrat-ExtraBold.ttf",
         temas_ideales=["geografia", "historia", "curiosidades de paises", "lugares", "fronteras", "mundo"],
     ),
     "videos_stock": Estilo(

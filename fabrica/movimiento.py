@@ -150,7 +150,10 @@ def clips_de_escenas(cfg: dict, escenas: list[dict], imagenes: list, estilo_clav
             # Mapa satelital animado: la cámara sigue desde donde quedó en la escena anterior.
             try:
                 from fabrica import mapa_geo
-                estado_mapa = estado_mapa or mapa_geo.Estado()
+                if estado_mapa is None:
+                    from fabrica import pegatinas
+                    estado_mapa = mapa_geo.Estado(
+                        lambda nombre, desc="": pegatinas.obtener(cfg, nombre, desc))
                 mapa = dict(escena["mapa"])
                 if escena.get("texto_pantalla") and not mapa.get("pregunta"):
                     mapa["pregunta"] = escena["texto_pantalla"]

@@ -307,6 +307,12 @@ grandes inclinadas ("¿NORTEAMÉRICA?"). El mapa se va armando escena tras escen
   satelital; si no carga, queda el mapa de calles de antes.
 - **Mapa antiguo** (papel viejo, sepia) en las escenas de historia, y **banderas** que aparecen sobre
   los países (banderas de dominio público de flagcdn.com).
+- **Pegatinas propias** (personajes y objetos tipo juguete 3D: barco, avión, castillo, volcán y
+  nuestro **guía**): se crean con IA la primera vez, se les quita el fondo y se guardan en
+  `Fabrica de Videos/pegatinas` en tu Drive. Puedes poner ahí tus propios PNG con fondo
+  transparente (el nombre del archivo es el nombre de la pegatina; `guia.png` cambia el guía).
+  El avión o el barco viaja por las rutas.
+- Letras libres (OFL): Montserrat en mapas y subtítulos, EB Garamond en el mapa antiguo.
 - Satélite con detalle de ciudad: Sentinel-2 cloudless 2016 de EOX (CC BY 4.0, el crédito sale en el video).
 - Datos: Natural Earth y NASA (libres). Si la NASA no responde, se dibuja el mapa con contornos.
 
