@@ -147,6 +147,7 @@ jobs:
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
           ANIMAR: ${{ vars.ANIMAR }}
+          EFECTOS: ${{ vars.EFECTOS }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_CANAL: ${{ vars.YOUTUBE_CANAL }}
         run: |

@@ -37,10 +37,14 @@ def whoosh(salida: Path) -> Path:
 
 def agregar(cfg: dict, video: Path, cortes: list[float], salida: Path) -> Path:
     """Mezcla un whoosh en cada corte. Si algo falla, devuelve el video tal cual."""
+    import os
     e = cfg.get("efectos", {})
-    if not e.get("activos", True) or not cortes:
+    # Apagados por defecto: el whoosh sonaba como un soplido de aire en las pausas.
+    # Se prenden con la variable EFECTOS = si (o activos = true en fabrica.toml).
+    activos = os.environ.get("EFECTOS", "").strip().lower() in ("si", "sí", "1", "true") or e.get("activos", False)
+    if not activos or not cortes:
         return video
-    volumen = float(e.get("volumen", 0.35))
+    volumen = float(e.get("volumen", 0.15))
     cortes = cortes[: int(e.get("maximo", 40))]
     try:
         sonido = whoosh(salida.with_name("whoosh.wav"))

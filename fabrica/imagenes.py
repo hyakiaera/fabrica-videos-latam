@@ -104,8 +104,9 @@ def estilizar(ruta: Path, prompt: str, aspecto: str, fuerza: float = 0.55) -> Pa
     return None
 
 
-def cloudflare(prompt: str, carpeta: Path, nombre: str) -> Path | None:
-    """FLUX gratis en Cloudflare Workers AI (cuota diaria gratis)."""
+def cloudflare(prompt: str, carpeta: Path, nombre: str, pasos: int = 8) -> Path | None:
+    """FLUX gratis en Cloudflare Workers AI (cuota diaria gratis). 8 pasos (el máximo)
+    dan caras y manos más limpias que 4 y siguen alcanzando para varios videos al día."""
     cuenta, token = secreto("CLOUDFLARE_ACCOUNT_ID"), secreto("CLOUDFLARE_API_TOKEN")
     if not (cuenta and token) or "cloudflare" in _SIN_SERVICIO:
         return None
@@ -113,7 +114,7 @@ def cloudflare(prompt: str, carpeta: Path, nombre: str) -> Path | None:
     for intento in range(2):
         try:
             r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=120,
-                              json={"prompt": prompt[:2000], "steps": 4})  # FLUX schnell: 4 pasos bastan y gastan menos cuota
+                              json={"prompt": prompt[:2000], "steps": max(1, min(8, int(pasos)))})
             if r.ok:
                 imagen = r.json().get("result", {}).get("image")
                 if imagen:
@@ -437,8 +438,11 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 # El contexto global va al principio: el generador da más peso a lo primero.
                 prompt = prompt_imagen(estilo, escena_completa)
                 for intento in ("", "b"):
-                    ruta = (pollinations(cfg, prompt, aspecto, carpeta, nombre + intento)
-                            or cloudflare(prompt, carpeta, nombre + intento))
+                    # Cloudflare primero: Pollinations gratis ahora pone su marca de agua
+                    # («pollinations.ai») y queda solo de respaldo.
+                    ruta = (cloudflare(prompt, carpeta, nombre + intento,
+                                       cfg.get("imagenes", {}).get("pasos_flux", 8))
+                            or pollinations(cfg, prompt, aspecto, carpeta, nombre + intento))
                     if not ruta:
                         break  # sin cuota o sin servicio: no insistir
                     if encaja(ruta, escena_completa):

@@ -178,8 +178,8 @@ color_1 = "#FFE600"
 color_2 = "#FFFFFF"
 
 [efectos]
-activos = true      # "whoosh" suave en cada cambio de escena
-volumen = 0.35
+activos = false     # "whoosh" en cada cambio de escena (o variable EFECTOS = si)
+volumen = 0.15
 
 [firma]
 # Autor que aparece en los datos del archivo de video (propiedades / metadatos).

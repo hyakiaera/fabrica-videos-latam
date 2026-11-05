@@ -192,7 +192,7 @@ class TestImagenesYRespaldo(unittest.TestCase):
     def test_contexto_global_y_rehacer_imagen_que_no_encaja(self):
         prompts = []
 
-        def generar(prompt, carpeta, nombre):
+        def generar(prompt, carpeta, nombre, pasos=8):
             prompts.append(prompt)
             ruta = carpeta / f"{nombre}.jpg"
             ruta.write_bytes(b"x")
@@ -573,7 +573,7 @@ class TestTonoYRitmo(unittest.TestCase):
     def test_direccion_y_personaje_en_cada_imagen(self):
         prompts = []
 
-        def generar(prompt, carpeta, nombre):
+        def generar(prompt, carpeta, nombre, pasos=8):
             prompts.append(prompt)
             ruta = carpeta / f"{nombre}.jpg"
             ruta.write_bytes(b"x")
@@ -1076,7 +1076,7 @@ class TestEfectos(unittest.TestCase):
         subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "lavfi", "-i",
                         "color=c=blue:s=320x568:d=6:r=25", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
                         "-t", "6", "-c:v", "libx264", "-c:a", "aac", str(c / "v.mp4")], check=True)
-        salida = efectos.agregar({}, c / "v.mp4", [2.0, 4.0], c / "e.mp4")
+        salida = efectos.agregar({"efectos": {"activos": True}}, c / "v.mp4", [2.0, 4.0], c / "e.mp4")
         self.assertEqual(salida, c / "e.mp4")
         r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-ss", "1.8", "-t", "0.4", "-i", str(salida),
                             "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
