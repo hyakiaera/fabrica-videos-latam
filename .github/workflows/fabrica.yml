@@ -145,6 +145,7 @@ jobs:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           IN_DETALLES: ${{ inputs.detalles }}
           VAR_PUBLICAR: ${{ vars.PUBLICAR }}
+          ANIMAR: ${{ vars.ANIMAR }}
         run: |
           cp config.example.toml config.toml
           MARCA=()

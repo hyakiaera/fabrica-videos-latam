@@ -94,6 +94,9 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             visual_global=datos.get("visual_global", ""), tema=tema["tema"], fotos_propias=fotos_propias,
             direccion=datos.get("direccion_visual", ""), personaje=datos.get("personaje", ""))
 
+    if "stock_video" not in estilo.fuentes:
+        from fabrica import animar
+        fotos = animar.animar(cfg, datos["escenas"], fotos, trabajo, datos)
     try:
         crudo = video.armar(cfg, datos, estilo, fotos, trabajo)
     except RuntimeError as e:

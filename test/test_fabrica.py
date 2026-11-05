@@ -1154,5 +1154,48 @@ class TestClipsReales(unittest.TestCase):
         self.assertAlmostEqual(efectos.duracion(salida), 3.0, delta=0.15)
 
 
+class TestAnimar(unittest.TestCase):
+    def test_apagado_no_toca_nada(self):
+        from fabrica import animar
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(animar.animar({}, [{}], ["a.jpg"], Path(tempfile.mkdtemp()), {}), ["a.jpg"])
+
+    def test_anima_las_escenas_elegidas(self):
+        from PIL import Image
+        from fabrica import animar, avatar
+        c = Path(tempfile.mkdtemp())
+        imgs = []
+        for k in range(5):
+            Image.new("RGB", (100, 100)).save(c / f"i{k}.jpg")
+            imgs.append(c / f"i{k}.jpg")
+        escenas = [{"imagen": f"scene {k}"} for k in range(5)]
+
+        def kaggle(entrada, script, nombre, espera):
+            (entrada.parent / "r" / "clips").mkdir(parents=True)
+            for e in __import__("json").loads((entrada / "escenas.json").read_text()):
+                (entrada.parent / "r" / "clips" / f"{e['id']}.mp4").write_bytes(b"x" * 30000)
+            return entrada.parent / "r"
+
+        datos = {}
+        with mock.patch.dict("os.environ", {"ANIMAR": "si"}), \
+             mock.patch.object(avatar, "correr_en_kaggle", side_effect=kaggle):
+            nuevas = animar.animar({"animar": {"escenas": 2}}, escenas, imgs, c, datos)
+        self.assertEqual(datos["animadas"], "2")
+        self.assertEqual(sum(1 for n in nuevas if str(n).endswith(".mp4")), 2)
+        self.assertTrue(str(nuevas[0]).endswith(".mp4"))  # el gancho siempre se anima
+
+    def test_si_kaggle_falla_quedan_las_imagenes(self):
+        from PIL import Image
+        from fabrica import animar, avatar
+        c = Path(tempfile.mkdtemp())
+        Image.new("RGB", (100, 100)).save(c / "i.jpg")
+        datos = {}
+        with mock.patch.dict("os.environ", {"ANIMAR": "si"}), \
+             mock.patch.object(avatar, "correr_en_kaggle", side_effect=RuntimeError("ocupado")):
+            r = animar.animar({}, [{"imagen": "x"}], [c / "i.jpg"], c, datos)
+        self.assertEqual(r, [c / "i.jpg"])
+        self.assertIn("ocupado", datos["animadas"])
+
+
 if __name__ == "__main__":
     unittest.main()

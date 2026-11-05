@@ -80,6 +80,7 @@ Devuelve este JSON:
    "foto_real": "SOLO si en esta escena es clave una marca, logo, equipo, producto, lugar famoso o persona real: su nombre exacto para buscar su foto/logo real (ej. 'Binance logo', 'Club América', 'Estadio Azteca', 'iPhone 17'). Si no, vacío",
    "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios",
    "foto_propia": "nombre exacto de una foto propia si encaja, si no vacío",
+   "movimiento": "en INGLÉS, qué se mueve en la escena si se anima (ej. 'the jet flies low over the houses, smoke rising', 'fans jumping and waving flags')",
    "grafica": null}}]}}
 
 GRÁFICAS: cuando una escena da CIFRAS que están en los titulares o el contenido (precios, %,

@@ -182,37 +182,38 @@ def _kaggle(*args, timeout=600) -> str:
     return r.stdout
 
 
-def en_kaggle(entrada: Path, salida: Path, espera_max: int = 5400) -> Path:
+def correr_en_kaggle(entrada: Path, script: str, nombre: str, espera_max: int = 5400) -> Path:
+    """Sube 'entrada' como dataset privado, corre 'script' con GPU en Kaggle y baja lo que deje
+    en /kaggle/working. Devuelve la carpeta con el resultado. Lo usan el avatar y la animación."""
     usuario = secreto("KAGGLE_USERNAME")
     if not (usuario and (secreto("KAGGLE_KEY") or secreto("KAGGLE_API_TOKEN"))):
         raise RuntimeError("Faltan KAGGLE_USERNAME y KAGGLE_KEY")
-    datos_id, kernel_id = f"{usuario}/fabrica-avatar-entrada", f"{usuario}/fabrica-avatar"
+    datos_id, kernel_id = f"{usuario}/fabrica-{nombre}-entrada", f"{usuario}/fabrica-{nombre}"
     (entrada / "dataset-metadata.json").write_text(json.dumps(
-        {"title": "fabrica-avatar-entrada", "id": datos_id, "licenses": [{"name": "CC0-1.0"}]}))
+        {"title": f"fabrica-{nombre}-entrada", "id": datos_id, "licenses": [{"name": "CC0-1.0"}]}))
     try:
         _kaggle("datasets", "version", "-p", entrada, "-m", "nuevo video", "--dir-mode", "zip", timeout=1800)
     except RuntimeError:
         _kaggle("datasets", "create", "-p", entrada, "--dir-mode", "zip", timeout=1800)
     # Kaggle tarda un poco en dejar lista la nueva versión. Algunas claves no tienen permiso
     # para preguntar el estado (error 403): en ese caso solo se espera un rato.
-    for intento in range(30):
+    for _ in range(30):
         try:
             if "ready" in _kaggle("datasets", "status", datos_id).lower():
                 break
         except RuntimeError as e:
-            logger.info(f"Avatar: no se puede preguntar el estado del dataset ({str(e)[-80:]}); se espera 2 minutos")
+            logger.info(f"Kaggle: no se puede preguntar el estado del dataset ({str(e)[-80:]}); se espera 2 minutos")
             time.sleep(120)
             break
         time.sleep(10)
-    codigo = entrada.parent / "kernel"
+    codigo = entrada.parent / f"kernel-{nombre}"
     codigo.mkdir(exist_ok=True)
-    (codigo / "avatar.py").write_text(SCRIPT_KAGGLE, encoding="utf-8")
+    (codigo / "script.py").write_text(script, encoding="utf-8")
     (codigo / "kernel-metadata.json").write_text(json.dumps({
-        "id": kernel_id, "title": "fabrica-avatar", "code_file": "avatar.py", "language": "python",
+        "id": kernel_id, "title": f"fabrica-{nombre}", "code_file": "script.py", "language": "python",
         "kernel_type": "script", "is_private": True, "enable_gpu": True, "enable_internet": True,
         "dataset_sources": [datos_id], "competition_sources": [], "kernel_sources": []}))
     _kaggle("kernels", "push", "-p", codigo)
-    logger.info("Avatar: Kaggle está moviendo tu boca (puede tardar 10-30 minutos)...")
     inicio = time.time()
     while time.time() - inicio < espera_max:
         time.sleep(30)
@@ -223,8 +224,14 @@ def en_kaggle(entrada: Path, salida: Path, espera_max: int = 5400) -> Path:
             raise RuntimeError(f"Kaggle terminó con error: {estado.strip()[-200:]}")
     else:
         raise RuntimeError("Kaggle tardó demasiado")
-    resultado = entrada.parent / "resultado"
+    resultado = entrada.parent / f"resultado-{nombre}"
     _kaggle("kernels", "output", kernel_id, "-p", resultado, timeout=1800)
+    return resultado
+
+
+def en_kaggle(entrada: Path, salida: Path, espera_max: int = 5400) -> Path:
+    logger.info("Avatar: Kaggle está moviendo tu boca (puede tardar 10-30 minutos)...")
+    resultado = correr_en_kaggle(entrada, SCRIPT_KAGGLE, "avatar", espera_max)
     hecho = resultado / "salida.mp4"
     if not hecho.exists():
         raise RuntimeError("Kaggle no pudo hacer el avatar (¿no se ve tu cara en los pedazos?)")

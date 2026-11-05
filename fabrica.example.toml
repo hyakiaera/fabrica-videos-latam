@@ -161,6 +161,14 @@ espera_max_segundos = 5400
 por_tono = true     # usar tus canciones de Drive "Fabrica de Videos/musica/<ánimo>" según el tono
 carpeta = "musica"
 
+[animar]
+# Escenas que se mueven de verdad (LTX-Video en Kaggle). Tarda 10-25 min por video y gasta
+# minutos de GitHub mientras espera, por eso viene apagado. Se prende con la variable ANIMAR = si.
+activo = false
+escenas = 3
+pasos = 30
+espera_max_segundos = 4500
+
 [miniatura]
 activa = true       # portada con texto grande y tu cara si hay avatar
 color_1 = "#FFE600"

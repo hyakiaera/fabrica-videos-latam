@@ -23,6 +23,8 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
     if datos.get("voz_usada", {}).get("voz"):
         v = datos["voz_usada"]
         lineas += ["", f"VOZ: {v['voz']}" + (f"\n   motivo: {v['motivo']}" if v.get("motivo") else "")]
+    if datos.get("animadas"):
+        lineas += [f"ESCENAS ANIMADAS CON IA: {datos['animadas']}"]
     if datos.get("musica_usada"):
         lineas += [f"MÚSICA: {datos['musica_usada']}"]
     if datos.get("avatar_usado"):
