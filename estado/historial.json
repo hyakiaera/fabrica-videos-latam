@@ -612,5 +612,28 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "musica",
+  "numero": 53,
+  "fecha": "2026-11-06T23:19",
+  "tema": "La nueva canción de Rosalía con indirectas a Rauw",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¡Rosalía arremete contra Rauw Alejandro en su nueva canción!",
+  "archivo": "salida/2026-11-06/entretenimiento/la-nueva-cancion-de-rosalia-con-indirectas-a-rauw #053.mp4",
+  "automatico": true,
+  "nota": 91.8,
+  "drive": "2026-11-06/entretenimiento/la-nueva-cancion-de-rosalia-con-indirectas-a-rauw #053.mp4",
+  "hashtags": [
+   "#Rosalia",
+   "#RauwAlejandro",
+   "#LaPerla",
+   "#ChismePop",
+   "#MusicaLatina",
+   "#Farandula"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
