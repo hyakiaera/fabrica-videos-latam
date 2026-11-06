@@ -516,5 +516,30 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 49,
+  "fecha": "2026-11-06T00:05",
+  "tema": "La isla que cambia de país cada seis meses: la curiosa historia de la Isla de los Faisanes",
+  "categoria": "curiosidades",
+  "estilo": "geografia",
+  "titulo": "¿Sabías que España y Francia comparten una isla que cambia de país cada seis meses?",
+  "archivo": "salida/2026-11-05/curiosidades/la-isla-que-cambia-de-pais-cada-seis-meses-la-curiosa-histor #049.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-05/curiosidades/la-isla-que-cambia-de-pais-cada-seis-meses-la-curiosa-histor #049.mp4",
+  "hashtags": [
+   "#gastronomía",
+   "#españa",
+   "#francia",
+   "#curiosidades",
+   "#historia",
+   "#food",
+   "#geography",
+   "#travel"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Hiding Your Reality» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/"
  }
 ]
