@@ -564,5 +564,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 51,
+  "fecha": "2026-11-06T12:20",
+  "tema": "Video viral salva a restaurante chino familiar en EE.UU.",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¿Un video viral puede salvar un restaurante familiar en Estados Unidos?",
+  "archivo": "salida/2026-11-06/entretenimiento/video-viral-salva-a-restaurante-chino-familiar-en-ee-uu #051.mp4",
+  "automatico": true,
+  "nota": 86.8,
+  "drive": "2026-11-06/entretenimiento/video-viral-salva-a-restaurante-chino-familiar-en-ee-uu #051.mp4",
+  "hashtags": [
+   "#restaurante",
+   "#viral",
+   "#estadosunidos",
+   "#tendencia",
+   "#historia",
+   "#chinese restaurant",
+   "#viral video"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
