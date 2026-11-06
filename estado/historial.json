@@ -588,5 +588,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "general",
+  "numero": 52,
+  "fecha": "2026-11-06T20:18",
+  "tema": "Carlos Alcaraz avanza en el Masters de París tras lesión de Berrettini",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "¡Alcaraz avanza sin jugar en París!",
+  "archivo": "salida/2026-11-06/deportes/carlos-alcaraz-avanza-en-el-masters-de-paris-tras-lesion-de- #052.mp4",
+  "automatico": true,
+  "nota": 64.2,
+  "drive": "2026-11-06/deportes/carlos-alcaraz-avanza-en-el-masters-de-paris-tras-lesion-de- #052.mp4",
+  "hashtags": [
+   "#CarlosAlcaraz",
+   "#MastersParis",
+   "#Tenis",
+   "#ATP",
+   "#TaylorFritz",
+   "#TennisNews",
+   "#Deportes"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
