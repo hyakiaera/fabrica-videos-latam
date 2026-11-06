@@ -541,5 +541,28 @@
   ],
   "publicado": false,
   "credito_musica": "Música: «Hiding Your Reality» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/"
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 50,
+  "fecha": "2026-11-06T02:30",
+  "tema": "Rafa Márquez borra a la MLS del Tri",
+  "categoria": "deportes",
+  "estilo": "noticiero",
+  "titulo": "¡Rafa Márquez borra a la MLS del Tri! La lista para enfrentar a Jamaica",
+  "archivo": "salida/2026-11-06/deportes/rafa-marquez-borra-a-la-mls-del-tri #050.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-06/deportes/rafa-marquez-borra-a-la-mls-del-tri #050.mp4",
+  "hashtags": [
+   "#SeleccionMexicana",
+   "#RafaMarquez",
+   "#ElTri",
+   "#MLS",
+   "#TecatitoCorona",
+   "#FutbolMexicano"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
