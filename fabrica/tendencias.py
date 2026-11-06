@@ -162,9 +162,11 @@ Elige {cantidad} temas distintos, variados en categoría. Devuelve:
             if isinstance(i, int) and 0 <= i < len(ordenados):
                 c = ordenados[i]
                 fuentes += [h for h in c.titulares if h[0]] or [(c.titulo, "", "")]
-        estilo_tema = estilo if estilo != ESTILO_AUTOMATICO else tema.get("estilo", "")
-        if estilo_tema not in ESTILOS:
-            estilo_tema = "caricatura"
+        if estilo != ESTILO_AUTOMATICO:
+            estilo_tema = estilo if estilo in ESTILOS else "caricatura"
+        else:
+            from fabrica.estilos import automatico
+            estilo_tema = automatico(tema.get("estilo", ""), "caricatura")
         temas.append({
             "tema": tema.get("tema", "").strip(),
             "categoria": tema.get("categoria", "general"),

@@ -527,9 +527,40 @@ def _emoji(caracter: str, tam: int) -> Image.Image | None:
     return None
 
 
+_OCUPADO: list = []  # cajas de lo ya escrito en el cuadro actual (para que nada quede encima)
+
+
+def _choca(caja, margen: int = 4) -> bool:
+    x0, y0, x1, y1 = caja
+    for a0, b0, a1, b1 in _OCUPADO:
+        ancho = min(x1, a1) - max(x0, a0) + margen
+        alto = min(y1, b1) - max(y0, b0) + margen
+        if ancho > 0 and alto > 0:
+            return True
+    return False
+
+
+def _lugar_libre(x, y, w, h, capa_w, capa_h, fijo=False):
+    """Posición sin chocar con otros textos: el punto pedido o un poco arriba/abajo/al lado.
+    None si no hay espacio (mejor no escribirlo que tapar otro nombre)."""
+    def caja(cx, cy):
+        cx = min(max(cx, w / 2 + 8), capa_w - w / 2 - 8)
+        cy = min(max(cy, h / 2 + 8), capa_h - h / 2 - 8)
+        return cx, cy, (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+    if fijo:
+        return caja(x, y)
+    for dx, dy in ((0, 0), (0, h * 0.9), (0, -h * 0.9), (w * 0.6, 0), (-w * 0.6, 0),
+                   (0, h * 1.8), (0, -h * 1.8), (w * 0.6, h), (-w * 0.6, -h)):
+        cx, cy, c = caja(x + dx, y + dy)
+        if not _choca(c):
+            return cx, cy, c
+    return None
+
+
 def _texto(capa: Image.Image, xy, texto: str, tam: int, color=(255, 255, 255), alfa=1.0,
-           giro: float = 0.0, brillo=None):
-    """Texto grueso con borde negro; con giro sale inclinado como en los canales de mapas."""
+           giro: float = 0.0, brillo=None, fijo: bool = False):
+    """Texto grueso con borde negro; con giro sale inclinado como en los canales de mapas.
+    Nunca encima de otro texto: se corre a un lugar libre o no se escribe."""
     if alfa <= 0.01 or tam < 6 or not texto:
         return
     letra = _letra(int(tam))
@@ -554,9 +585,22 @@ def _texto(capa: Image.Image, xy, texto: str, tam: int, color=(255, 255, 255), a
     # si el lugar está lejos de la pantalla, no se dibuja.
     if not (-img.width / 2 < xy[0] < capa.width + img.width / 2 and -img.height < xy[1] < capa.height + img.height):
         return
-    x = min(max(xy[0], img.width / 2 + 8), capa.width - img.width / 2 - 8)
-    y = min(max(xy[1], img.height / 2 + 8), capa.height - img.height / 2 - 8)
+    sitio = _lugar_libre(xy[0], xy[1], img.width - 16, img.height - 16, capa.width, capa.height, fijo)
+    if sitio is None:
+        return
+    x, y, caja = sitio
+    _OCUPADO.append(caja)
     capa.alpha_composite(img, (int(x - img.width / 2), int(y - img.height / 2)))
+
+
+def _pegar(capa: Image.Image, img: Image.Image, x: float, y: float) -> bool:
+    """Pega un icono, bandera o pegatina si no tapa un texto; lo registra para los siguientes."""
+    caja = (x - img.width / 2, y - img.height / 2, x + img.width / 2, y + img.height / 2)
+    if _choca(caja, margen=-6):
+        return False
+    _OCUPADO.append(caja)
+    capa.alpha_composite(img, (int(caja[0]), int(caja[1])))
+    return True
 
 
 class Proyector:
@@ -826,15 +870,16 @@ def _dibujar(cuadro: Image.Image, cam, escena: dict, t: float, segundos: float, 
     inicio = escena.get("_inicio", 0.25)
     capas = escena["capas"]
     hueco = (0.85 - inicio) / max(1, len(capas))
-    for capa_previa in previas:
-        _una_capa(capa_previa, 99, capa, brillo, textos, proy, segundos)
-    for k, c in enumerate(capas):
-        _una_capa(c, (t - (inicio + k * hueco)) * segundos, capa, brillo, textos, proy, segundos)
+    _OCUPADO.clear()
     if escena.get("pregunta"):
         aparece = (t - 0.08) * segundos
         if aparece > 0:
             _texto(textos, (ANCHO / 2, ALTO * 0.2), escena["pregunta"], 74 * _rebote(aparece / 0.45),
-                   alfa=min(1.0, aparece / 0.2), giro=-8)
+                   alfa=min(1.0, aparece / 0.2), giro=-8, fijo=True)
+    for capa_previa in previas:
+        _una_capa(capa_previa, 99, capa, brillo, textos, proy, segundos)
+    for k, c in enumerate(capas):
+        _una_capa(c, (t - (inicio + k * hueco)) * segundos, capa, brillo, textos, proy, segundos)
     brillo = brillo.filter(ImageFilter.GaussianBlur(6))
     cuadro = cuadro.convert("RGBA")
     cuadro.alpha_composite(brillo)
@@ -857,7 +902,7 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
         _rellenar(capa, brillo, proy, c["forma"], c["color"], alfa)
         if c.get("etiqueta"):
             x, y = proy(*c["punto"])
-            tam = max(28, min(72, 520 / max(4, len(c["etiqueta"]))))
+            tam = max(26, min(54, 420 / max(4, len(c["etiqueta"]))))
             _texto(textos, (x, y), c["etiqueta"], tam * _rebote(edad / 0.4), alfa=alfa,
                    brillo=(255, 230, 120) if c.get("iconos") is not None else None,
                    giro=-12 if c.get("iconos") is None and len(c["etiqueta"]) > 5 else 0)
@@ -870,14 +915,14 @@ def _una_capa(c: dict, edad: float, capa, brillo, textos, proy, segundos):
                 y -= 70 if c.get("etiqueta") else 0
                 x = min(max(x, img.width / 2 + 8), ANCHO - img.width / 2 - 8)
                 if 0 < y < ALTO:
-                    textos.alpha_composite(img, (int(x - img.width / 2), int(y - img.height / 2)))
+                    _pegar(textos, img, x, y)
         for k, (emoji, punto) in enumerate(c.get("iconos") or []):
             e = edad - 0.35 - k * 0.3
             if e > 0:
                 img = _emoji(emoji, int(max(8, 64 * _rebote(e / 0.35))))
                 if img:
                     x, y = proy(*punto)
-                    textos.alpha_composite(img, (int(x - img.width / 2), int(y - img.height / 2)))
+                    _pegar(textos, img, x, y)
     elif tipo == "linea":
         fraccion = _suave(edad / 1.6)
         d, db = ImageDraw.Draw(capa), ImageDraw.Draw(brillo)

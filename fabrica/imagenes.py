@@ -282,6 +282,31 @@ def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     return salida
 
 
+def foto_de_persona(nombre: str, carpeta: Path, archivo: str) -> tuple[Path, str] | None:
+    """Foto principal del artículo de Wikipedia de la persona, solo si el artículo es de ella
+    (su apellido está en el título)."""
+    import unicodedata
+    from fabrica import fotos_web
+
+    def limpio(t):
+        return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+
+    claves = [w for w in limpio(nombre).replace(",", " ").split() if len(w) > 3]
+    if not claves:
+        return None
+    for url, credito, pagina in fotos_web.imagen_wikipedia(nombre):
+        if not any(c in limpio(credito) for c in claves[-2:]):
+            continue
+        if url.lower().endswith((".svg", ".gif")):
+            continue
+        carpeta.mkdir(parents=True, exist_ok=True)
+        ruta = fotos_web._bajar(url, carpeta / f"{archivo}.jpg")
+        if ruta:
+            logger.info(f"Foto de {nombre}: {credito}")
+            return ruta, f"{credito} — {pagina}"
+    return None
+
+
 def _elegir_escenas(escenas: list[dict], maximo: int, propias: dict | None = None) -> set[int]:
     """Qué escenas llevan imagen nueva. Las gráficas no necesitan imagen; si hay más
     escenas que el máximo, se reparten parejo y las demás reutilizan la anterior
@@ -412,6 +437,14 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             if tuya:
                 sumar("propias")
                 return preparar_real(tuya, aspecto), None
+        es_persona = real and (escena.get("foto_real_tipo") or "").lower().startswith("persona")
+        if es_persona and im.get("fotos_reales", True):
+            # Persona famosa: la foto de SU artículo de Wikipedia (la IA revisora no reconoce caras,
+            # así que una foto suelta de internet puede ser de cualquiera).
+            hallado = foto_de_persona(real, carpeta, nombre + "-persona")
+            if hallado:
+                sumar("real")
+                return preparar_real(hallado[0], aspecto), hallado[1]
         if real and im.get("fotos_reales", True):
             # Marca, equipo, producto, lugar o persona real: su foto o logo verdadero.
             hallado = wikimedia(real, carpeta, nombre + "-real", incluir_logos=True)
@@ -419,7 +452,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             if hallado and encaja(hallado[0], f"{real} — {descripcion}"):
                 sumar("real")
                 return al_estilo(hallado[0], escena_completa), hallado[1]
-            if banco:
+            if banco and not es_persona:
                 hallado = de_internet(real, f"{real} — {descripcion}")
                 if hallado:
                     sumar("real")

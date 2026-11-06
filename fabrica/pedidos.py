@@ -9,7 +9,7 @@ import requests
 from loguru import logger
 
 from fabrica import ia, tendencias
-from fabrica.estilos import ESTILO_AUTOMATICO, ESTILOS, resumen_para_ia
+from fabrica.estilos import ESTILO_AUTOMATICO, ESTILOS, automatico, resumen_para_ia
 
 REDES = ("youtube.com", "youtu.be", "tiktok.com", "instagram.com", "facebook.com", "fb.watch",
          "x.com", "twitter.com")
@@ -155,7 +155,8 @@ Devuelve {{"tema": "título corto en español", "consulta": "2-6 palabras para b
     return {
         "tema": tema,
         "categoria": categoria or d.get("categoria", "general"),
-        "estilo": elegido if elegido in ESTILOS else "caricatura",
+        "estilo": (elegido if estilo != ESTILO_AUTOMATICO and elegido in ESTILOS
+                   else automatico(elegido, "caricatura")),
         "por_que": "pedido a mano" + (f": {indicaciones}" if indicaciones else ""),
         "fuentes": fuentes[:10],
         "contexto": contexto,

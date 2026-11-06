@@ -134,6 +134,7 @@ Devuelve este JSON:
    "imagen": "descripción visual en INGLÉS de LO QUE SE DICE en esta escena, concreta y autosuficiente (el generador no conoce el resto del guion)",
    "busqueda_foto": "2-5 palabras en inglés con el tema y el lugar exactos (ej. 'pupusas El Salvador', 'Guadalajara cathedral')",
    "foto_real": "SOLO si en esta escena es clave una marca, logo, equipo, producto, lugar famoso o persona real: su nombre exacto para buscar su foto/logo real (ej. 'Binance logo', 'Club América', 'Estadio Azteca', 'iPhone 17'). Si no, vacío",
+   "foto_real_tipo": "si hay foto_real: persona, logo, lugar o producto",
    "busqueda_stock": "1-3 palabras en inglés MUY comunes que existan en bancos de videos (ej. 'cryptocurrency', 'hacker laptop', 'stock market', 'soccer fans'); nada de nombres propios",
    "foto_propia": "nombre exacto de una foto propia si encaja, si no vacío",
    "movimiento": "en INGLÉS, qué se mueve en la escena si se anima (ej. 'the jet flies low over the houses, smoke rising', 'fans jumping and waving flags')",
@@ -173,6 +174,9 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
   equipo>" (ej. "escudo Club América", "escudo Club Deportivo Guadalajara Chivas"); si hay
   marcadores en el contenido, dilos y muéstralos en una gráfica tipo "tarjeta" (ej. lineas:
   ["América 2 - 1 Pumas", "Chivas 0 - 0 Toluca"]).
+- Deportes: "busqueda_foto" y "busqueda_stock" SIEMPRE con el equipo, la selección o la liga
+  concretos (ej. "Selección Mexicana entrenamiento", "Liga MX afición"), nunca genéricos como
+  "soccer coach" (salen fotos de fútbol americano o de otros equipos).
 - Personas reales famosas: en "imagen" no describas su cara (descríbelas de espaldas, de lejos o
   por su camiseta/uniforme); pon su nombre en "foto_real" para usar una foto real con licencia."""
     datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)

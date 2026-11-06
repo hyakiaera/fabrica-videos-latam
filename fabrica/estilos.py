@@ -152,9 +152,18 @@ def disponible(estilo: Estilo) -> bool:
     return "stock_video" not in estilo.fuentes or hay_stock()
 
 
+# Estilos que solo salen cuando TÚ los eliges en Run workflow (la IA no los escoge sola).
+SOLO_MANUAL = {"geografia"}
+
+
+def automatico(clave: str, respaldo: str = "explicativo") -> str:
+    """El estilo que eligió la IA, sin los que son solo manuales."""
+    return clave if clave in ESTILOS and clave not in SOLO_MANUAL else respaldo
+
+
 def resumen_para_ia() -> str:
     """Lista corta que se le pasa a la IA para que elija el estilo de cada tema."""
     return "\n".join(
         f"- {clave}: {e.descripcion} Ideal para: {', '.join(e.temas_ideales)}"
-        for clave, e in ESTILOS.items() if disponible(e)
+        for clave, e in ESTILOS.items() if disponible(e) and clave not in SOLO_MANUAL
     )

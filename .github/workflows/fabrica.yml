@@ -70,6 +70,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
+        id: python
         with:
           python-version: "3.11"
           cache: pip
@@ -96,7 +97,9 @@ jobs:
             .applio_modelos
             .chatterbox
             ~/.cache/huggingface
-          key: voces-${{ runner.os }}-v2
+          # La versión exacta de Python va en la llave: si cambia, el entorno de la voz guardado ya no sirve.
+          # (la llave v2 se guardó antes de que existiera la voz 'yo' y la reinstalaba en cada ronda)
+          key: voces-${{ runner.os }}-py${{ steps.python.outputs.python-version }}-v3
 
       - name: Configurar Google Drive (rclone)
         env:
@@ -199,6 +202,20 @@ jobs:
             ARGS+=(--voz "$IN_VOZ" --clonar-voz no)
           fi
           python -m fabrica "${ARGS[@]}" "${MARCA[@]}"
+
+      - name: Guardar la voz para revisarla (rama diagnostico)
+        if: always()
+        run: |
+          mkdir -p /tmp/diag
+          # (las carpetas de trabajo tienen espacios y "#": se leen línea por línea)
+          find storage -name 'voz-yo*.wav' -newer config.toml 2>/dev/null | head -8 | while IFS= read -r f; do
+            ffmpeg -nostdin -v error -y -i "$f" -ac 1 -b:a 96k "/tmp/diag/$(basename "${f%.wav}").mp3" || true
+          done
+          if ! ls /tmp/diag/*.mp3 > /dev/null 2>&1; then exit 0; fi
+          cd /tmp/diag
+          git init -q && git checkout -q -b diagnostico
+          git add . && git -c user.name=fabrica-bot -c user.email=fabrica-bot@users.noreply.github.com commit -qm "voz de la ronda ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" diagnostico || true
 
       - name: Dejar los videos para descargar
         if: always()

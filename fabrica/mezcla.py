@@ -26,9 +26,7 @@ CATEGORIAS = {
                          "famosos latinos", "reality show"]),
     "curiosidades": (18, "curiosidades y valor: cómo hacer algo, sabías que, consejos, reflexiones, motivación, "
                          "ideas de negocio, ofertas, top 5 / top 10 (ej. máquinas para empezar un negocio), "
-                         "cómo gastar mejor 500 dólares, geografía e historia de Latinoamérica y del mundo "
-                         "(cómo se divide un país, fronteras raras, por qué un país tiene esa forma; estos "
-                         "van con el estilo geografia)", []),
+                         "cómo gastar mejor 500 dólares", []),
     "finanzas": (10, "cripto y bolsa: resumen del mercado del día, Wall Street, memecoins, bitcoin, ahorrar "
                      "en BTC, mejores apps para invertir, mejores exchanges",
                  ["bitcoin hoy", "Wall Street hoy", "bolsa de valores hoy", "memecoin", "criptomonedas"]),
@@ -82,7 +80,7 @@ def candidatos(cfg: dict, categoria: str) -> list[tendencias.Candidato]:
 
 def tema_sin_noticias(cfg: dict, recientes: list[str], estilo: str) -> dict:
     """Curiosidades, consejos, tops: la IA propone un tema que no se haya hecho."""
-    from fabrica.estilos import ESTILO_AUTOMATICO, ESTILOS, resumen_para_ia
+    from fabrica.estilos import ESTILO_AUTOMATICO, ESTILOS, automatico, resumen_para_ia
     sistema = "Eres productor de un canal latino de videos cortos con mucho alcance. Respondes SOLO JSON válido."
     usuario = f"""Propón UN tema para un video de: {CATEGORIAS['curiosidades'][1]}.
 Debe ser útil o sorprendente, con datos verificables, para público latino.
@@ -93,7 +91,8 @@ Devuelve {{"tema": "título corto", "consulta": "2-5 palabras para buscar inform
     d = ia.pedir_json(cfg, sistema, usuario, temperatura=0.9)
     elegido = estilo if estilo != ESTILO_AUTOMATICO else d.get("estilo", "")
     return {"tema": d.get("tema", "").strip(), "categoria": "curiosidades",
-            "estilo": elegido if elegido in ESTILOS else "explicativo", "por_que": d.get("por_que", ""),
+            "estilo": (elegido if estilo != ESTILO_AUTOMATICO and elegido in ESTILOS
+                       else automatico(elegido)), "por_que": d.get("por_que", ""),
             "fuentes": tendencias.buscar_noticias(d.get("consulta") or d.get("tema", ""))}
 
 

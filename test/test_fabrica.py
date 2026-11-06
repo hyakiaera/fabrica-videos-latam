@@ -1504,3 +1504,21 @@ class TestPublicarRedPorRed(unittest.TestCase):
         self.assertEqual(r["plataformas"], ["youtube"])
         self.assertEqual(llamadas[0], ["youtube", "facebook"])
         self.assertEqual(llamadas[1], ["x"])
+
+
+class TestFotoDePersona(unittest.TestCase):
+    def test_solo_si_el_articulo_es_de_esa_persona(self):
+        from fabrica import fotos_web
+        c = Path(tempfile.mkdtemp())
+        resultados = [("https://x/otro.jpg", "Wikipedia (Selección de fútbol de México)", "p1"),
+                      ("https://x/rafa.jpg", "Wikipedia (Rafael Márquez)", "p2")]
+        with mock.patch.object(fotos_web, "imagen_wikipedia", return_value=resultados), \
+             mock.patch.object(fotos_web, "_bajar", side_effect=lambda url, ruta: ruta) as bajar:
+            ruta, credito = imagenes.foto_de_persona("Rafa Márquez", c, "f")
+        self.assertIn("Rafael Márquez", credito)
+        self.assertEqual(bajar.call_args[0][0], "https://x/rafa.jpg")
+
+    def test_geografia_no_la_elige_la_ia(self):
+        self.assertEqual(estilos.automatico("geografia"), "explicativo")
+        self.assertNotIn("geografia", estilos.resumen_para_ia())
+        self.assertEqual(estilos.automatico("anime"), "anime")
