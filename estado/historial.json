@@ -635,5 +635,30 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 54,
+  "fecha": "2026-11-07T02:05",
+  "tema": "El truco de maquillaje viral en una sola capa",
+  "categoria": "entretenimiento",
+  "estilo": "realista",
+  "titulo": "¿Maquillaje de una sola capa? El truco viral que simplifica tu rutina",
+  "archivo": "salida/2026-11-07/entretenimiento/el-truco-de-maquillaje-viral-en-una-sola-capa #054.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-07/entretenimiento/el-truco-de-maquillaje-viral-en-una-sola-capa #054.mp4",
+  "hashtags": [
+   "#maquillaje",
+   "#makeup",
+   "#beauty",
+   "#trucodemaquillaje",
+   "#viral",
+   "#makeuphack",
+   "#tipsdebelleza",
+   "#belleza"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
