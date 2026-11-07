@@ -684,5 +684,30 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 56,
+  "fecha": "2026-11-07T18:24",
+  "tema": "La nueva convocatoria de Rafa Márquez para la Selección Mexicana",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "¡La nueva lista de Rafa Márquez con sorpresas y ausencias!",
+  "archivo": "salida/2026-11-07/deportes/la-nueva-convocatoria-de-rafa-marquez-para-la-seleccion-mexi #056.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-07/deportes/la-nueva-convocatoria-de-rafa-marquez-para-la-seleccion-mexi #056.mp4",
+  "hashtags": [
+   "#SeleccionMexicana",
+   "#RafaMarquez",
+   "#ElTri",
+   "#Jamaica",
+   "#FutbolMexicano",
+   "#Mexico",
+   "#TUDN",
+   "#Mediotiempo"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
