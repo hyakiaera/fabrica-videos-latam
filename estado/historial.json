@@ -660,5 +660,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 55,
+  "fecha": "2026-11-07T11:14",
+  "tema": "Cómo comprar boletos de avión ocultando tu ubicación real",
+  "categoria": "curiosidades",
+  "estilo": "realista",
+  "titulo": "¡Cómo ocultar tu ubicación para encontrar vuelos más baratos!",
+  "archivo": "salida/2026-11-07/curiosidades/como-comprar-boletos-de-avion-ocultando-tu-ubicacion-real #055.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-07/curiosidades/como-comprar-boletos-de-avion-ocultando-tu-ubicacion-real #055.mp4",
+  "hashtags": [
+   "#vuelosbaratos",
+   "#viajes",
+   "#vpn",
+   "#consejosdeviaje",
+   "#ahorrodinerotodoelaño",
+   "#travelhacks",
+   "#flightdeals"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
