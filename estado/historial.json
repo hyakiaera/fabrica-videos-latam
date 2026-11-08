@@ -804,5 +804,30 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 61,
+  "fecha": "2026-11-08T18:39",
+  "tema": "La crisis histórica del Manchester United en zona de descenso",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "¡Crisis total! Manchester United cae en zona de descenso en la Premier",
+  "archivo": "salida/2026-11-08/deportes/la-crisis-historica-del-manchester-united-en-zona-de-descens #061.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-08/deportes/la-crisis-historica-del-manchester-united-en-zona-de-descens #061.mp4",
+  "hashtags": [
+   "#ManchesterUnited",
+   "#PremierLeague",
+   "#AstonVilla",
+   "#Fútbol",
+   "#Deportes",
+   "#Soccer",
+   "#Crisis",
+   "#OldTrafford"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
