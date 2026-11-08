@@ -829,5 +829,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 62,
+  "fecha": "2026-11-08T21:28",
+  "tema": "El 20% de los estadounidenses se informa por TikTok",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "¿Sabías que 1 de cada 5 estadounidenses se informa por TikTok?",
+  "archivo": "salida/2026-11-08/tecnologia/el-20-de-los-estadounidenses-se-informa-por-tiktok #062.mp4",
+  "automatico": true,
+  "nota": 69.4,
+  "drive": "2026-11-08/tecnologia/el-20-de-los-estadounidenses-se-informa-por-tiktok #062.mp4",
+  "hashtags": [
+   "#tiktok",
+   "#noticias",
+   "#pewresearch",
+   "#estadosunidos",
+   "#redessociales",
+   "#tecnologia",
+   "#news"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
