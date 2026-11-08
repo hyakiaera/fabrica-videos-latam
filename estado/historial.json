@@ -756,5 +756,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 59,
+  "fecha": "2026-11-08T07:35",
+  "tema": "El polémico reality que planea Anuel AA con sus ex",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¿Anuel AA en un reality con todas sus ex?",
+  "archivo": "salida/2026-11-08/entretenimiento/el-polemico-reality-que-planea-anuel-aa-con-sus-ex #059.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-08/entretenimiento/el-polemico-reality-que-planea-anuel-aa-con-sus-ex #059.mp4",
+  "hashtags": [
+   "#AnuelAA",
+   "#RealityShow",
+   "#Telemundo",
+   "#Famosos",
+   "#Entretenimiento",
+   "#Chismes",
+   "#MusicaUrbana"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
