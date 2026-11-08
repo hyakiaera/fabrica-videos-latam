@@ -732,5 +732,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 58,
+  "fecha": "2026-11-08T00:41",
+  "tema": "Alerta cripto: Falla en BTCPay Server vacía billeteras de Bitcoin",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "¡Alerta cripto! Falla en BTCPay Server vacía billeteras",
+  "archivo": "salida/2026-11-08/tecnologia/alerta-cripto-falla-en-btcpay-server-vacia-billeteras-de-bit #058.mp4",
+  "automatico": true,
+  "nota": 88.0,
+  "drive": "2026-11-08/tecnologia/alerta-cripto-falla-en-btcpay-server-vacia-billeteras-de-bit #058.mp4",
+  "hashtags": [
+   "#criptomonedas",
+   "#bitcoin",
+   "#hackers",
+   "#ciberseguridad",
+   "#cryptonews",
+   "#btc",
+   "#tecnologia"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
