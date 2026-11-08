@@ -780,5 +780,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 60,
+  "fecha": "2026-11-08T11:35",
+  "tema": "3 formas inteligentes de invertir tus primeros 500 dólares",
+  "categoria": "curiosidades",
+  "estilo": "explicativo",
+  "titulo": "Tus primeros 500 dólares: 3 formas inteligentes de invertirlos",
+  "archivo": "salida/2026-11-08/curiosidades/3-formas-inteligentes-de-invertir-tus-primeros-500-dolares #060.mp4",
+  "automatico": true,
+  "nota": 60.0,
+  "drive": "2026-11-08/curiosidades/3-formas-inteligentes-de-invertir-tus-primeros-500-dolares #060.mp4",
+  "hashtags": [
+   "#invertir",
+   "#finanzas",
+   "#sp500",
+   "#warrenbuffett",
+   "#wallstreet",
+   "#dinero",
+   "#investing"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
