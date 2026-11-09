@@ -1448,20 +1448,23 @@ class TestPegatinas(unittest.TestCase):
 
 
 class TestMusicaLibre(unittest.TestCase):
-    def test_geografia_usa_musica_libre_con_credito(self):
+    def test_la_libre_lleva_su_credito(self):
         from fabrica import musica
         c = Path(tempfile.mkdtemp())
-        with mock.patch.object(musica, "_de_drive", return_value=None):
-            cancion = musica.elegir({}, "misterio", "curiosidades", c, "geografia")
+        with mock.patch.object(musica, "CANCIONES_MPT", c / "nada"), \
+             mock.patch.object(musica, "_recientes", return_value=["curioso.mp3"]):
+            cancion = musica.variada("misterio", c)
         self.assertEqual(cancion.name, "fabrica-misterio.mp3")
         self.assertIn("Kevin MacLeod", musica.CREDITO["texto"])
         self.assertIn("CC BY 4.0", musica.CREDITO["texto"])
 
-    def test_otros_estilos_no_usan_la_libre(self):
+    def test_no_repite_las_ultimas(self):
         from fabrica import musica
-        with mock.patch.object(musica, "_de_drive", return_value=None):
-            self.assertIsNone(musica.elegir({}, "alegre", "deportes", Path(tempfile.mkdtemp()), "caricatura"))
-        self.assertEqual(musica.CREDITO["texto"], "")
+        todas = [p.name for p in musica.CANCIONES_MPT.glob("*.mp3")] + ["curioso.mp3", "misterio.mp3"]
+        dejar = todas[0]
+        with mock.patch.object(musica, "_recientes", return_value=todas[1:]):
+            cancion = musica.variada("alegre", Path(tempfile.mkdtemp()))
+        self.assertEqual(cancion.name, f"fabrica-{dejar}")
 
     def test_el_credito_va_en_la_publicacion_y_la_ficha(self):
         datos = {"titulo": "T", "guion": "g", "hashtags": ["#a"], "descripcion": "", "credito_musica": "Música: X (CC BY 4.0)"}
@@ -1522,3 +1525,28 @@ class TestFotoDePersona(unittest.TestCase):
         self.assertEqual(estilos.automatico("geografia"), "explicativo")
         self.assertNotIn("geografia", estilos.resumen_para_ia())
         self.assertEqual(estilos.automatico("anime"), "anime")
+
+
+class TestPronunciarYArranques(unittest.TestCase):
+    def test_nombres_en_ingles_para_la_voz(self):
+        from fabrica import pronunciar
+        t = pronunciar.para_voz("El Manchester United venció al Manchester City y a Lando Norris.",
+                                {"Lando Norris": "Lando Nórris"})
+        self.assertIn("Mánchester Iunáited", t)
+        self.assertIn("Mánchester Síti", t)
+        self.assertIn("Lando Nórris", t)
+        self.assertEqual(pronunciar.para_voz("Amazonas es enorme."), "Amazonas es enorme.")
+
+    def test_cada_video_pide_un_arranque(self):
+        capturado = {}
+
+        def pedir(cfg, sistema, usuario, temperatura=0.7):
+            capturado.setdefault("usuario", usuario)
+            return {"guion": "Hola. Prueba.", "escenas": [{"texto": "x"}], "hashtags": []}
+
+        with mock.patch.object(ia, "pedir_json", side_effect=pedir), \
+             mock.patch.object(guion, "puntuar", side_effect=lambda cfg, t: t):
+            guion.escribir({}, {"tema": "t", "evitar_arranques": ["¿Sabías que el bitcoin..."]},
+                           estilos.obtener("caricatura"))
+        self.assertIn("ARRANQUE de este video", capturado["usuario"])
+        self.assertIn("¿Sabías que el bitcoin", capturado["usuario"])

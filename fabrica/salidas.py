@@ -77,6 +77,36 @@ def subir_drive(cfg: dict, carpeta_local: Path, ruta_relativa: str) -> bool:
         return False
 
 
+def perfil_upload_post(clave: str, escrito: str) -> str:
+    """El nombre EXACTO del perfil en Upload-Post. Si el que guardaste no existe (mayúsculas,
+    espacios, o pusiste el nombre de la clave en vez del perfil), se busca en tu cuenta."""
+    import requests
+    try:
+        r = requests.get("https://api.upload-post.com/api/uploadposts/users",
+                         headers={"Authorization": f"Apikey {clave}"}, timeout=30)
+        datos = r.json() if r.ok else {}
+    except Exception:
+        return escrito
+    perfiles = datos.get("profiles") or datos.get("users") or datos.get("data") or []
+    nombres = [x.get("username") or x.get("name") for x in perfiles if isinstance(x, dict)]
+    nombres = [n for n in nombres if n]
+    if not nombres:
+        return escrito
+    if escrito in nombres:
+        return escrito
+    parecido = [n for n in nombres if n.lower().replace(" ", "") == escrito.lower().replace(" ", "")]
+    if parecido:
+        logger.warning(f"Upload-Post: el perfil se llama '{parecido[0]}' (guardaste '{escrito}'); uso el correcto")
+        return parecido[0]
+    if len(nombres) == 1:
+        logger.warning(f"Upload-Post: '{escrito}' no es un perfil; tu único perfil es '{nombres[0]}' y uso ese. "
+                       "Corrige el secreto UPLOAD_POST_USERNAME.")
+        return nombres[0]
+    logger.error(f"Upload-Post: '{escrito}' no es un perfil. Tus perfiles: {', '.join(nombres)}. "
+                 "Pon uno de esos en el secreto UPLOAD_POST_USERNAME.")
+    return escrito
+
+
 def publicar(cfg: dict, video: Path, datos: dict) -> dict:
     """Publica en TikTok/Instagram/YouTube Shorts con la integración Upload-Post
     que ya trae MoneyPrinterTurbo."""
@@ -87,8 +117,9 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
         logger.warning("Publicar: falta UPLOAD_POST_API_KEY; no se publicó")
         return {"success": False, "error": "sin clave"}
     cuenta = {
-        "upload_post_api_key": secreto("UPLOAD_POST_API_KEY"),
-        "upload_post_username": secreto("UPLOAD_POST_USERNAME") or p.get("usuario", ""),
+        "upload_post_api_key": secreto("UPLOAD_POST_API_KEY").strip(),
+        "upload_post_username": perfil_upload_post(secreto("UPLOAD_POST_API_KEY").strip(),
+                                                   (secreto("UPLOAD_POST_USERNAME") or p.get("usuario", "")).strip()),
         "upload_post_enabled": True,
     }
     titulo = f"{datos['titulo']} {' '.join(datos.get('hashtags', [])[:5])}"

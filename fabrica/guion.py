@@ -8,10 +8,22 @@ from fabrica import ia
 from fabrica.estilos import Estilo
 
 
+# Formas de arrancar: se elige una al azar en cada video para que no empiecen todos igual.
+ARRANQUES = [
+    "un DATO o una CIFRA que impacte, dicho en seco (ej. 'Ochenta mil dólares. Eso vale hoy un solo bitcoin.')",
+    "en medio de la acción, como si ya estuviera pasando (ej. 'Minuto noventa, el estadio en silencio y entonces...')",
+    "una afirmación polémica o que va contra lo que todos creen (ej. 'Todo lo que te contaron de este tema es mentira.')",
+    "'Imagina que...' poniendo al espectador dentro de la historia",
+    "una pregunta directa al espectador que no sea '¿Sabías que...?' (ej. '¿Tú pagarías esto?', '¿Qué harías si...?')",
+    "una advertencia o urgencia (ej. 'Si usas esta app, escucha esto antes de que sea tarde.')",
+    "una comparación sorprendente (ej. 'Esto es más grande que tres estadios Azteca juntos.')",
+    "el final primero y luego 'te cuento cómo pasó' (ej. 'Terminó con lágrimas en el estadio. Pero empecemos por el principio.')",
+    "'¿Sabías que...?' con un dato muy poco conocido",
+]
+
 ENTRETENIDO = (
-    "No es leer un texto: es ENTRETENER. La primera frase es una pregunta intrigante o un dato que "
-    "rompe lo que la gente cree (ej. '¿Sabías que México no es un solo país... geográficamente?'); "
-    "nunca empieces con 'Hoy te voy a contar' ni con saludos. Cada 2 o 3 frases mete algo que "
+    "No es leer un texto: es ENTRETENER. Nunca empieces con 'Hoy te voy a contar' ni con saludos. "
+    "Cada 2 o 3 frases mete algo que "
     "mantenga la atención: una pregunta al público, un 'pero aquí viene lo bueno', una comparación "
     "que se pueda imaginar o un dato que sorprenda. Habla como un amigo que cuenta algo increíble. "
     "Cierra con una pregunta que invite a comentar (ej. '¿Tú de qué región eres? Te leo'). "
@@ -96,6 +108,12 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
                   "ninguno. La última escena lleva una grafica tipo \"tarjeta\" con el nombre del negocio, "
                   "la oferta y cómo llegar o contactar.\n")
+    import random as _random
+    arranque = _random.choice(ARRANQUES)
+    extra += f"\nARRANQUE de este video (primera frase): {arranque}.\n"
+    if tema.get("evitar_arranques"):
+        extra += ("No empieces parecido a estos videos recientes del canal: "
+                  + " | ".join(tema["evitar_arranques"][-8:]) + "\n")
     if tema.get("ficha"):
         extra += ("\nDATOS REALES del lugar (Wikipedia/Wikidata). Son tu fuente principal: usa estas "
                   "cifras y hechos tal cual, elige los más sorprendentes y no inventes otros:\n"
@@ -123,6 +141,7 @@ Devuelve este JSON:
 {{"titulo": "título para la plataforma, máx 80 caracteres, con gancho",
  "guion": "texto narrado completo, unas {palabras} palabras, con puntuación normal (puntos al final de cada oración, comas, signos ¿? ¡!), oraciones cortas, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
+ "pronunciacion": {{"Nombre extranjero tal como está escrito en el guion": "cómo se pronuncia escrito en español (ej. 'Manchester United': 'Mánchester Iunáited', 'Lando Norris': 'Lando Nórris')"}} — solo nombres en inglés u otros idiomas; si no hay, {{}},
  "titulo_miniatura": "2 a 4 palabras MUY llamativas para la portada (ej. '¡CAYÓ EN PLENA CALLE!', 'NADIE LO VIO VENIR'), sin mentir",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
  "tono": "una palabra: triste, reflexivo, inspirador, motivador, alegre, divertido, épico, serio, urgente o informativo",

@@ -509,15 +509,16 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                 if ruta and encaja(ruta, escena_completa):
                     sumar("stock")
                     return al_estilo(ruta, escena_completa), None
-        # Antes de quedarse sin nada: una foto real del tema, o la imagen IA aunque no fue perfecta.
+        # Antes de quedarse sin nada: una foto real del tema (también revisada).
         if banco and "web" not in estilo.fuentes:
             hallado = de_internet(real or busqueda or tema, f"{real or busqueda or tema} ({descripcion})")
             if hallado:
                 sumar("real")
                 return al_estilo(hallado[0], escena_completa), hallado[1]
-        if ia_de_respaldo:
+        if ia_de_respaldo and im.get("usar_rechazadas", False):
             sumar("ia")
             return ia_de_respaldo, None
+        # Una imagen que la revisión dijo que NO encaja no se usa: mejor repetir una buena.
         logger.warning(f"Sin imagen para la escena {i}; se reutilizará otra")
         return None, None
 

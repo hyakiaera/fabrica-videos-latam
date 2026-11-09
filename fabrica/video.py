@@ -74,10 +74,14 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     audio_propio = None
     audio_edge = None
     voz.anotar(f"Edge ({voz.voz_edge(cfg)})")
+    # Lo que se LEE en voz alta: nombres en inglés escritos como suenan ("Mánchester Iunáited").
+    # Los subtítulos siguen saliendo del guion original, bien escrito.
+    from fabrica import pronunciar
+    lectura = pronunciar.para_voz(datos["guion"], datos.get("pronunciacion"))
     from fabrica import voz_yo
     if voz_yo.activo(cfg):
         try:
-            audio_propio = voz_yo.generar(cfg, datos["guion"], trabajo / "voz-yo")
+            audio_propio = voz_yo.generar(cfg, lectura, trabajo / "voz-yo")
             if "pulida" in audio_propio.name:  # (también "…-pulida-limpia.wav")
                 voz.anotar("yo (la IA lectora imitando tu forma de hablar + tu modelo HYAKO_LOCUTOR)")
             elif cfg.get("voz", {}).get("yo_pulir", True):
@@ -91,11 +95,15 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     if audio_propio:
         pass  # ya está la voz "yo"
     elif voz.clonar_activo(cfg):
-        audio_propio = voz.generar_y_clonar(cfg, datos["guion"], trabajo / "voz")
+        audio_propio = voz.generar_y_clonar(cfg, lectura, trabajo / "voz")
     else:
-        audio_edge = voz.probar_edge(cfg, datos["guion"], trabajo / "voz")
+        audio_edge = voz.probar_edge(cfg, lectura, trabajo / "voz")
         if audio_edge is None:
-            audio_propio = voz.narracion_google(cfg, datos["guion"], trabajo / "voz")
+            audio_propio = voz.narracion_google(cfg, lectura, trabajo / "voz")
+        elif lectura != datos["guion"]:
+            # Con nombres extranjeros se usa ESTA narración (bien pronunciada) en vez de que
+            # MoneyPrinterTurbo vuelva a leer el guion escrito.
+            audio_propio = audio_edge
 
     if "stock_video" in estilo.fuentes:
         from fabrica.config import secreto
@@ -164,7 +172,7 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         # Edge falló justo al hacer el video: se usa la narración que ya teníamos (o la de Google).
         logger.warning("La voz falló al armar el video; se reintenta con la narración guardada")
         task_id = str(uuid.uuid4())
-        resultado = correr(audio_edge or voz.narracion_google(cfg, datos["guion"], trabajo / "voz"))
+        resultado = correr(audio_edge or voz.narracion_google(cfg, lectura, trabajo / "voz"))
 
     datos["voz_usada"] = dict(voz.ULTIMA)
     # Narración sola (sin música), para que el avatar mueva la boca con ella.

@@ -42,12 +42,38 @@ CATEGORIAS = {
 def _pesos(cfg: dict) -> dict[str, float]:
     m = cfg.get("mezcla", {})
     pesos = {k: float(m.get(k, v[0])) for k, v in CATEGORIAS.items()}
+    try:  # lo que mejor nota saca sube un poco (máximo ±15 %)
+        for k, factor in factores_por_nota(_historial_guardado()).items():
+            if k in pesos:
+                pesos[k] *= factor
+    except Exception:
+        pass
     if m.get("segun_vistas", True):
         from fabrica import estadisticas
         for k, factor in estadisticas.leer().get("factores", {}).items():
             if k in pesos:
                 pesos[k] *= factor  # lo que más vistas tiene en tu canal sale un poco más seguido
     return pesos
+
+
+def _historial_guardado() -> list[dict]:
+    import json
+    from fabrica.config import RAIZ
+    ruta = RAIZ / "estado" / "historial.json"
+    return json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else []
+
+
+def factores_por_nota(historial: list[dict]) -> dict[str, float]:
+    """Promedio de nota por categoría (últimos 60 automáticos) comparado con el general."""
+    por_cat: dict[str, list[float]] = {}
+    for e in historial[-60:]:
+        if e.get("automatico") and isinstance(e.get("nota"), (int, float)) and e.get("mezcla"):
+            por_cat.setdefault(e["mezcla"], []).append(e["nota"])
+    todas = [n for v in por_cat.values() for n in v]
+    if len(todas) < 6:
+        return {}
+    media = sum(todas) / len(todas)
+    return {k: max(0.85, min(1.15, (sum(v) / len(v)) / media)) for k, v in por_cat.items() if len(v) >= 3}
 
 
 def elegir_categorias(cfg: dict, historial: list[dict], cantidad: int) -> list[str]:
@@ -114,7 +140,7 @@ def parecido(a: str, b: str) -> float:
     return len(pa & pb) / min(len(pa), len(pb))
 
 
-def repetido(tema: str, historial: list[dict], dias: int = 4) -> bool:
+def repetido(tema: str, historial: list[dict], dias: int = 21) -> bool:
     """True si ya se hizo un video casi igual en los últimos días (ej. dos de Jarritos)."""
     limite = datetime.now() - timedelta(days=dias)
     for e in historial[-200:]:
@@ -133,6 +159,11 @@ def temas_de_la_ronda(cfg: dict, cantidad: int, historial: list[dict], estilo: s
     from fabrica import estadisticas
     rendimiento = estadisticas.actualizar(cfg, historial)
     exitos = "; ".join(f"{v['titulo']} ({v['vistas']} vistas)" for v in rendimiento.get("mejores", [])[:5])
+    # Aprende también de sus propias notas: los títulos que mejor calificó salen de ejemplo.
+    notas = sorted((e for e in historial[-60:] if isinstance(e.get("nota"), (int, float))),
+                   key=lambda e: -e["nota"])[:4]
+    if notas:
+        exitos = "; ".join(x for x in [exitos, "; ".join(f"{e.get('titulo', '')} (nota {e['nota']:.0f})" for e in notas)] if x)
     recientes = [e.get("tema", "") for e in historial]
     temas = []
     for categoria in elegir_categorias(cfg, historial, cantidad):

@@ -90,6 +90,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             tema["ficha"] = ficha.datos(tema["tema"])
         except Exception as e:
             logger.warning(f"Ficha de datos: no disponible ({e})")
+    tema.setdefault("evitar_arranques", [e.get("arranque", "") for e in _historial()[-10:] if e.get("arranque")])
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     datos.setdefault("categoria", tema.get("categoria", ""))
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")
@@ -169,7 +170,9 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
                      "automatico": bool(tema.get("automatico")), "nota": datos.get("nota"),
                      "drive": f"{ruta_relativa}/{nombre}.mp4" if en_drive else "",
                      "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado,
-                     "credito_musica": datos.get("credito_musica", "")})
+                     "credito_musica": datos.get("credito_musica", ""),
+                     "musica": datos.get("musica_usada", ""),
+                     "arranque": re.split(r"(?<=[.!?])\s", datos.get("guion", "").strip(), maxsplit=1)[0][:120]})
     _guardar_historial(entradas)
     return guardado
 
