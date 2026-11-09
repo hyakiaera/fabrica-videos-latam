@@ -853,5 +853,29 @@
   ],
   "publicado": false,
   "credito_musica": ""
+ },
+ {
+  "mezcla": "general",
+  "numero": 63,
+  "fecha": "2026-11-09T01:01",
+  "tema": "El golazo de Juan Guillermo Cuadrado con Millonarios",
+  "categoria": "deportes",
+  "estilo": "caricatura",
+  "titulo": "¡Golazo histórico! Así fue el primer tanto de Cuadrado en Millonarios",
+  "archivo": "salida/2026-11-09/deportes/el-golazo-de-juan-guillermo-cuadrado-con-millonarios #063.mp4",
+  "automatico": true,
+  "nota": 87.1,
+  "drive": "2026-11-09/deportes/el-golazo-de-juan-guillermo-cuadrado-con-millonarios #063.mp4",
+  "hashtags": [
+   "#Cuadrado",
+   "#Millonarios",
+   "#LigaBetPlay",
+   "#DeportesTolima",
+   "#Golazo",
+   "#FutbolColombiano",
+   "#Soccer"
+  ],
+  "publicado": false,
+  "credito_musica": ""
  }
 ]
