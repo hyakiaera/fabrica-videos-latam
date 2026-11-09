@@ -1220,10 +1220,20 @@ class TestEstadisticas(unittest.TestCase):
 
     def test_la_mezcla_se_inclina_hacia_lo_que_funciona(self):
         from fabrica import estadisticas, mezcla
+        sin_notas = {"mezcla": {"segun_notas": False}}
         with mock.patch.object(estadisticas, "leer", return_value={"factores": {"deportes": 1.4}}):
-            self.assertAlmostEqual(mezcla._pesos({})["deportes"], 17 * 1.4)
+            self.assertAlmostEqual(mezcla._pesos(sin_notas)["deportes"], 17 * 1.4)
         with mock.patch.object(estadisticas, "leer", return_value={}):
-            self.assertEqual(mezcla._pesos({})["deportes"], 17)
+            self.assertEqual(mezcla._pesos(sin_notas)["deportes"], 17)
+
+    def test_aprende_de_las_notas(self):
+        from fabrica import mezcla
+        historial = ([{"automatico": True, "mezcla": "deportes", "nota": 90}] * 4
+                     + [{"automatico": True, "mezcla": "finanzas", "nota": 60}] * 4)
+        f = mezcla.factores_por_nota(historial)
+        self.assertGreater(f["deportes"], 1)
+        self.assertLess(f["finanzas"], 1)
+        self.assertLessEqual(f["deportes"], 1.15)
 
 
 if __name__ == "__main__":

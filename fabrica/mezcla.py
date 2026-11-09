@@ -42,12 +42,13 @@ CATEGORIAS = {
 def _pesos(cfg: dict) -> dict[str, float]:
     m = cfg.get("mezcla", {})
     pesos = {k: float(m.get(k, v[0])) for k, v in CATEGORIAS.items()}
-    try:  # lo que mejor nota saca sube un poco (máximo ±15 %)
-        for k, factor in factores_por_nota(_historial_guardado()).items():
-            if k in pesos:
-                pesos[k] *= factor
-    except Exception:
-        pass
+    if m.get("segun_vistas", True) and m.get("segun_notas", True):
+        try:  # lo que mejor nota saca sube un poco (máximo ±15 %)
+            for k, factor in factores_por_nota(_historial_guardado()).items():
+                if k in pesos:
+                    pesos[k] *= factor
+        except Exception:
+            pass
     if m.get("segun_vistas", True):
         from fabrica import estadisticas
         for k, factor in estadisticas.leer().get("factores", {}).items():
