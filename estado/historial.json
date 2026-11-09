@@ -875,7 +875,34 @@
    "#FutbolColombiano",
    "#Soccer"
   ],
+  "publicado": true,
+  "credito_musica": "",
+  "publicado_mejor": true
+ },
+ {
+  "mezcla": "musica",
+  "numero": 64,
+  "fecha": "2026-11-09T13:03",
+  "tema": "Demanda masiva contra Suno por clonar la voz de Elvis y Eminem con IA",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "Demandan a Suno por IA musical: ¿El fin de Elvis y Eminem?",
+  "archivo": "salida/2026-11-09/tecnologia/demanda-masiva-contra-suno-por-clonar-la-voz-de-elvis-y-emin #064.mp4",
+  "automatico": true,
+  "nota": 80.2,
+  "drive": "2026-11-09/tecnologia/demanda-masiva-contra-suno-por-clonar-la-voz-de-elvis-y-emin #064.mp4",
+  "hashtags": [
+   "#Suno",
+   "#InteligenciaArtificial",
+   "#Elvis",
+   "#Eminem",
+   "#Musica",
+   "#DerechosDeAutor",
+   "#Tecnologia"
+  ],
   "publicado": false,
-  "credito_musica": ""
+  "credito_musica": "",
+  "musica": "output018.mp3",
+  "arranque": "Imagina que escribes un nombre famoso y la tecnología recrea su voz a la perfección."
  }
 ]
