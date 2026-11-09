@@ -21,9 +21,10 @@ def _bajar(url: str, ruta: Path) -> Path | None:
     try:
         r = requests.get(url, headers=CABECERAS, timeout=30)
         if r.ok and r.headers.get("content-type", "").startswith("image/") and len(r.content) > MINIMO_BYTES:
+            ruta.parent.mkdir(parents=True, exist_ok=True)
             ruta.write_bytes(r.content)
             return ruta
-    except requests.RequestException:
+    except (requests.RequestException, OSError):
         pass
     return None
 

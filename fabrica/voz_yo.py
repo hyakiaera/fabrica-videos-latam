@@ -296,7 +296,18 @@ def silenciar_con_guia(audio: Path, guia: Path, margen_ms: int = 20) -> Path:
     habla = db > max(voz - 36, -52)  # la lectora habla (incluye "s" y finales suaves)
     margen = max(1, margen_ms // 10)
     habla = np.convolve(habla.astype(float), np.ones(2 * margen + 1), mode="same") > 0
-    ganancia = np.repeat(habla.astype(np.float32), ventana)
+    # Además de las pausas, los huecos cortos entre palabras: el modelo los sube ~15 dB más que
+    # la voz y suenan a soplido. La voz final sigue el volumen de la lectora cuadro a cuadro:
+    # nunca más de 1.5 dB por encima de lo que la lectora tenía en ese momento.
+    rms_x = np.sqrt(np.mean(x[: cuadros * ventana].reshape(cuadros, ventana) ** 2, axis=1) + 1e-12)
+    db_x = 20 * np.log10(rms_x)
+    fuerte = db > voz - 20
+    desfase = float(np.median(db_x[fuerte] - db[fuerte])) if fuerte.any() else 0.0
+    exceso = db_x - (db + desfase + 1.5)
+    atenuar = np.where(exceso > 0, 10 ** (-np.clip(exceso, 0, 40) / 20), 1.0).astype(np.float32)
+    suave = np.ones(3, np.float32) / 3  # 30 ms, para que no se oigan saltos
+    atenuar = np.minimum(1.0, np.convolve(atenuar, suave, mode="same"))
+    ganancia = np.repeat(habla.astype(np.float32) * atenuar, ventana)
     ganancia = np.concatenate([ganancia, np.full(len(x) - len(ganancia), ganancia[-1] if len(ganancia) else 1, np.float32)])
     rampa = int(tasa * 0.008)
     ganancia = np.convolve(ganancia, np.ones(rampa, np.float32) / rampa, mode="same")

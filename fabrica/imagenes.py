@@ -329,6 +329,7 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     créditos de fotos y un conteo de dónde salió cada imagen.
     Se piden varias a la vez para que el video tarde menos."""
     im = cfg.get("imagenes", {})
+    carpeta.mkdir(parents=True, exist_ok=True)
     usadas_wiki: set[str] = set()
     candado = threading.Lock()
     revisar = bool(im.get("revisar", True))
@@ -411,6 +412,14 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         return None
 
     def una(indice_escena):
+        # Si algo falla en UNA escena, se salta esa escena (reutiliza otra imagen); nunca el video entero.
+        try:
+            return _una(indice_escena)
+        except Exception as e:
+            logger.warning(f"Escena {indice_escena[0]}: falló la imagen ({type(e).__name__}: {e}); se reutilizará otra")
+            return None, None
+
+    def _una(indice_escena):
         nonlocal revisar
         i, escena = indice_escena
         nombre = f"escena-{i:02d}"

@@ -1607,3 +1607,24 @@ class TestGanchos(unittest.TestCase):
         from fabrica import ganchos
         t = ganchos.humanizar("Cabe destacar que el bitcoin subió — y mucho.​ Sin lugar a dudas, es fascinante.")
         self.assertEqual(t, "El bitcoin subió, y mucho. Es increíble.")
+
+
+class TestEscenaQueFallaNoTumbaElVideo(unittest.TestCase):
+    def test_bajar_crea_la_carpeta(self):
+        from fabrica import fotos_web
+        c = Path(tempfile.mkdtemp()) / "no" / "existe"
+        respuesta = mock.Mock(ok=True, headers={"content-type": "image/jpeg"}, content=b"x" * 50000)
+        with mock.patch.object(fotos_web.requests, "get", return_value=respuesta):
+            ruta = fotos_web._bajar("https://x/y.jpg", c / "clip.jpg")
+        self.assertTrue(ruta.exists())
+
+    def test_una_escena_rota_no_tumba_las_demas(self):
+        c = Path(tempfile.mkdtemp())
+        with mock.patch.object(imagenes, "cloudflare", side_effect=[OSError("disco"), None, None, None]), \
+             mock.patch.object(imagenes, "pollinations", return_value=None), \
+             mock.patch.object(imagenes, "wikimedia", return_value=None):
+            fotos, _, _ = imagenes.para_escenas(
+                {"imagenes": {"fotos_web": False, "revisar": False, "simultaneas": 1}},
+                [{"imagen": "a", "grafica": None}, {"imagen": "b", "grafica": {"tipo": "cifra", "valor": 1}}],
+                estilos.obtener("caricatura"), "9:16", c)
+        self.assertEqual(fotos[0], None)
