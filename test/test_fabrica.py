@@ -1550,3 +1550,23 @@ class TestPronunciarYArranques(unittest.TestCase):
                            estilos.obtener("caricatura"))
         self.assertIn("ARRANQUE de este video", capturado["usuario"])
         self.assertIn("¿Sabías que el bitcoin", capturado["usuario"])
+
+
+class TestSilencioConGuia(unittest.TestCase):
+    def test_donde_la_lectora_calla_queda_silencio(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import voz_yo
+        c = Path(tempfile.mkdtemp())
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        # guía: voz, silencio, voz.  pulida: igual pero con soplido en el silencio (como hace el modelo)
+        subprocess.run([ff, "-v", "error", "-y", "-f", "lavfi", "-i", "sine=f=200:d=1", "-f", "lavfi", "-i",
+                        "anullsrc=r=44100:cl=mono", "-f", "lavfi", "-i", "sine=f=200:d=1", "-filter_complex",
+                        "[1]atrim=0:0.8[s];[0][s][2]concat=n=3:v=0:a=1", str(c / "guia.wav")], check=True)
+        subprocess.run([ff, "-v", "error", "-y", "-f", "lavfi", "-i", "sine=f=200:d=1", "-f", "lavfi", "-i",
+                        "anoisesrc=d=0.8:a=0.02", "-f", "lavfi", "-i", "sine=f=200:d=1", "-filter_complex",
+                        "[0][1][2]concat=n=3:v=0:a=1", str(c / "pulida.wav")], check=True)
+        salida = voz_yo.silenciar_con_guia(c / "pulida.wav", c / "guia.wav")
+        r = subprocess.run([ff, "-i", str(salida), "-af", "atrim=1.1:1.7,volumedetect", "-f", "null", "-"],
+                           capture_output=True, text=True)
+        self.assertIn("max_volume: -9", r.stderr)

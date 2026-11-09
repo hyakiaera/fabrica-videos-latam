@@ -229,14 +229,19 @@ def generar(cfg: dict, texto: str, carpeta: Path) -> Path:
         try:
             pulido = voz_applio.convertir(cfg, leido, carpeta / "voz-yo-pulida.wav")
             if pulido.exists() and pulido.stat().st_size > 1000:
-                return limpiar(cfg, pulido)
+                limpio = limpiar(cfg, pulido, pausas=False)
+                try:  # el modelo mete ruido en las pausas: donde la lectora calló, silencio total
+                    return silenciar_con_guia(limpio, leido)
+                except Exception as e:
+                    logger.warning(f"Voz yo: no se pudo usar la lectura como guía ({e})")
+                    return limpio
         except Exception as e:
             logger.warning(f"Voz yo: no se pudo pulir con tu modelo ({e}); se usa la lectura tal cual")
             ERROR_PULIDO["motivo"] = f"{type(e).__name__}: {str(e)[-250:]}"
     return limpiar(cfg, leido)
 
 
-def limpiar(cfg: dict, audio: Path) -> Path:
+def limpiar(cfg: dict, audio: Path, pausas: bool = True) -> Path:
     """Quita el soplido y el zumbido de los silencios entre frases: el modelo de voz a veces
     convierte el silencio en aire, y las muestras pueden traer ruido de fondo. La voz no se toca."""
     v = cfg.get("voz", {})
@@ -256,11 +261,51 @@ def limpiar(cfg: dict, audio: Path) -> Path:
     except Exception as e:
         logger.warning(f"Voz yo: no se pudo limpiar el audio ({e}); se usa tal cual")
         return audio
+    if not pausas:
+        return salida
     try:
         return silenciar_pausas(salida, float(v.get("yo_pausa_db", 24)))
     except Exception as e:
         logger.warning(f"Voz yo: no se pudieron limpiar las pausas ({e})")
         return salida
+
+
+def _muestras(audio: Path, tasa: int):
+    import numpy as np
+    crudo = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-loglevel", "error", "-i", str(audio), "-f", "f32le",
+                            "-ac", "1", "-ar", str(tasa), "-"], capture_output=True, check=True, timeout=600).stdout
+    return np.frombuffer(crudo, dtype=np.float32).copy()
+
+
+def silenciar_con_guia(audio: Path, guia: Path, margen_ms: int = 20) -> Path:
+    """El modelo de tu voz (HYAKO) convierte el silencio de las pausas en un soplido de unos
+    -35 dB. La lectura ORIGINAL (antes del modelo) tiene las pausas en silencio perfecto y dura
+    lo mismo: se usa como guía y, donde ella calla, el resultado queda en silencio total."""
+    import numpy as np
+    tasa = 44100
+    x, g = _muestras(audio, tasa), _muestras(guia, tasa)
+    if abs(len(x) - len(g)) > tasa * 0.5:  # no están alineadas: no se toca
+        logger.warning("Voz yo: la lectura y la voz pulida no duran lo mismo; no se usa la guía")
+        return audio
+    n = min(len(x), len(g))
+    ventana = int(tasa * 0.01)
+    cuadros = n // ventana
+    rms = np.sqrt(np.mean(g[: cuadros * ventana].reshape(cuadros, ventana) ** 2, axis=1) + 1e-12)
+    db = 20 * np.log10(rms)
+    voz = np.percentile(db, 90)
+    habla = db > max(voz - 36, -52)  # la lectora habla (incluye "s" y finales suaves)
+    margen = max(1, margen_ms // 10)
+    habla = np.convolve(habla.astype(float), np.ones(2 * margen + 1), mode="same") > 0
+    ganancia = np.repeat(habla.astype(np.float32), ventana)
+    ganancia = np.concatenate([ganancia, np.full(len(x) - len(ganancia), ganancia[-1] if len(ganancia) else 1, np.float32)])
+    rampa = int(tasa * 0.008)
+    ganancia = np.convolve(ganancia, np.ones(rampa, np.float32) / rampa, mode="same")
+    y = (x * ganancia[: len(x)]).astype(np.float32)
+    salida = audio.with_name(audio.stem + "-guia.wav")
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(tasa),
+                    "-ac", "1", "-i", "-", "-c:a", "pcm_s16le", str(salida)], input=y.tobytes(), check=True, timeout=600)
+    logger.info(f"Voz yo: pausas copiadas de la lectura original ({1 - habla.mean():.0%} en silencio total)")
+    return salida
 
 
 def silenciar_pausas(audio: Path, debajo_db: float = 24) -> Path:
