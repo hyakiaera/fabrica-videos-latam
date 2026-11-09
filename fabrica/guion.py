@@ -8,19 +8,6 @@ from fabrica import ia
 from fabrica.estilos import Estilo
 
 
-# Formas de arrancar: se elige una al azar en cada video para que no empiecen todos igual.
-ARRANQUES = [
-    "un DATO o una CIFRA que impacte, dicho en seco (ej. 'Ochenta mil dólares. Eso vale hoy un solo bitcoin.')",
-    "en medio de la acción, como si ya estuviera pasando (ej. 'Minuto noventa, el estadio en silencio y entonces...')",
-    "una afirmación polémica o que va contra lo que todos creen (ej. 'Todo lo que te contaron de este tema es mentira.')",
-    "'Imagina que...' poniendo al espectador dentro de la historia",
-    "una pregunta directa al espectador que no sea '¿Sabías que...?' (ej. '¿Tú pagarías esto?', '¿Qué harías si...?')",
-    "una advertencia o urgencia (ej. 'Si usas esta app, escucha esto antes de que sea tarde.')",
-    "una comparación sorprendente (ej. 'Esto es más grande que tres estadios Azteca juntos.')",
-    "el final primero y luego 'te cuento cómo pasó' (ej. 'Terminó con lágrimas en el estadio. Pero empecemos por el principio.')",
-    "'¿Sabías que...?' con un dato muy poco conocido",
-]
-
 ENTRETENIDO = (
     "No es leer un texto: es ENTRETENER. Nunca empieces con 'Hoy te voy a contar' ni con saludos. "
     "Cada 2 o 3 frases mete algo que "
@@ -108,9 +95,17 @@ def escribir(cfg: dict, tema: dict, estilo: Estilo, fotos_propias: dict | None =
                   "datos exactamente como los dio (precios, %, dirección, teléfono, horario); no inventes "
                   "ninguno. La última escena lleva una grafica tipo \"tarjeta\" con el nombre del negocio, "
                   "la oferta y cómo llegar o contactar.\n")
-    import random as _random
-    arranque = _random.choice(ARRANQUES)
-    extra += f"\nARRANQUE de este video (primera frase): {arranque}.\n"
+    from fabrica import ganchos as _ganchos
+    recientes_arranques = tema.get("evitar_arranques") or []
+    usadas_sabias = sum(1 for a in recientes_arranques[-5:] if "sab" in a.lower()[:8])
+    formulas = _ganchos.elegir_formulas(3, evitar_sabias=usadas_sabias >= 1)
+    extra += ("\nGANCHOS: escribe 3 ganchos (primera frase, se dice en 3 segundos, máx 12 palabras), "
+              "UNO con cada fórmula, con datos REALES del tema, y empieza el guion con el mejor:\n"
+              + "\n".join(f"- {f['nombre']}: {f['plantilla']} (ej. \"{f['ejemplo']}\"; evita: {f['trampa']})"
+                          for f in formulas)
+              + "\nLa segunda frase dice por qué le importa al que mira. Una idea por escena. La ÚLTIMA "
+                "frase repite una palabra clave del gancho (así el video se vuelve a ver en bucle) y lleva "
+                "una sola petición (comentar o seguir), no varias.\n")
     if tema.get("evitar_arranques"):
         extra += ("No empieces parecido a estos videos recientes del canal: "
                   + " | ".join(tema["evitar_arranques"][-8:]) + "\n")
@@ -141,6 +136,7 @@ Devuelve este JSON:
 {{"titulo": "título para la plataforma, máx 80 caracteres, con gancho",
  "guion": "texto narrado completo, unas {palabras} palabras, con puntuación normal (puntos al final de cada oración, comas, signos ¿? ¡!), oraciones cortas, sin emojis ni acotaciones",
  "descripcion": "2-3 frases para la descripción del video",
+ "ganchos": [{{"formula": "nombre de la fórmula", "texto": "el gancho", "pantalla": "2-4 PALABRAS para la pantalla"}}, ... 3 en total],
  "pronunciacion": {{"Nombre extranjero tal como está escrito en el guion": "cómo se pronuncia escrito en español (ej. 'Manchester United': 'Mánchester Iunáited', 'Lando Norris': 'Lando Nórris')"}} — solo nombres en inglés u otros idiomas; si no hay, {{}},
  "titulo_miniatura": "2 a 4 palabras MUY llamativas para la portada (ej. '¡CAYÓ EN PLENA CALLE!', 'NADIE LO VIO VENIR'), sin mentir",
  "hashtags": ["#...", "... 5 a 8 hashtags en español e inglés"],
@@ -203,6 +199,12 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]
     datos["guion"] = puntuar(cfg, datos["guion"])
+    # El mejor gancho (calificado) como primera frase, y fuera las muletillas de IA.
+    _ganchos.aplicar(datos, recientes_arranques)
+    datos["guion"] = _ganchos.humanizar(datos["guion"])
+    for e in datos.get("escenas", []):
+        if e.get("texto"):
+            e["texto"] = _ganchos.humanizar(e["texto"])
     if "geograf" in estilo.nombre.lower():
         storyboard_de_mapas(cfg, datos, tema)
         asegurar_mapas(datos, tema)

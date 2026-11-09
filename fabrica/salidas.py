@@ -29,6 +29,8 @@ def ficha_texto(datos: dict, tema: dict, creditos: list[str], conteo: dict | Non
         lineas += [f"MÚSICA: {datos['musica_usada']}"]
     if datos.get("credito_musica"):
         lineas += ["", "CRÉDITO OBLIGATORIO (pégalo en la descripción al publicar):", datos["credito_musica"]]
+    if datos.get("nota_gancho") is not None:
+        lineas += [f"GANCHO: {datos['nota_gancho']}/100 — «{datos.get('guion', '').split('.')[0][:90]}»"]
     if datos.get("nota") is not None:
         lineas += [f"NOTA PARA 'MEJOR DEL DÍA': {datos['nota']}/100" + (f" — {datos['nota_por_que']}" if datos.get("nota_por_que") else "")]
     if datos.get("avatar_usado"):

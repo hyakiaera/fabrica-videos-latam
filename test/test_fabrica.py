@@ -1558,7 +1558,7 @@ class TestPronunciarYArranques(unittest.TestCase):
              mock.patch.object(guion, "puntuar", side_effect=lambda cfg, t: t):
             guion.escribir({}, {"tema": "t", "evitar_arranques": ["¿Sabías que el bitcoin..."]},
                            estilos.obtener("caricatura"))
-        self.assertIn("ARRANQUE de este video", capturado["usuario"])
+        self.assertIn("GANCHOS: escribe 3 ganchos", capturado["usuario"])
         self.assertIn("¿Sabías que el bitcoin", capturado["usuario"])
 
 
@@ -1580,3 +1580,30 @@ class TestSilencioConGuia(unittest.TestCase):
         r = subprocess.run([ff, "-i", str(salida), "-af", "atrim=1.1:1.7,volumedetect", "-f", "null", "-"],
                            capture_output=True, text=True)
         self.assertIn("max_volume: -9", r.stderr)
+
+
+class TestGanchos(unittest.TestCase):
+    def test_califica_mejor_lo_concreto_que_el_saludo(self):
+        from fabrica import ganchos
+        bueno, _ = ganchos.calificar("Treinta millones de dólares le costó al América un solo error.")
+        malo, peros = ganchos.calificar("Hola a todos, hoy te voy a contar algo del fútbol.")
+        self.assertGreater(bueno, 70)
+        self.assertLess(malo, 25)
+        self.assertTrue(peros)
+
+    def test_pone_el_mejor_gancho_al_inicio(self):
+        from fabrica import ganchos
+        datos = {"guion": "Hoy te voy a contar algo. El América perdió mucho dinero.",
+                 "escenas": [{"texto": "Hoy te voy a contar algo."}, {"texto": "El América perdió mucho dinero."}],
+                 "ganchos": [{"texto": "Treinta millones de dólares: eso le costó al América un error.",
+                              "pantalla": "$30 MILLONES"},
+                             {"texto": "¿Sabías que el fútbol es un deporte?", "pantalla": "¿SABÍAS?"}]}
+        ganchos.aplicar(datos)
+        self.assertTrue(datos["guion"].startswith("Treinta millones"))
+        self.assertTrue(datos["escenas"][0]["texto"].startswith("Treinta millones"))
+        self.assertEqual(datos["escenas"][0]["texto_pantalla"], "$30 MILLONES")
+
+    def test_humanizar(self):
+        from fabrica import ganchos
+        t = ganchos.humanizar("Cabe destacar que el bitcoin subió — y mucho.​ Sin lugar a dudas, es fascinante.")
+        self.assertEqual(t, "El bitcoin subió, y mucho. Es increíble.")

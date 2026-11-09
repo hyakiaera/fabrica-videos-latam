@@ -329,6 +329,17 @@ algo cada 2-3 frases para que no se vayan (preguntas al público, "pero aquí vi
 cierra con una pregunta para comentar. En los momentos clave sale un **texto grande en pantalla**
 ("¿POR QUÉ?", "3,169 KM").
 
+## 16. Ganchos que retienen
+
+Cada video prueba **3 fórmulas de gancho** distintas (de 16: "la cifra que duele", "nadie te dice",
+"en medio de la acción", "antes y ahora", "cara a cara", "el final primero"...). La fábrica
+califica cada gancho de 0 a 100 (corto, concreto, con algo en juego, lo fuerte al principio y
+hablándote a ti; un saludo o "hoy te voy a contar" lo hunde) y deja el mejor como primera frase,
+con su texto grande en pantalla. La última frase repite una palabra del gancho para que el video
+se vea en bucle, y el guion se limpia de muletillas de IA ("cabe destacar", "sin lugar a dudas",
+rayas largas). La nota del gancho sale en la ficha `.txt`.
+(Ideas generales tomadas de instagram-agent-skill, licencia MIT; escrito aquí en español.)
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y
