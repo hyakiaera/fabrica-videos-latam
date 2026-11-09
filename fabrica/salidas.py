@@ -129,7 +129,7 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
     import os
     elegidas = os.environ.get("PLATAFORMAS", "").strip()
     plataformas = ([x.strip().lower() for x in elegidas.split(",") if x.strip()] if elegidas
-                   else p.get("plataformas", ["youtube", "x", "threads"]))
+                   else p.get("plataformas", ["youtube", "facebook", "x", "threads"]))
     # X (Twitter) solo acepta 280 letras: va aparte, con el título corto, el crédito de la música
     # (obligatorio) y menos hashtags.
     corto = f"{datos['titulo']} {' '.join(datos.get('hashtags', [])[:2])}"

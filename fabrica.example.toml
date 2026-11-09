@@ -197,4 +197,4 @@ carpeta_fotos = "mis fotos"  # dentro de la carpeta anterior, una subcarpeta por
 
 [publicar]
 # Usa Upload-Post (integración que ya trae MoneyPrinterTurbo).
-plataformas = ["youtube", "x", "threads"]   # las que tienes conectadas en Upload-Post
+plataformas = ["youtube", "facebook", "x", "threads"]   # las que tienes conectadas en Upload-Post
