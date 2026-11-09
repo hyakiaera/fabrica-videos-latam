@@ -288,8 +288,8 @@ los pone la IA (fuerza del gancho, interés del tema hoy para latinos, ganas de 
 40 la calidad (imágenes que encajaron, voz bien pulida, avatar). La nota sale en la ficha `.txt`
 ("NOTA PARA 'MEJOR DEL DÍA'") y en el registro de la ronda de las 10pm verás las notas de todos.
 
-Por defecto publica en **YouTube, Facebook y X** (las redes conectadas en Upload-Post). Para cambiarlas,
-crea la variable `PLATAFORMAS` (ej. `youtube,facebook,x,tiktok`). En X el texto va corto (280 letras).
+Por defecto publica en **YouTube, X y Threads** (las redes conectadas en Upload-Post). Para cambiarlas,
+crea la variable `PLATAFORMAS` (ej. `youtube,x,threads,facebook`). En X el texto va corto (280 letras).
 Si una red falla, las demás se publican igual y el registro dice el motivo.
 
 Los videos siguen llegando a Drive igual. Recomendación: activa la etiqueta de **contenido
