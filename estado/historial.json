@@ -925,10 +925,11 @@
    "#EstadioMonumental",
    "#Deportes"
   ],
-  "publicado": false,
+  "publicado": true,
   "credito_musica": "",
   "musica": "output017.mp3",
-  "arranque": "Todos vieron los partidos de la MLS."
+  "arranque": "Todos vieron los partidos de la MLS.",
+  "publicado_mejor": true
  },
  {
   "mezcla": "curiosidades",
@@ -955,5 +956,30 @@
   "credito_musica": "",
   "musica": "output014.mp3",
   "arranque": "Deja de revisar tus dólares a la luz."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 67,
+  "fecha": "2026-11-10T12:50",
+  "tema": "El gran regreso de las leyendas de las telenovelas mexicanas",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¡Jorge Salinas regresa! ¿Volverán todas las leyendas?",
+  "archivo": "salida/2026-11-10/entretenimiento/el-gran-regreso-de-las-leyendas-de-las-telenovelas-mexicanas #067.mp4",
+  "automatico": true,
+  "nota": 85.8,
+  "drive": "2026-11-10/entretenimiento/el-gran-regreso-de-las-leyendas-de-las-telenovelas-mexicanas #067.mp4",
+  "hashtags": [
+   "#JorgeSalinas",
+   "#VictoriaRuffo",
+   "#LuciaMendez",
+   "#Telenovelas",
+   "#Televisa",
+   "#Entretenimiento"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output012.mp3",
+  "arranque": "Jorge Salinas contra Lucía Méndez en los titulares."
  }
 ]
