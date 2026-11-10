@@ -1005,5 +1005,31 @@
   "credito_musica": "",
   "musica": "output002.mp3",
   "arranque": "Mandaron una tercera ronda a los Raiders."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 69,
+  "fecha": "2026-11-10T23:21",
+  "tema": "Cómo detectar cámaras ocultas en un Airbnb usando tu celular",
+  "categoria": "curiosidades",
+  "estilo": "pizarra",
+  "titulo": "Cinco segundos. Eso le costó encontrar una cámara en su Airbnb.",
+  "archivo": "salida/2026-11-10/curiosidades/como-detectar-camaras-ocultas-en-un-airbnb-usando-tu-celular #069.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-10/curiosidades/como-detectar-camaras-ocultas-en-un-airbnb-usando-tu-celular #069.mp4",
+  "hashtags": [
+   "#airbnb",
+   "#curiosidades",
+   "#seguridad",
+   "#trucos",
+   "#viajes",
+   "#smartphone",
+   "#travel"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output020.mp3",
+  "arranque": "Cinco segundos."
  }
 ]
