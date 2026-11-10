@@ -981,5 +981,29 @@
   "credito_musica": "",
   "musica": "output012.mp3",
   "arranque": "Jorge Salinas contra Lucía Méndez en los titulares."
+ },
+ {
+  "mezcla": "general",
+  "numero": 68,
+  "fecha": "2026-11-10T20:46",
+  "tema": "¡El regreso bomba! Kirk Cousins vuelve a los Vikings tras sorpresivo movimiento",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "Kirk Cousins vuelve a los Vikings ¡con cambio de tercera ronda!",
+  "archivo": "salida/2026-11-10/deportes/el-regreso-bomba-kirk-cousins-vuelve-a-los-vikings-tras-sorp #068.mp4",
+  "automatico": true,
+  "nota": 52.0,
+  "drive": "2026-11-10/deportes/el-regreso-bomba-kirk-cousins-vuelve-a-los-vikings-tras-sorp #068.mp4",
+  "hashtags": [
+   "#KirkCousins",
+   "#Vikings",
+   "#NFL",
+   "#Deportes",
+   "#FutbolAmericano"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output002.mp3",
+  "arranque": "Mandaron una tercera ronda a los Raiders."
  }
 ]
