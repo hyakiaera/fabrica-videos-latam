@@ -904,5 +904,30 @@
   "credito_musica": "",
   "musica": "output018.mp3",
   "arranque": "Imagina que escribes un nombre famoso y la tecnología recrea su voz a la perfección."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 65,
+  "fecha": "2026-11-10T01:52",
+  "tema": "¿Messi al Monumental? El posible amistoso entre River e Inter Miami",
+  "categoria": "deportes",
+  "estilo": "caricatura",
+  "titulo": "¿Messi al Monumental? El posible amistoso entre River e Inter Miami",
+  "archivo": "salida/2026-11-10/deportes/messi-al-monumental-el-posible-amistoso-entre-river-e-inter- #065.mp4",
+  "automatico": true,
+  "nota": 87.7,
+  "drive": "2026-11-10/deportes/messi-al-monumental-el-posible-amistoso-entre-river-e-inter- #065.mp4",
+  "hashtags": [
+   "#Messi",
+   "#RiverPlate",
+   "#InterMiami",
+   "#FutbolArgentino",
+   "#EstadioMonumental",
+   "#Deportes"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output017.mp3",
+  "arranque": "Todos vieron los partidos de la MLS."
  }
 ]
