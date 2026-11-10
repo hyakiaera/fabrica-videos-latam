@@ -929,5 +929,31 @@
   "credito_musica": "",
   "musica": "output017.mp3",
   "arranque": "Todos vieron los partidos de la MLS."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 66,
+  "fecha": "2026-11-10T04:30",
+  "tema": "Cómo detectar si un billete de dólar es falso con el truco del papel de algodón",
+  "categoria": "curiosidades",
+  "estilo": "realista",
+  "titulo": "Deja de revisar tus dólares a la luz. Usa este truco del papel de algodón",
+  "archivo": "salida/2026-11-10/curiosidades/como-detectar-si-un-billete-de-dolar-es-falso-con-el-truco-d #066.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-10/curiosidades/como-detectar-si-un-billete-de-dolar-es-falso-con-el-truco-d #066.mp4",
+  "hashtags": [
+   "#dolares",
+   "#billetesfalsos",
+   "#curiosidades",
+   "#consejos",
+   "#dinero",
+   "#finanzas",
+   "#estadosunidos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output014.mp3",
+  "arranque": "Deja de revisar tus dólares a la luz."
  }
 ]
