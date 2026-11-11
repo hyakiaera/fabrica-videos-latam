@@ -1031,5 +1031,31 @@
   "credito_musica": "",
   "musica": "output020.mp3",
   "arranque": "Cinco segundos."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 70,
+  "fecha": "2026-11-11T02:07",
+  "tema": "Romina Poza debuta como protagonista en nueva telenovela de Televisa",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "Romina Poza debuta como protagonista en Televisa. ¿Sabías esto?",
+  "archivo": "salida/2026-11-11/entretenimiento/romina-poza-debuta-como-protagonista-en-nueva-telenovela-de- #070.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-11/entretenimiento/romina-poza-debuta-como-protagonista-en-nueva-telenovela-de- #070.mp4",
+  "hashtags": [
+   "#RominaPoza",
+   "#MayrinVillanueva",
+   "#Telenovela",
+   "#Televisa",
+   "#Entretenimiento",
+   "#Famosos",
+   "#Mexico"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output024.mp3",
+  "arranque": "¿Te imaginabas a Romina Poza como protagonista de telenovela?"
  }
 ]
