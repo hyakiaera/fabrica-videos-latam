@@ -977,10 +977,11 @@
    "#Televisa",
    "#Entretenimiento"
   ],
-  "publicado": false,
+  "publicado": true,
   "credito_musica": "",
   "musica": "output012.mp3",
-  "arranque": "Jorge Salinas contra Lucía Méndez en los titulares."
+  "arranque": "Jorge Salinas contra Lucía Méndez en los titulares.",
+  "publicado_mejor": true
  },
  {
   "mezcla": "general",
@@ -1057,5 +1058,31 @@
   "credito_musica": "",
   "musica": "output024.mp3",
   "arranque": "¿Te imaginabas a Romina Poza como protagonista de telenovela?"
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 71,
+  "fecha": "2026-11-11T12:16",
+  "tema": "La carrera de Messi hacia el gol 1,000 y su esperado regreso a Argentina",
+  "categoria": "deportes",
+  "estilo": "caricatura",
+  "titulo": "Leo Messi contra Cristiano Ronaldo en la pelea por el gol 1000",
+  "archivo": "salida/2026-11-11/deportes/la-carrera-de-messi-hacia-el-gol-1-000-y-su-esperado-regreso #071.mp4",
+  "automatico": true,
+  "nota": 79.6,
+  "drive": "2026-11-11/deportes/la-carrera-de-messi-hacia-el-gol-1-000-y-su-esperado-regreso #071.mp4",
+  "hashtags": [
+   "#Messi",
+   "#CristianoRonaldo",
+   "#Argentina",
+   "#Futbol",
+   "#Gol1000",
+   "#Deportes",
+   "#Soccer"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output017.mp3",
+  "arranque": "Lionel Messi y Cristiano Ronaldo en el mismo mapa goleador."
  }
 ]
