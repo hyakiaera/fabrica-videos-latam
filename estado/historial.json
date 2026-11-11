@@ -1084,5 +1084,31 @@
   "credito_musica": "",
   "musica": "output017.mp3",
   "arranque": "Lionel Messi y Cristiano Ronaldo en el mismo mapa goleador."
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 72,
+  "fecha": "2026-11-11T20:30",
+  "tema": "¡Insólito! Hackers norcoreanos usan memecoins de Elon Musk para lavar millonario botín",
+  "categoria": "economia",
+  "estilo": "explicativo",
+  "titulo": "¡Hackers norcoreanos usan memecoins para lavar el botín de Binance!",
+  "archivo": "salida/2026-11-11/economia/insolito-hackers-norcoreanos-usan-memecoins-de-elon-musk-par #072.mp4",
+  "automatico": true,
+  "nota": 79.3,
+  "drive": "2026-11-11/economia/insolito-hackers-norcoreanos-usan-memecoins-de-elon-musk-par #072.mp4",
+  "hashtags": [
+   "#Binance",
+   "#Hackers",
+   "#Criptomonedas",
+   "#ElonMusk",
+   "#Finanzas",
+   "#Economia",
+   "#Noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output018.mp3",
+  "arranque": "Todos vieron el tremendo hackeo de seis mil trescientos millones de dólares a Binance."
  }
 ]
