@@ -1135,5 +1135,32 @@
   "credito_musica": "",
   "musica": "output029.mp3",
   "arranque": "Millones de dólares mueven estos clubes pero la realidad legal es otra."
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 74,
+  "fecha": "2026-11-12T03:02",
+  "tema": "¡Pagar impuestos con cripto ya es una realidad en Miami-Dade!",
+  "categoria": "economia",
+  "estilo": "realista",
+  "titulo": "Pagar impuestos con cripto ya es posible en Miami-Dade",
+  "archivo": "salida/2026-11-12/economia/pagar-impuestos-con-cripto-ya-es-una-realidad-en-miami-dade #074.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-12/economia/pagar-impuestos-con-cripto-ya-es-una-realidad-en-miami-dade #074.mp4",
+  "hashtags": [
+   "#MiamiDade",
+   "#Bitcoin",
+   "#Criptomonedas",
+   "#Impuestos",
+   "#Finanzas",
+   "#CryptoTax",
+   "#Noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output020.mp3",
+  "edicion": "grande_centro",
+  "arranque": "Miami-Dade es tan innovadora que ya acepta Bitcoin para tus impuestos."
  }
 ]
