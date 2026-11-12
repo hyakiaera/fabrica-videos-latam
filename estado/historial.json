@@ -1188,5 +1188,31 @@
   "musica": "output005.mp3",
   "edicion": "celeste",
   "arranque": "Más vale paso que dure, que choque que te mande al hospital."
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 76,
+  "fecha": "2026-11-12T20:56",
+  "tema": "Adiós al Colegio Electoral: Demócratas aseguran estados clave",
+  "categoria": "mundo",
+  "estilo": "noticiero",
+  "titulo": "Adiós al Colegio Electoral: Estados demócratas controlan el voto popular",
+  "archivo": "salida/2026-11-12/mundo/adios-al-colegio-electoral-democratas-aseguran-estados-clave #076.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-12/mundo/adios-al-colegio-electoral-democratas-aseguran-estados-clave #076.mp4",
+  "hashtags": [
+   "#ColegioElectoral",
+   "#EstadosUnidos",
+   "#Democratas",
+   "#Noticias",
+   "#Elecciones",
+   "#USA"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output007.mp3",
+  "edicion": "",
+  "arranque": "Veintisiete millones de dólares es lo que costó esta estrategia."
  }
 ]
