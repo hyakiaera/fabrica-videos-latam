@@ -1110,5 +1110,30 @@
   "credito_musica": "",
   "musica": "output018.mp3",
   "arranque": "Todos vieron el tremendo hackeo de seis mil trescientos millones de dólares a Binance."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 73,
+  "fecha": "2026-11-12T00:36",
+  "tema": "Por qué la compra del Cornellà por Messi no será como la del Wrexham",
+  "categoria": "deportes",
+  "estilo": "caricatura",
+  "titulo": "¿Sabías que Messi no repetirá al Wrexham con el Cornellà?",
+  "archivo": "salida/2026-11-12/deportes/por-que-la-compra-del-cornella-por-messi-no-sera-como-la-del #073.mp4",
+  "automatico": true,
+  "nota": 82.6,
+  "drive": "2026-11-12/deportes/por-que-la-compra-del-cornella-por-messi-no-sera-como-la-del #073.mp4",
+  "hashtags": [
+   "#Messi",
+   "#Cornellà",
+   "#Wrexham",
+   "#Fútbol",
+   "#Deportes",
+   "#Soccer"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output029.mp3",
+  "arranque": "Millones de dólares mueven estos clubes pero la realidad legal es otra."
  }
 ]
