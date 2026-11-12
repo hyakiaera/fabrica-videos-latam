@@ -1214,5 +1214,31 @@
   "musica": "output007.mp3",
   "edicion": "",
   "arranque": "Veintisiete millones de dólares es lo que costó esta estrategia."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 77,
+  "fecha": "2026-11-12T23:40",
+  "tema": "Cómo detectar gasolina rebajada en tu auto",
+  "categoria": "curiosidades",
+  "estilo": "pizarra",
+  "titulo": "Más vale tanque lleno que motor destrozado. ¿Cómo detectar gasolina rebajada?",
+  "archivo": "salida/2026-11-12/curiosidades/como-detectar-gasolina-rebajada-en-tu-auto #077.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-12/curiosidades/como-detectar-gasolina-rebajada-en-tu-auto #077.mp4",
+  "hashtags": [
+   "#gasolina",
+   "#autos",
+   "#mantenimientoauto",
+   "#consejos",
+   "#mexico",
+   "#carsofinstagram"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output013.mp3",
+  "edicion": "",
+  "arranque": "3 señales de que tu auto tiene gasolina pirata."
  }
 ]
