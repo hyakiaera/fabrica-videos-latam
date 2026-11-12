@@ -171,10 +171,33 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
                      "drive": f"{ruta_relativa}/{nombre}.mp4" if en_drive else "",
                      "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado,
                      "credito_musica": datos.get("credito_musica", ""),
-                     "musica": datos.get("musica_usada", ""),
+                     "musica": datos.get("musica_usada", ""), "edicion": datos.get("edicion", ""),
                      "arranque": re.split(r"(?<=[.!?])\s", datos.get("guion", "").strip(), maxsplit=1)[0][:120]})
     _guardar_historial(entradas)
     return guardado
+
+
+def variar_estilos(temas: list[dict], historial: list[dict], ultimos: int = 3) -> None:
+    """Que los automáticos no salgan siempre con el mismo estilo: si el elegido ya se usó en
+    los últimos videos, se cambia por otro que también le quede a la categoría."""
+    import random
+    usados = [e.get("estilo", "") for e in historial[-ultimos:]]
+    for t in temas:
+        if t.get("estilo") not in usados:
+            usados.append(t.get("estilo", ""))
+            continue
+        categoria = (t.get("categoria") or "").lower()
+        candidatos = [k for k, e in estilos.ESTILOS.items()
+                      if k not in usados and k not in estilos.SOLO_MANUAL and estilos.disponible(e)
+                      and any(categoria in ideal or ideal in categoria for ideal in e.temas_ideales)]
+        candidatos = candidatos or [k for k, e in estilos.ESTILOS.items()
+                                    if k not in usados and k not in estilos.SOLO_MANUAL
+                                    and k != "videos_stock" and estilos.disponible(e)]
+        if candidatos:
+            nuevo = random.choice(candidatos)
+            logger.info(f"Estilo: '{t['estilo']}' ya salió en los últimos videos; esta vez '{nuevo}'")
+            t["estilo"] = nuevo
+        usados.append(t.get("estilo", ""))
 
 
 def una_ronda(cfg: dict, args) -> int:
@@ -207,6 +230,8 @@ def una_ronda(cfg: dict, args) -> int:
             return 1
         for t in temas:
             t["automatico"] = True
+        if estilo == estilos.ESTILO_AUTOMATICO:
+            variar_estilos(temas, _historial())
 
     if args.detalles:
         for t in temas:

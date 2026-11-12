@@ -54,6 +54,14 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
         video_transition_mode=v.get("transicion") or None,
         n_threads=int(v.get("hilos", 2)),
     )
+    # Cada video con otro look de subtítulos (letra, color, tamaño, posición), sin repetir los
+    # últimos. El noticiero conserva su franja roja. Se apaga con [video] looks_variados = false.
+    if v.get("looks_variados", True) and not estilo.fondo_subtitulo:
+        from fabrica import edicion
+        nombre_look, look = edicion.elegir()
+        params.update(look)
+        datos["edicion"] = nombre_look
+        logger.info(f"Edición: look '{nombre_look}'")
 
     # Música según el tono (tus beats de la carpeta "musica" en Drive); si no hay, la de siempre.
     from app.services import bgm as mpt_bgm

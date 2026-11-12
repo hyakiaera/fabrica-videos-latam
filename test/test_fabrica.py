@@ -20,6 +20,12 @@ def setUpModule():
     parche.start()
     _SIN_RED.append(parche)
     fotos_web._USADAS = {}
+    # La revisión de pronunciación es otra consulta a la IA: en las pruebas no se hace.
+    from fabrica import pronunciar
+    _ORIGINALES["revisar"] = pronunciar.revisar
+    parche = mock.patch.object(pronunciar, "revisar", side_effect=lambda cfg, guion, conocidas=None: dict(conocidas or {}))
+    parche.start()
+    _SIN_RED.append(parche)
     for nombre in ("noticias", "openverse", "bing_imagenes", "imagen_wikipedia", "noticias_texto", "clips_stock"):
         _ORIGINALES[nombre] = getattr(fotos_web, nombre)
         parche = mock.patch.object(fotos_web, nombre, return_value=[])
@@ -1642,3 +1648,32 @@ class TestFotosNoSeRepiten(unittest.TestCase):
         fotos_web.marcar_usada("https://x/messi.jpg?w=800")
         self.assertTrue(fotos_web.ya_usada("https://x/messi.jpg"))
         self.assertFalse(fotos_web.ya_usada("https://x/otra.jpg"))
+
+
+class TestRevisionPronunciacion(unittest.TestCase):
+    def test_la_ia_agrega_palabras_que_estan_en_el_guion(self):
+        revisar = _ORIGINALES["revisar"]
+        respuesta = {"pronunciacion": {"hackers": "jákers", "Binance": "Báinans", "inventada": "x y z w v q"}}
+        with mock.patch.object(ia, "pedir_json", return_value=respuesta):
+            r = revisar({}, "Unos hackers atacaron Binance.", {"Messi": "Mési"})
+        self.assertEqual(r["hackers"], "jákers")
+        self.assertEqual(r["Binance"], "Báinans")
+        self.assertEqual(r["Messi"], "Mési")
+        self.assertNotIn("inventada", r)
+
+
+class TestVariedad(unittest.TestCase):
+    def test_no_repite_el_estilo_de_los_ultimos(self):
+        from fabrica.__main__ import variar_estilos
+        historial = [{"estilo": "cinematografico"}, {"estilo": "caricatura"}, {"estilo": "cinematografico"}]
+        temas = [{"tema": "Messi", "categoria": "deportes", "estilo": "cinematografico"}]
+        variar_estilos(temas, historial)
+        self.assertNotIn(temas[0]["estilo"], ("cinematografico", "caricatura", "geografia"))
+
+    def test_look_distinto_a_los_ultimos(self):
+        from fabrica import edicion
+        nombre, look = edicion.elegir(["clasico", "amarillo"])
+        self.assertNotIn(nombre, ("clasico", "amarillo"))
+        self.assertIn("font_name", look)
+        for l in edicion.LOOKS.values():
+            self.assertTrue((Path(__file__).resolve().parent.parent / "resource" / "fonts" / l["font_name"]).exists())

@@ -32,6 +32,18 @@ DICCIONARIO = {
     "Billboard": "Bílbord", "Grammy": "Grámi", "Hollywood": "Jólibud",
     "Wi-Fi": "uaifai", "online": "onlain", "streaming": "estríming", "podcast": "pódcast",
     "influencer": "ínfluenser", "show": "chou", "reality": "riáliti",
+    # palabras en inglés o "españolizadas" que la voz leía mal
+    "hackers": "jákers", "hacker": "jáker", "hackeo": "jákeo", "hackeos": "jákeos",
+    "hackearon": "jakearon", "hackear": "jakear", "hackeado": "jakeado", "hackeada": "jakeada",
+    "crypto": "cripto", "blockchain": "blokchéin", "wallet": "uólet", "exchange": "exchéinch",
+    "trading": "tréiding", "trader": "tréider", "marketing": "márketing", "startup": "estártap",
+    "software": "sóftuer", "smartphone": "esmártfon", "gamer": "guéimer", "gaming": "guéiming",
+    "fans": "fans", "playoffs": "pléiofs", "playoff": "pléiof", "MVP": "eme ve pe", "VAR": "var",
+    "Lionel Messi": "Lionél Mési", "Lionel": "Lionél", "Messi": "Mési", "Mbappé": "Embapé",
+    "Haaland": "Jáland", "Vinicius": "Vinísius", "Bellingham": "Bélinjam", "Kane": "Kéin",
+    "Lamine Yamal": "Lamín Yamal", "Cristiano Ronaldo": "Cristiano Ronaldo",
+    "Rauw Alejandro": "Rau Alejandro", "Anuel AA": "Anuel doble a", "Karol G": "Károl yi",
+    "J Balvin": "Yei Balvin", "Peso Pluma": "Peso Pluma", "Feid": "Féid",
 }
 
 
@@ -51,3 +63,36 @@ def para_voz(texto: str, extra: dict | None = None) -> str:
     if isinstance(extra, dict):
         cambios.update({str(k): str(v) for k, v in extra.items() if k and v})
     return _aplicar(texto, cambios)
+
+
+def revisar(cfg: dict, guion: str, conocidas: dict | None = None) -> dict:
+    """Revisión extra con IA: cada palabra en inglés u otro idioma, marca, nombre extranjero,
+    sigla o palabra "españolizada" del guion, escrita como suena en su idioma original pero con
+    letras del español (para que la voz en español la diga bien). Devuelve el diccionario."""
+    from fabrica import ia
+    cambios = dict(conocidas or {})
+    sistema = ("Eres fonetista. Escribes cómo se pronuncian palabras extranjeras usando letras del "
+               "español latino, para que una voz que solo lee español las diga como en su idioma. "
+               "Respondes SOLO JSON.")
+    usuario = (f"Guion:\n{guion}\n\nEncuentra TODAS las palabras o nombres que una voz en español leería "
+               "mal: palabras en inglés (hackers, streaming, wallet), marcas (Binance, Coinbase, Spotify), "
+               "nombres de personas, equipos o lugares extranjeros (Lionel Messi, Manchester United, "
+               "Haaland), siglas que se deletrean (NBA, ETF) y palabras inglesas españolizadas "
+               "(hackeo, hackear). Para cada una di cómo se pronuncia, escrita con letras del español "
+               "y con tilde en la sílaba fuerte (ej. 'hackers' → 'jákers', 'Binance' → 'Báinans', "
+               "'Lionel Messi' → 'Lionél Mési', 'NBA' → 'ene be a', 'hackeo' → 'jákeo').\n"
+               'Responde: {"pronunciacion": {"palabra tal como está en el guion": "cómo se dice"}}. '
+               "No incluyas palabras normales del español.")
+    try:
+        r = ia.pedir_json(cfg, sistema, usuario, temperatura=0)
+        nuevas = r.get("pronunciacion") if isinstance(r, dict) else None
+        if isinstance(nuevas, dict):
+            for k, v in nuevas.items():
+                k, v = str(k).strip(), str(v).strip()
+                # Solo cambios razonables: misma cantidad aproximada de palabras y que aparezca en el guion.
+                if k and v and k.lower() != v.lower() and k.lower() in guion.lower() \
+                        and abs(len(v.split()) - len(k.split())) <= 3:
+                    cambios.setdefault(k, v)
+    except Exception:
+        pass
+    return cambios

@@ -205,6 +205,9 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
     for e in datos.get("escenas", []):
         if e.get("texto"):
             e["texto"] = _ganchos.humanizar(e["texto"])
+    # Revisión de pronunciación del guion final (nombres y palabras en inglés).
+    from fabrica import pronunciar
+    datos["pronunciacion"] = pronunciar.revisar(cfg, datos["guion"], datos.get("pronunciacion"))
     if "geograf" in estilo.nombre.lower():
         storyboard_de_mapas(cfg, datos, tema)
         asegurar_mapas(datos, tema)
