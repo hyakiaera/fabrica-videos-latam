@@ -176,6 +176,9 @@ def wikimedia(busqueda: str, carpeta: Path, nombre: str,
         if not es_dibujo and info.get("width", 0) < 800:
             continue
         url = info.get("thumburl") or info.get("url")
+        from fabrica import fotos_web as _fw
+        if not es_dibujo and _fw.ya_usada(info.get("url", url)):
+            continue  # esa foto ya salió en otro video
         try:
             img = requests.get(url, headers=CABECERAS, timeout=60)
         except requests.RequestException:
@@ -183,6 +186,8 @@ def wikimedia(busqueda: str, carpeta: Path, nombre: str,
         if _es_imagen(img):
             autor = _sin_html(meta.get("Artist", {}).get("value", "desconocido"))
             credito = f"Foto: {autor} / Wikimedia Commons ({licencia}) {info.get('descriptionurl', '')}"
+            if not es_dibujo:
+                _fw.marcar_usada(info.get("url", url))
             return _guardar(img.content, carpeta, nombre), credito
     return None
 
@@ -297,11 +302,12 @@ def foto_de_persona(nombre: str, carpeta: Path, archivo: str) -> tuple[Path, str
     for url, credito, pagina in fotos_web.imagen_wikipedia(nombre):
         if not any(c in limpio(credito) for c in claves[-2:]):
             continue
-        if url.lower().endswith((".svg", ".gif")):
-            continue
+        if url.lower().endswith((".svg", ".gif")) or fotos_web.ya_usada(url):
+            continue  # la foto de su artículo ya salió en otro video: se busca otra en Commons
         carpeta.mkdir(parents=True, exist_ok=True)
         ruta = fotos_web._bajar(url, carpeta / f"{archivo}.jpg")
         if ruta:
+            fotos_web.marcar_usada(url)
             logger.info(f"Foto de {nombre}: {credito}")
             return ruta, f"{credito} — {pagina}"
     return None

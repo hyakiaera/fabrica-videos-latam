@@ -17,6 +17,52 @@ CABECERAS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKi
 MINIMO_BYTES = 25_000
 
 
+# ---------- Fotos ya usadas en videos anteriores (para no repetirlas) ----------
+_USADAS: dict | None = None
+_CANDADO_USADAS = threading.Lock()
+DIAS_SIN_REPETIR = 45
+
+
+def _archivo_usadas() -> Path:
+    from fabrica.config import RAIZ
+    return RAIZ / "estado" / "fotos_usadas.json"
+
+
+def _usadas() -> dict:
+    global _USADAS
+    if _USADAS is None:
+        import json
+        from datetime import datetime, timedelta
+        try:
+            datos = json.loads(_archivo_usadas().read_text(encoding="utf-8"))
+        except Exception:
+            datos = {}
+        limite = (datetime.now() - timedelta(days=DIAS_SIN_REPETIR)).isoformat()
+        _USADAS = {u: f for u, f in datos.items() if f >= limite}
+    return _USADAS
+
+
+def ya_usada(url: str) -> bool:
+    """True si esa foto salió en un video de los últimos 45 días."""
+    return bool(url) and url.split("?")[0] in _usadas()
+
+
+def marcar_usada(url: str) -> None:
+    if not url:
+        return
+    import json
+    from datetime import datetime
+    with _CANDADO_USADAS:
+        datos = _usadas()
+        datos[url.split("?")[0]] = datetime.now().isoformat(timespec="minutes")
+        try:
+            ruta = _archivo_usadas()
+            ruta.parent.mkdir(parents=True, exist_ok=True)
+            ruta.write_text(json.dumps(datos, ensure_ascii=False, indent=0), encoding="utf-8")
+        except OSError:
+            pass
+
+
 def _bajar(url: str, ruta: Path) -> Path | None:
     try:
         r = requests.get(url, headers=CABECERAS, timeout=30)
@@ -165,6 +211,7 @@ class Banco:
         self.carpeta = carpeta
         self.fotos: dict[str, list[tuple[Path, str]]] = {}
         self.usadas: set[str] = set()
+        self.origen: dict[str, str] = {}  # foto local → su dirección en internet
         self.candado = threading.Lock()
 
     def cargar(self, consulta: str, con_noticias: bool = True) -> int:
@@ -182,9 +229,13 @@ class Banco:
         fuentes += bing_imagenes(consulta) + bing_imagenes(consulta, vertical=False)
         fuentes += (noticias(consulta) if con_noticias else []) + openverse(consulta)
         lista = []
+        es_logo = bool(re.search(r"\b(logo|escudo|emblema|bandera)\b", consulta, re.I))
         for k, (url, credito, pagina) in enumerate(fuentes):
+            if not es_logo and ya_usada(url):
+                continue  # ya salió en otro video: los logos sí se repiten, las fotos no
             ruta = _bajar(url, self.carpeta / f"web-{abs(hash(consulta)) % 10**6}-{k:02d}.jpg")
             if ruta:
+                self.origen[str(ruta)] = url
                 lista.append((ruta, f"Foto: {credito} {pagina}".strip()))
         with self.candado:
             self.fotos[consulta] = lista
@@ -212,7 +263,9 @@ class Banco:
             for k, (r, _) in enumerate(libres):
                 if k != buenos[0]:
                     self.usadas.discard(str(r))
-        return libres[buenos[0]]
+        elegida = libres[buenos[0]]
+        marcar_usada(self.origen.get(str(elegida[0]), ""))
+        return elegida
 
     def tomar(self, consulta: str, aceptar=lambda ruta: True) -> tuple[Path, str] | None:
         """Siguiente foto no usada del tema que pase el filtro 'aceptar'."""
@@ -223,6 +276,7 @@ class Banco:
                     continue
                 self.usadas.add(str(ruta))
             if aceptar(ruta):
+                marcar_usada(self.origen.get(str(ruta), ""))
                 return ruta, credito
         return None
 

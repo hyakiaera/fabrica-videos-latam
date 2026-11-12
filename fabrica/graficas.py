@@ -28,6 +28,15 @@ def _suave(t: float) -> float:
     return 1 - (1 - t) ** 3
 
 
+def _cabe(d: ImageDraw.ImageDraw, texto: str, letra: ImageFont.FreeTypeFont, ancho: float) -> ImageFont.FreeTypeFont:
+    """La misma letra, achicada hasta que el texto quepa en el ancho (nada se sale de la tarjeta)."""
+    tam = letra.size
+    while tam > 18 and d.textlength(texto, font=letra) > ancho:
+        tam = int(tam * 0.92)
+        letra = ImageFont.truetype(letra.path, tam)
+    return letra
+
+
 def _numero(valor: float, unidad: str) -> str:
     texto = f"{valor:,.1f}".rstrip("0").rstrip(".") if abs(valor) < 100 else f"{valor:,.0f}"
     signo = "+" if valor > 0 and unidad == "%" else ""
@@ -48,7 +57,7 @@ def _barras(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, letr
     for k, (nombre, valor) in enumerate(datos):
         avance = _suave(progreso * 1.4 - k * 0.12)  # cada barra entra un poco después
         cy = y0 + alto_fila * (k + 0.5)
-        d.text((x0, cy), nombre, font=letras["fila"], fill=texto, anchor="lm")
+        d.text((x0, cy), nombre, font=_cabe(d, nombre, letras["fila"], 310), fill=texto, anchor="lm")
         ancho = largo * abs(valor) / maximo * avance
         color = negativo if valor < 0 else positivo
         izquierda = centro - ancho if (valor < 0 and mixto) else centro
@@ -69,10 +78,14 @@ def _cifra(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, letra
     valor = float(g.get("valor", (g.get("datos") or [["", 0]])[0][1]))
     color = negativo if valor < 0 else positivo
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    d.text((cx, cy - 40), _numero(valor * _suave(progreso * 1.3), g.get("unidad", "")),
-           font=letras["cifra"], fill=color, anchor="mm")
+    # La cifra se mide con su valor FINAL, para que el tamaño no salte mientras cuenta.
+    unidad = g.get("unidad", "")
+    unidad = f" {unidad}" if unidad and unidad not in ("%", "$") and not unidad.startswith(" ") else unidad
+    letra = _cabe(d, _numero(valor, unidad), letras["cifra"], x1 - x0)
+    d.text((cx, cy - 40), _numero(valor * _suave(progreso * 1.3), unidad), font=letra, fill=color, anchor="mm")
     if g.get("detalle"):
-        d.text((cx, cy + 150), str(g["detalle"])[:40], font=letras["fila"], fill=texto, anchor="mm")
+        detalle = str(g["detalle"])[:60]
+        d.text((cx, cy + 150), detalle, font=_cabe(d, detalle, letras["fila"], x1 - x0), fill=texto, anchor="mm")
 
 
 def _tarjeta(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, letras):
@@ -87,7 +100,7 @@ def _tarjeta(d: ImageDraw.ImageDraw, g: dict, progreso: float, caja, paleta, let
         y = y0 + alto_linea * (k + 0.5) + (1 - aparece) * 30
         letra = letras["cifra_media"] if k == 0 and len(linea) <= 12 else letras["fila"]
         color = acento if k == 0 else texto
-        d.text(((x0 + x1) / 2, y), linea, font=letra, fill=color, anchor="mm")
+        d.text(((x0 + x1) / 2, y), linea, font=_cabe(d, linea, letra, x1 - x0), fill=color, anchor="mm")
 
 
 def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> Path:
@@ -111,7 +124,8 @@ def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> P
               "fuente": ImageFont.truetype(str(NORMAL), 30),
               "cifra_media": ImageFont.truetype(str(NEGRITA), 120)}
     # La tarjeta queda en la parte de arriba para no chocar con los subtítulos.
-    tarjeta_caja = (60, alto * 0.12, ancho - 60, alto * 0.58)
+    # Arriba: debajo queda el logo (centro izquierda, ~45 %) y más abajo los subtítulos (~72 %).
+    tarjeta_caja = (60, alto * 0.07, ancho - 60, alto * 0.42)
     caja = (tarjeta_caja[0] + 50, tarjeta_caja[1] + 170, tarjeta_caja[2] - 50, tarjeta_caja[3] - 90)
     cuadros = max(1, round(segundos * FPS))
     proceso = subprocess.Popen(
@@ -127,7 +141,8 @@ def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> P
         x0, y0, x1, y1 = tarjeta_caja
         d.rounded_rectangle([x0, y0 + desplazamiento, x1, y1 + desplazamiento], 40, fill=tarjeta)
         d.rounded_rectangle([x0 + 50, y0 + 60 + desplazamiento, x0 + 70, y0 + 130 + desplazamiento], 6, fill=acento)
-        d.text((x0 + 95, y0 + 95 + desplazamiento), str(g.get("titulo", ""))[:30], font=letras["titulo"],
+        titulo = str(g.get("titulo", ""))[:40]
+        d.text((x0 + 95, y0 + 95 + desplazamiento), titulo, font=_cabe(d, titulo, letras["titulo"], x1 - x0 - 130),
                fill=texto, anchor="lm")
         progreso = max(0.0, (t - 0.4) / max(0.6, segundos * 0.6))
         dibujo = {"barras": _barras, "cifra": _cifra, "tarjeta": _tarjeta}[g["tipo"]]

@@ -143,10 +143,9 @@ jobs:
           IN_DURACION: ${{ inputs.duracion || vars.DURACION || '1' }}
           IN_LOGO: ${{ inputs.logo || vars.LOGO_LINK || vars.TEXTO_MARCA }}
           IN_POSICION_LOGO: ${{ inputs.posicion_logo || vars.LOGO_POSICION }}
-          # Con tu modelo guardado (secreto MI_VOS), las rondas automáticas usan "yo": la IA lectora
-          # aprende de tus muestras (carpeta "mi voz") y HYAKO_LOCUTOR le pone tu timbre.
-          # Si algo falla, sale la voz normal.
-          IN_VOZ: ${{ inputs.voz || vars.VOZ || ((secrets.MI_VOS || secrets.MODELO_VOZ_LINK || vars.MODELO_VOZ_LINK) && 'yo') || 'hombre' }}
+          # Automáticos: Jorge (voz 'hombre'), o lo que diga la variable VOZ_AUTOMATICA.
+          # A mano: la que elijas en el formulario.
+          IN_VOZ: ${{ inputs.voz || vars.VOZ_AUTOMATICA || 'hombre' }}
           IN_MODELO_LINK: ${{ inputs.modelo_voz_link || vars.MODELO_VOZ_LINK || secrets.MODELO_VOZ_LINK || secrets.MI_VOS }}
           IN_MODELO_ESCRITO: ${{ inputs.modelo_voz_link }}
           IN_AVATAR: ${{ inputs.avatar || vars.AVATAR || 'no' }}
@@ -219,6 +218,8 @@ jobs:
 
       - name: Dejar los videos para descargar
         if: always()
+        # Si el servicio de archivos de GitHub falla (le pasa a veces), no importa: el video ya está en Drive.
+        continue-on-error: true
         uses: actions/upload-artifact@v5
         with:
           name: videos-${{ github.run_number }}
@@ -231,7 +232,7 @@ jobs:
         run: |
           git config user.name "fabrica-bot"
           git config user.email "fabrica-bot@users.noreply.github.com"
-          git add estado/historial.json estado/avatares.json estado/rendimiento.json 2>/dev/null || git add estado/historial.json estado/avatares.json 2>/dev/null || git add estado/historial.json 2>/dev/null || exit 0
+          git add estado/fotos_usadas.json 2>/dev/null; git add estado/historial.json estado/avatares.json estado/rendimiento.json 2>/dev/null || git add estado/historial.json estado/avatares.json 2>/dev/null || git add estado/historial.json 2>/dev/null || exit 0
           git diff --cached --quiet && exit 0
           git commit -q -m "Historial de temas"
           # Si mientras tanto se subió otro cambio, se junta y se reintenta.

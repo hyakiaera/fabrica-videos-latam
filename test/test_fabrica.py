@@ -14,6 +14,12 @@ _ORIGINALES = {}
 def setUpModule():
     # Las pruebas no deben salir a internet a buscar fotos de noticias.
     from fabrica import fotos_web
+    # Las pruebas no deben escribir en el registro real de fotos usadas.
+    temporal = Path(tempfile.mkdtemp()) / "fotos_usadas.json"
+    parche = mock.patch.object(fotos_web, "_archivo_usadas", return_value=temporal)
+    parche.start()
+    _SIN_RED.append(parche)
+    fotos_web._USADAS = {}
     for nombre in ("noticias", "openverse", "bing_imagenes", "imagen_wikipedia", "noticias_texto", "clips_stock"):
         _ORIGINALES[nombre] = getattr(fotos_web, nombre)
         parche = mock.patch.object(fotos_web, nombre, return_value=[])
@@ -1628,3 +1634,11 @@ class TestEscenaQueFallaNoTumbaElVideo(unittest.TestCase):
                 [{"imagen": "a", "grafica": None}, {"imagen": "b", "grafica": {"tipo": "cifra", "valor": 1}}],
                 estilos.obtener("caricatura"), "9:16", c)
         self.assertEqual(fotos[0], None)
+
+
+class TestFotosNoSeRepiten(unittest.TestCase):
+    def test_foto_usada_no_vuelve_a_salir(self):
+        from fabrica import fotos_web
+        fotos_web.marcar_usada("https://x/messi.jpg?w=800")
+        self.assertTrue(fotos_web.ya_usada("https://x/messi.jpg"))
+        self.assertFalse(fotos_web.ya_usada("https://x/otra.jpg"))
