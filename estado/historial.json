@@ -1131,10 +1131,11 @@
    "#Deportes",
    "#Soccer"
   ],
-  "publicado": false,
+  "publicado": true,
   "credito_musica": "",
   "musica": "output029.mp3",
-  "arranque": "Millones de dólares mueven estos clubes pero la realidad legal es otra."
+  "arranque": "Millones de dólares mueven estos clubes pero la realidad legal es otra.",
+  "publicado_mejor": true
  },
  {
   "mezcla": "finanzas",
@@ -1162,5 +1163,30 @@
   "musica": "output020.mp3",
   "edicion": "grande_centro",
   "arranque": "Miami-Dade es tan innovadora que ya acepta Bitcoin para tus impuestos."
+ },
+ {
+  "mezcla": "general",
+  "numero": 75,
+  "fecha": "2026-11-12T12:47",
+  "tema": "Frankie Muniz, de Malcolm el de en medio, hospitalizado tras accidente",
+  "categoria": "entretenimiento",
+  "estilo": "cinematografico",
+  "titulo": "Frankie Muniz de Malcolm el de en medio hospitalizado tras accidente en NASCAR",
+  "archivo": "salida/2026-11-12/entretenimiento/frankie-muniz-de-malcolm-el-de-en-medio-hospitalizado-tras-a #075.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-12/entretenimiento/frankie-muniz-de-malcolm-el-de-en-medio-hospitalizado-tras-a #075.mp4",
+  "hashtags": [
+   "#FrankieMuniz",
+   "#MalcolmElDeEnMedio",
+   "#NASCAR",
+   "#Entretenimiento",
+   "#Accidente"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output005.mp3",
+  "edicion": "celeste",
+  "arranque": "Más vale paso que dure, que choque que te mande al hospital."
  }
 ]
