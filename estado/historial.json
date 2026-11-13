@@ -1261,10 +1261,38 @@
    "#Entretenimiento",
    "#TopArtists"
   ],
-  "publicado": false,
+  "publicado": true,
   "credito_musica": "",
   "musica": "output025.mp3",
   "edicion": "verde_neon",
-  "arranque": "Número uno global."
+  "arranque": "Número uno global.",
+  "publicado_mejor": true
+ },
+ {
+  "mezcla": "general",
+  "numero": 79,
+  "fecha": "2026-11-13T12:17",
+  "tema": "La gran noche y los momentos virales de los Latin Grammy 2026",
+  "categoria": "entretenimiento",
+  "estilo": "anime",
+  "titulo": "Bobby Pulido gana Latin Grammy 2026 en gran noche de música",
+  "archivo": "salida/2026-11-13/entretenimiento/la-gran-noche-y-los-momentos-virales-de-los-latin-grammy-202 #079.mp4",
+  "automatico": true,
+  "nota": 88.0,
+  "drive": "2026-11-13/entretenimiento/la-gran-noche-y-los-momentos-virales-de-los-latin-grammy-202 #079.mp4",
+  "hashtags": [
+   "#LatinGrammy",
+   "#LatinGrammy2026",
+   "#BobbyPulido",
+   "#DaddyYankee",
+   "#MusicaUrbana",
+   "#PremiosDeMusica",
+   "#Entretenimiento"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output024.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Nadie te dice que Bobby Pulido ganaría el Latin Grammy a mejor álbum de música tejana tras su victoria electoral."
  }
 ]
