@@ -1294,5 +1294,31 @@
   "musica": "output024.mp3",
   "edicion": "caja_negra",
   "arranque": "Nadie te dice que Bobby Pulido ganaría el Latin Grammy a mejor álbum de música tejana tras su victoria electoral."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 80,
+  "fecha": "2026-11-13T20:42",
+  "tema": "¿Qué fue de Saúl Lisazo? Así luce hoy el inolvidable galán de telenovelas",
+  "categoria": "entretenimiento",
+  "estilo": "realista",
+  "titulo": "Todos recuerdan las telenovelas de Saúl Lisazo pero nadie sabe esto",
+  "archivo": "salida/2026-11-13/entretenimiento/que-fue-de-saul-lisazo-asi-luce-hoy-el-inolvidable-galan-de- #080.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-13/entretenimiento/que-fue-de-saul-lisazo-asi-luce-hoy-el-inolvidable-galan-de- #080.mp4",
+  "hashtags": [
+   "#SaulLisazo",
+   "#Telenovelas",
+   "#Famosos",
+   "#Univision",
+   "#Espectaculos",
+   "#Galanes"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output021.mp3",
+  "edicion": "grande_centro",
+  "arranque": "Todos vieron sus telenovelas."
  }
 ]
