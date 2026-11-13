@@ -1240,5 +1240,31 @@
   "musica": "output013.mp3",
   "edicion": "",
   "arranque": "3 señales de que tu auto tiene gasolina pirata."
+ },
+ {
+  "mezcla": "musica",
+  "numero": 78,
+  "fecha": "2026-11-13T02:40",
+  "tema": "Bad Bunny hace historia: su impacto global y la cima del siglo XXI",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "Bad Bunny es el número uno y cambia las reglas del juego",
+  "archivo": "salida/2026-11-13/entretenimiento/bad-bunny-hace-historia-su-impacto-global-y-la-cima-del-sigl #078.mp4",
+  "automatico": true,
+  "nota": 88.0,
+  "drive": "2026-11-13/entretenimiento/bad-bunny-hace-historia-su-impacto-global-y-la-cima-del-sigl #078.mp4",
+  "hashtags": [
+   "#BadBunny",
+   "#Billboard",
+   "#MusicaLatina",
+   "#SuperBowl",
+   "#Entretenimiento",
+   "#TopArtists"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output025.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Número uno global."
  }
 ]
