@@ -1320,5 +1320,31 @@
   "musica": "output021.mp3",
   "edicion": "grande_centro",
   "arranque": "Todos vieron sus telenovelas."
+ },
+ {
+  "mezcla": "",
+  "numero": 81,
+  "fecha": "2026-11-13T23:13",
+  "tema": "Caos aéreo en EE.UU. por fallo de la FAA",
+  "categoria": "mundo",
+  "estilo": "noticiero",
+  "titulo": "Caos aéreo total en Estados Unidos: siete mil vuelos afectados por la FAA",
+  "archivo": "salida/2026-11-13/mundo/caos-aereo-en-ee-uu-por-fallo-de-la-faa #081.mp4",
+  "automatico": false,
+  "nota": null,
+  "drive": "2026-11-13/mundo/caos-aereo-en-ee-uu-por-fallo-de-la-faa #081.mp4",
+  "hashtags": [
+   "#FAA",
+   "#EstadosUnidos",
+   "#Noticias",
+   "#Aviation",
+   "#TravelNews",
+   "#Mundo"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output022.mp3",
+  "edicion": "",
+  "arranque": "Siete mil vuelos afectados por un fallo informático."
  }
 ]
