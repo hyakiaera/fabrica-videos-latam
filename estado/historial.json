@@ -1346,5 +1346,32 @@
   "musica": "output022.mp3",
   "edicion": "",
   "arranque": "Siete mil vuelos afectados por un fallo informático."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 82,
+  "fecha": "2026-11-13T23:41",
+  "tema": "La hija de Susana González debuta en Televisa y sorprende con conmovedora confesión sobre su mamá",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¿Sabías que la hija de Susana González debutó en Televisa?",
+  "archivo": "salida/2026-11-13/entretenimiento/la-hija-de-susana-gonzalez-debuta-en-televisa-y-sorprende-co #082.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-13/entretenimiento/la-hija-de-susana-gonzalez-debuta-en-televisa-y-sorprende-co #082.mp4",
+  "hashtags": [
+   "#SusanaGonzalez",
+   "#Televisa",
+   "#Telenovelas",
+   "#Famosos",
+   "#Entretenimiento",
+   "#Mexico",
+   "#Estrellas"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output018.mp3",
+  "edicion": "caja_roja",
+  "arranque": "Antes la veíamos en los brazos de su madre."
  }
 ]
