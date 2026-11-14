@@ -1717,3 +1717,25 @@ class TestCampanaGTA(unittest.TestCase):
     def test_estilo_videojuego_solo_campana(self):
         self.assertIn("videojuego", estilos.ESTILOS)
         self.assertEqual(estilos.automatico("videojuego"), "explicativo")
+
+
+class TestLogoDeCierre(unittest.TestCase):
+    def test_logo_grande_solo_al_final(self):
+        import subprocess
+        import imageio_ffmpeg
+        from PIL import Image
+        c = Path(tempfile.mkdtemp())
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        subprocess.run([ff, "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=black:s=1080x1920:d=5", "-f", "lavfi",
+                        "-i", "sine=d=5", "-shortest", "-pix_fmt", "yuv420p", str(c / "v.mp4")], check=True)
+        Image.new("RGBA", (400, 100), (255, 0, 0, 255)).save(c / "cierre.png")
+        cfg = {"logo": {"activo": False, "cierre": str(c / "cierre.png"), "cierre_segundos": 2}}
+        salida = video.poner_logo(cfg, c / "v.mp4", c / "s.mp4")
+
+        def pixel(segundo):
+            subprocess.run([ff, "-v", "error", "-y", "-ss", str(segundo), "-i", str(salida), "-frames:v", "1",
+                            str(c / "f.png")], check=True)
+            return Image.open(c / "f.png").convert("RGB").getpixel((540, 960))
+
+        self.assertLess(pixel(1)[0], 40)        # al principio: sin logo
+        self.assertGreater(pixel(4.7)[0], 200)  # al final: el logo rojo en el centro

@@ -333,10 +333,28 @@ def firma(cfg: dict, titulo: str = "") -> list[str]:
     return argumentos
 
 
+def logo_cierre(cfg: dict) -> Path | None:
+    """Tu logo grande para el final del video (marca/logo_cierre.png, o el de [logo] cierre)."""
+    lg = cfg.get("logo", {})
+    if not lg.get("cierre_activo", True):
+        return None
+    ruta = Path(lg.get("cierre", "marca/logo_cierre.png"))
+    if not ruta.is_absolute():
+        from fabrica.config import RAIZ
+        ruta = RAIZ / ruta
+    return ruta if ruta.is_file() else None
+
+
 def poner_logo(cfg: dict, video: Path, salida: Path, titulo: str = "") -> Path:
-    """Pone el logo (si hay) y firma el archivo con tu marca."""
+    """Pone el logo (si hay), tu logo grande al final del video y firma el archivo con tu marca."""
     logo = obtener_logo(cfg, salida.parent)
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    cierre = logo_cierre(cfg)
+    if cierre:
+        try:
+            return _con_cierre(cfg, video, salida, titulo, logo, cierre)
+        except Exception as e:
+            logger.warning(f"Logo de cierre: no se pudo poner ({e}); el video sale sin él")
     if not logo:
         if cfg.get("logo", {}).get("activo", True):
             logger.warning("Logo: no subiste marca/logo.png ni pusiste texto de marca; sale sin logo")
@@ -348,6 +366,43 @@ def poner_logo(cfg: dict, video: Path, salida: Path, titulo: str = "") -> Path:
                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "copy",
                    *firma(cfg, titulo), "-movflags", "+faststart", str(salida)]
     subprocess.run(comando, check=True)
+    return salida
+
+
+def _con_cierre(cfg: dict, video: Path, salida: Path, titulo: str, logo: Path | None, cierre: Path) -> Path:
+    """Los últimos segundos: tu logo grande al centro (debajo de la tarjeta de "Síguenos" y
+    encima de los subtítulos), apareciendo suave. Mientras, la marca chica de la esquina se esconde."""
+    from fabrica import efectos
+    lg = cfg.get("logo", {})
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    total = efectos.duracion(video)
+    segundos = float(lg.get("cierre_segundos", 3.5))
+    inicio = max(0.0, total - segundos)
+    ancho_video = ANCHOS.get(cfg.get("video", {}).get("aspecto", "9:16"), 1080)
+    ancho = int(ancho_video * float(lg.get("cierre_ancho", 0.84)))
+    altura = float(lg.get("cierre_altura", 50)) / 100  # % de la pantalla (centro del logo)
+    entradas = [ffmpeg, "-y", "-loglevel", "error", "-i", str(video)]
+    partes = []
+    base = "[0:v]"
+    if logo:  # la marca chica, solo hasta que empieza el cierre
+        x, y, ancho_marca = ubicacion_logo(cfg)
+        if logo.name == "logo-texto.png":
+            ancho_marca = float(lg.get("tamano_texto", 0.34)) * 100
+        px = int(ancho_video * ancho_marca / 100)
+        entradas += ["-i", str(logo)]
+        partes.append(f"[1:v]scale={px}:-1,format=rgba,colorchannelmixer=aa={float(lg.get('opacidad', 0.9))}[marca]")
+        partes.append(f"{base}[marca]overlay={_expresion_x(x)}:H*{y / 100:.4f}:enable='lt(t,{inicio:.2f})'[v1]")
+        base = "[v1]"
+    indice = 2 if logo else 1
+    entradas += ["-loop", "1", "-t", f"{total:.2f}", "-i", str(cierre)]
+    partes.append(f"[{indice}:v]scale={ancho}:-1,format=rgba,"
+                  f"fade=t=in:st={inicio:.2f}:d=0.45:alpha=1[cierre]")
+    partes.append(f"{base}[cierre]overlay=(W-w)/2:H*{altura:.3f}-h/2:enable='gte(t,{inicio:.2f})':shortest=1[v]")
+    comando = entradas + ["-filter_complex", ";".join(partes), "-map", "[v]", "-map", "0:a?",
+                          "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "copy",
+                          *firma(cfg, titulo), "-movflags", "+faststart", str(salida)]
+    subprocess.run(comando, check=True, timeout=1200)
+    logger.info(f"Logo de cierre: últimos {segundos:.1f} s")
     return salida
 
 
