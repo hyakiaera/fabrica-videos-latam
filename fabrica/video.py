@@ -370,8 +370,8 @@ def poner_logo(cfg: dict, video: Path, salida: Path, titulo: str = "") -> Path:
 
 
 def _con_cierre(cfg: dict, video: Path, salida: Path, titulo: str, logo: Path | None, cierre: Path) -> Path:
-    """Los últimos segundos: tu logo grande al centro (debajo de la tarjeta de "Síguenos" y
-    encima de los subtítulos), apareciendo suave. Mientras, la marca chica de la esquina se esconde."""
+    """Los últimos segundos: tu logo grande al centro (debajo de la tarjeta de "Síguenos" y de la
+    marquita, encima de los subtítulos), apareciendo suave. La marquita sigue igual todo el video."""
     from fabrica import efectos
     lg = cfg.get("logo", {})
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -380,7 +380,7 @@ def _con_cierre(cfg: dict, video: Path, salida: Path, titulo: str, logo: Path | 
     inicio = max(0.0, total - segundos)
     ancho_video = ANCHOS.get(cfg.get("video", {}).get("aspecto", "9:16"), 1080)
     ancho = int(ancho_video * float(lg.get("cierre_ancho", 0.84)))
-    altura = float(lg.get("cierre_altura", 50)) / 100  # % de la pantalla (centro del logo)
+    altura = float(lg.get("cierre_altura", 55)) / 100  # % de la pantalla (centro del logo, debajo de la marquita)
     entradas = [ffmpeg, "-y", "-loglevel", "error", "-i", str(video)]
     partes = []
     base = "[0:v]"
@@ -391,7 +391,7 @@ def _con_cierre(cfg: dict, video: Path, salida: Path, titulo: str, logo: Path | 
         px = int(ancho_video * ancho_marca / 100)
         entradas += ["-i", str(logo)]
         partes.append(f"[1:v]scale={px}:-1,format=rgba,colorchannelmixer=aa={float(lg.get('opacidad', 0.9))}[marca]")
-        partes.append(f"{base}[marca]overlay={_expresion_x(x)}:H*{y / 100:.4f}:enable='lt(t,{inicio:.2f})'[v1]")
+        partes.append(f"{base}[marca]overlay={_expresion_x(x)}:H*{y / 100:.4f}[v1]")  # la marquita siempre
         base = "[v1]"
     indice = 2 if logo else 1
     entradas += ["-loop", "1", "-t", f"{total:.2f}", "-i", str(cierre)]

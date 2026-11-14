@@ -4,4 +4,4 @@ El tamaño, posición y transparencia se cambian en fabrica.toml, sección [logo
 logo_cierre.png = tu logo grande que sale en los ultimos segundos de cada video (centrado,
 debajo de la tarjeta de "Siguenos"). Para cambiarlo, reemplaza este archivo por otro PNG con
 fondo transparente. En fabrica.toml, seccion [logo]: cierre_segundos (3.5), cierre_ancho (0.84
-= 84 % del ancho), cierre_altura (50 = mitad de la pantalla), cierre_activo = false para quitarlo.
+= 84 % del ancho), cierre_altura (55 = un poco abajo de la mitad), cierre_activo = false para quitarlo.
