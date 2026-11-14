@@ -1480,5 +1480,31 @@
   "musica": "output007.mp3",
   "edicion": "",
   "arranque": "Si tienes dinero invertido, esto te interesa."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 87,
+  "fecha": "2026-11-14T21:30",
+  "tema": "Venta millonaria del San Jose Earthquakes sacude a la MLS",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "¡625 millones! La millonaria venta del San Jose Earthquakes",
+  "archivo": "salida/2026-11-14/deportes/venta-millonaria-del-san-jose-earthquakes-sacude-a-la-mls #087.mp4",
+  "automatico": true,
+  "nota": 52.0,
+  "drive": "2026-11-14/deportes/venta-millonaria-del-san-jose-earthquakes-sacude-a-la-mls #087.mp4",
+  "hashtags": [
+   "#SanJoseEarthquakes",
+   "#MLS",
+   "#Soccer",
+   "#Deportes",
+   "#HeathFreeman",
+   "#Fútbol"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Hiding Your Reality» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "curioso.mp3",
+  "edicion": "amarillo",
+  "arranque": "Se vendió por seiscientos veinticinco millones de dólares."
  }
 ]
