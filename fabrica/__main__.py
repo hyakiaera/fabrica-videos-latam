@@ -78,7 +78,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     fotos_propias = {}
     if tema.get("carpetas_fotos"):
         from fabrica import mis_fotos
-        fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo)
+        fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo, al_azar=bool(tema.get("campana")))
     if fotos_propias and "stock_video" in estilo.fuentes:
         # El estilo de videos de stock no usa fotos: con tus fotos se usa uno de imágenes.
         estilo = estilos.obtener("cinematografico")
@@ -93,6 +93,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     tema.setdefault("evitar_arranques", [e.get("arranque", "") for e in _historial()[-10:] if e.get("arranque")])
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     datos.setdefault("categoria", tema.get("categoria", ""))
+    if tema.get("miniatura"):
+        datos["miniatura"] = tema["miniatura"]  # colores de la campaña (ej. neón para GTA)
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")
     aspecto = cfg.get("video", {}).get("aspecto", "9:16")
     fotos, creditos, conteo = [], [], {}
@@ -183,6 +185,8 @@ def variar_estilos(temas: list[dict], historial: list[dict], ultimos: int = 3) -
     import random
     usados = [e.get("estilo", "") for e in historial[-ultimos:]]
     for t in temas:
+        if t.get("campana"):
+            continue  # la campaña tiene su propio estilo
         if t.get("estilo") not in usados:
             usados.append(t.get("estilo", ""))
             continue
@@ -215,7 +219,14 @@ def una_ronda(cfg: dict, args) -> int:
         from fabrica import pedidos
         temas = [pedidos.preparar(cfg, args.tema, estilo, args.categoria or "")]
     else:
-        if cfg.get("mezcla", {}).get("activa", True):
+        temas = []
+        from fabrica import campana
+        de_campana = campana.cuantos_ahora(cfg, _historial())
+        if de_campana:
+            temas = campana.temas(cfg, campana.activa(cfg), de_campana, _historial())
+        if temas:
+            pass  # esta ronda es de la campaña (ej. GTA 6)
+        elif cfg.get("mezcla", {}).get("activa", True):
             from fabrica import mezcla
             temas = mezcla.temas_de_la_ronda(cfg, cantidad, _historial(), estilo)
         else:

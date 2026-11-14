@@ -440,7 +440,10 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         if propia in fotos_propias:
             from fabrica import mis_fotos
             sumar("propias")
-            return encuadrar(mis_fotos.mejorar(fotos_propias[propia][0]), aspecto, rellenar=True), None
+            ruta_propia = fotos_propias[propia][0]
+            if Path(ruta_propia).suffix.lower() in (".mp4", ".mov", ".webm", ".m4v"):
+                return ruta_propia, None  # tu video (ya sin audio): se usa tal cual, en movimiento
+            return encuadrar(mis_fotos.mejorar(ruta_propia), aspecto, rellenar=True), None
         real = (escena.get("foto_real") or "").strip()
         if real:
             # Primero tus archivos con ese nombre (ej. tus escudos en "mis fotos/logos equipos").

@@ -59,7 +59,11 @@ def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> 
         letra = ImageFont.truetype(str(NEGRITA), tam)
         lineas = _partir(texto, letra, W - 120, d)[:4]
         y = H * 0.60
-        colores = [m.get("color_1", "#FFE600"), m.get("color_2", "#FFFFFF")]
+        propios = datos.get("miniatura") or {}
+        colores = [propios.get("color_1") or m.get("color_1", "#FFE600"),
+                   propios.get("color_2") or m.get("color_2", "#FFFFFF")]
+        if propios.get("marco"):  # marco de color (estilo campaña, ej. neón GTA)
+            d.rectangle([0, 0, W - 1, H - 1], outline=propios["marco"], width=22)
         for k, linea in enumerate(lineas):
             d.text((W / 2, y), linea, font=letra, fill=colores[k % 2], anchor="mt",
                    stroke_width=max(6, tam // 14), stroke_fill="#000000")

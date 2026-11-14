@@ -340,6 +340,29 @@ se vea en bucle, y el guion se limpia de muletillas de IA ("cabe destacar", "sin
 rayas largas). La nota del gancho sale en la ficha `.txt`.
 (Ideas generales tomadas de instagram-agent-skill, licencia MIT; escrito aquí en español.)
 
+## 17. Campaña GTA 6 (automática, con fecha de fin)
+
+- **2 videos de GTA al día** (del 13 al 30 de noviembre de 2026), repartidos entre las rondas.
+- **19 de noviembre (lanzamiento): todos los videos del día son de GTA 6**, con lo que está
+  pasando en ese momento (reseñas, ventas, récords, problemas, reacciones, primeros secretos).
+- Temas: noticias de lo más reciente (buscadas en cada ronda), trucos, datos curiosos,
+  despedida de GTA 5, historia de la saga y rankings. Nunca repite un tema.
+- **Tus fotos y videos**: súbelos a Drive en `Fabrica de Videos › mis fotos › gta`. A los videos
+  se les quita el audio solos y salen como escenas en movimiento (máx. 25 s cada uno, hasta
+  400 MB por archivo). En cada video se toma una mezcla distinta de tus archivos.
+- Además genera imágenes en **estilo videojuego** (ciudad tropical, neón, autos; sin logos).
+- **Miniaturas neón** (rosa y celeste, con marco).
+- Voz: Jorge, como todos los automáticos. Al terminar la fecha, se apaga sola.
+- Para cambiar algo, en `fabrica.toml`:
+  ```toml
+  [campana]
+  activa = true          # false la apaga
+  por_dia = 2
+  hasta = "2026-11-30"
+  ```
+- Cuidado con el copyright: usa tus propias grabaciones del juego (Rockstar permite gameplay
+  propio); no subas videos de otros canales ni tráilers completos.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

@@ -19,6 +19,27 @@ from fabrica import ia
 from fabrica.config import RAIZ
 
 EXTENSIONES = (".jpg", ".jpeg", ".png", ".webp")
+VIDEOS = (".mp4", ".mov", ".webm", ".m4v")
+
+
+def _sin_audio(video: Path, destino: Path, segundos: int = 25) -> tuple[Path, Path] | None:
+    """Copia del video SIN AUDIO (máx. 25 s) y un cuadro para describirlo."""
+    import imageio_ffmpeg
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    mudo = destino.with_name(destino.stem + "-mudo.mp4")
+    cuadro = destino.with_name(destino.stem + "-cuadro.jpg")
+    try:
+        if not mudo.exists():
+            subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(video), "-t", str(segundos), "-an",
+                            "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p",
+                            str(mudo)], check=True, timeout=600)
+        if not cuadro.exists():
+            subprocess.run([ff, "-y", "-loglevel", "error", "-ss", "1", "-i", str(mudo), "-frames:v", "1",
+                            str(cuadro)], check=True, timeout=120)
+        return mudo, cuadro
+    except Exception as e:
+        logger.warning(f"Mis fotos: no se pudo preparar el video {video.name} ({e})")
+        return None
 CACHE = "descripciones.json"
 
 
@@ -69,8 +90,11 @@ def quitar_repetidas(cats: list[str]) -> list[str]:
     return [c for c in cats if not any(c != o and c.startswith(o + "/") for o in cats)]
 
 
-def preparar(cfg: dict, cats: list[str], trabajo: Path) -> dict[str, tuple[Path, str]]:
-    """Baja las fotos de esas categorías y devuelve {nombre: (ruta, descripción)}."""
+def preparar(cfg: dict, cats: list[str], trabajo: Path, al_azar: bool = False,
+             videos: bool = True) -> dict[str, tuple[Path, str]]:
+    """Baja las fotos (y videos, sin audio) de esas categorías y devuelve {nombre: (ruta, descripción)}.
+    al_azar: toma una muestra distinta en cada video (para que no salgan siempre las mismas)."""
+    import random
     maximo = int(cfg.get("imagenes", {}).get("max_fotos_propias", 40))
     remoto = _remoto(cfg)
     fotos: dict[str, tuple[Path, str]] = {}
@@ -78,9 +102,11 @@ def preparar(cfg: dict, cats: list[str], trabajo: Path) -> dict[str, tuple[Path,
         destino = trabajo / "mis-fotos" / cat
         destino.mkdir(parents=True, exist_ok=True)
         if remoto:
+            permitidos = "jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP,json" + (",mp4,mov,webm,m4v,MP4,MOV" if videos else "")
             subprocess.run(["rclone", "copy", f"{remoto}/{cat}", str(destino), "--max-depth", "3",
-                            "--filter", "+ *.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP,json}", "--filter", "- *"],
-                           capture_output=True, timeout=900)
+                            "--max-size", "400M",
+                            "--filter", f"+ *.{{{permitidos}}}", "--filter", "- *"],
+                           capture_output=True, timeout=1800)
         if (_local() / cat).is_dir():
             for p in (_local() / cat).rglob("*"):
                 if p.is_file() and p.suffix.lower() in EXTENSIONES + (".json",):
@@ -89,8 +115,16 @@ def preparar(cfg: dict, cats: list[str], trabajo: Path) -> dict[str, tuple[Path,
                     shutil.copy(p, copia)
         cache_ruta = destino / CACHE
         cache = json.loads(cache_ruta.read_text(encoding="utf-8")) if cache_ruta.exists() else {}
-        imagenes = sorted((p for p in destino.rglob("*") if p.is_file() and p.suffix.lower() in EXTENSIONES),
-                          key=lambda p: p.stat().st_mtime, reverse=True)[:maximo]
+        todas = [p for p in destino.rglob("*") if p.is_file() and p.suffix.lower() in EXTENSIONES
+                 and not p.stem.endswith("-cuadro")]
+        clips = [p for p in destino.rglob("*") if videos and p.is_file() and p.suffix.lower() in VIDEOS
+                 and not p.stem.endswith("-mudo")]
+        if al_azar:
+            imagenes = random.sample(todas, min(maximo, len(todas)))
+            clips = random.sample(clips, min(12, len(clips)))
+        else:
+            imagenes = sorted(todas, key=lambda p: p.stat().st_mtime, reverse=True)[:maximo]
+            clips = clips[:12]
         nuevas = 0
         for p in imagenes:
             clave = str(p.relative_to(destino)).replace("\\", "/")
@@ -98,12 +132,22 @@ def preparar(cfg: dict, cats: list[str], trabajo: Path) -> dict[str, tuple[Path,
                 cache[clave] = ia.describir_imagen(cfg, p) or p.stem.replace("_", " ").replace("-", " ")
                 nuevas += 1
             fotos[f"{cat}/{clave}"] = (p, cache[clave])
+        for p in clips:  # videos: se usan sin audio, como escenas en movimiento
+            listo = _sin_audio(p, p)
+            if not listo:
+                continue
+            mudo, cuadro = listo
+            clave = str(p.relative_to(destino)).replace("\\", "/")
+            if clave not in cache:
+                cache[clave] = ia.describir_imagen(cfg, cuadro) or p.stem.replace("_", " ").replace("-", " ")
+                nuevas += 1
+            fotos[f"{cat}/{clave}"] = (mudo, f"(VIDEO en movimiento) {cache[clave]}")
         if nuevas:
             cache_ruta.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
             if remoto:  # se guardan las descripciones para no volver a gastar en ellas
                 subprocess.run(["rclone", "copyto", str(cache_ruta), f"{remoto}/{cat}/{CACHE}"],
                                capture_output=True, timeout=120)
-        logger.info(f"Mis fotos: {len(imagenes)} fotos de '{cat}' ({nuevas} descritas nuevas)")
+        logger.info(f"Mis fotos: {len(imagenes)} fotos y {len(clips)} videos de '{cat}' ({nuevas} descritas nuevas)")
     return fotos
 
 

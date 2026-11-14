@@ -118,6 +118,17 @@ ESTILOS: dict[str, Estilo] = {
         fuente_letra="Montserrat-ExtraBold.ttf",
         temas_ideales=["geografia", "historia", "curiosidades de paises", "lugares", "fronteras", "mundo"],
     ),
+    "videojuego": Estilo(
+        "Videojuego (estilo mundo abierto)",
+        "Capturas de juego y arte estilo videojuego de mundo abierto: ciudad soleada, neón, autos, "
+        "atardeceres. Para GTA y gaming.",
+        "stylized open-world video game screenshot of {escena}, sunny tropical coastal city like Miami, "
+        "neon pink and teal sunset, palm trees, sports cars, cinematic third-person camera, high detail, "
+        "game art, no logos, no text, no brand marks",
+        fuentes=("web", "ia", "wikimedia"),
+        fuente_letra="Montserrat-ExtraBold.ttf",
+        temas_ideales=["videojuegos", "gaming", "gta"],
+    ),
     "videos_stock": Estilo(
         "Videos de stock (original de MoneyPrinterTurbo)",
         "Videos de stock de Pexels/Pixabay; bueno para temas generales sin nombres propios.",
@@ -153,7 +164,7 @@ def disponible(estilo: Estilo) -> bool:
 
 
 # Estilos que solo salen cuando TÚ los eliges en Run workflow (la IA no los escoge sola).
-SOLO_MANUAL = {"geografia"}
+SOLO_MANUAL = {"geografia", "videojuego"}  # videojuego: lo usa la campaña de GTA
 
 
 def automatico(clave: str, respaldo: str = "explicativo") -> str:

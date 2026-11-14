@@ -1677,3 +1677,43 @@ class TestVariedad(unittest.TestCase):
         self.assertIn("font_name", look)
         for l in edicion.LOOKS.values():
             self.assertTrue((Path(__file__).resolve().parent.parent / "resource" / "fonts" / l["font_name"]).exists())
+
+
+class TestCampanaGTA(unittest.TestCase):
+    def test_fechas_y_cuotas(self):
+        from datetime import datetime
+        from fabrica import campana
+        self.assertIsNotNone(campana.activa({}, datetime(2026, 11, 15, 9)))
+        self.assertIsNone(campana.activa({}, datetime(2026, 12, 5, 9)))
+        self.assertIsNone(campana.activa({"campana": {"activa": False}}, datetime(2026, 11, 15, 9)))
+        c = campana.activa({}, datetime(2026, 11, 19, 9))
+        self.assertEqual(campana.cuota(c, datetime(2026, 11, 19).date()), 5)
+        self.assertEqual(campana.cuota(c, datetime(2026, 11, 20).date()), 2)
+
+    def test_reparte_en_el_dia(self):
+        from datetime import datetime
+        from fabrica import campana
+        # Lunes 16, 10pm: última ronda del día y no se ha hecho ninguno → hace 2 (cuota de 2)
+        self.assertEqual(campana.cuantos_ahora({}, [], datetime(2026, 11, 16, 22)), 2)
+        # ya se hicieron los 2 de hoy (fechas del historial en UTC: 13:00 UTC = 7am local)
+        hechos = [{"mezcla": "gta", "fecha": "2026-11-16T13:00"}, {"mezcla": "gta", "fecha": "2026-11-16T18:00"}]
+        self.assertEqual(campana.cuantos_ahora({}, hechos, datetime(2026, 11, 16, 16)), 0)
+        # día del lanzamiento (jueves, 4 rondas) a las 7am sin nada hecho: 5 videos en 4 rondas → 2 en esta
+        self.assertEqual(campana.cuantos_ahora({}, [], datetime(2026, 11, 19, 7)), 2)
+
+    def test_tus_videos_se_usan_sin_audio(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import mis_fotos
+        c = Path(tempfile.mkdtemp())
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-f", "lavfi", "-i",
+                        "testsrc=size=320x240:duration=2", "-f", "lavfi", "-i", "sine=d=2",
+                        "-shortest", str(c / "juego.mp4")], check=True)
+        mudo, cuadro = mis_fotos._sin_audio(c / "juego.mp4", c / "juego.mp4")
+        r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-i", str(mudo)], capture_output=True, text=True)
+        self.assertNotIn("Audio:", r.stderr)
+        self.assertTrue(cuadro.exists())
+
+    def test_estilo_videojuego_solo_campana(self):
+        self.assertIn("videojuego", estilos.ESTILOS)
+        self.assertEqual(estilos.automatico("videojuego"), "explicativo")
