@@ -1453,5 +1453,32 @@
   "musica": "output028.mp3",
   "edicion": "verde_neon",
   "arranque": "Terminó llevándose cuatro Latin Grammy."
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 86,
+  "fecha": "2026-11-14T18:57",
+  "tema": "Bolsa Mexicana de Valores rompe récords mientras Wall Street se sacude",
+  "categoria": "economia",
+  "estilo": "noticiero",
+  "titulo": "Bolsa Mexicana rompe récords: Si inviertes, esto te importa",
+  "archivo": "salida/2026-11-14/economia/bolsa-mexicana-de-valores-rompe-records-mientras-wall-street #086.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-14/economia/bolsa-mexicana-de-valores-rompe-records-mientras-wall-street #086.mp4",
+  "hashtags": [
+   "#BolsaMexicana",
+   "#WallStreet",
+   "#Finanzas",
+   "#Economia",
+   "#Inversiones",
+   "#Mexico",
+   "#IPC"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output007.mp3",
+  "edicion": "",
+  "arranque": "Si tienes dinero invertido, esto te interesa."
  }
 ]
