@@ -1373,5 +1373,59 @@
   "musica": "output018.mp3",
   "edicion": "caja_roja",
   "arranque": "Antes la veíamos en los brazos de su madre."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 83,
+  "fecha": "2026-11-14T02:14",
+  "tema": "Precarga y peso masivo de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Pesa más de 225 GB! Ya puedes descargar GTA 6",
+  "archivo": "salida/2026-11-14/gaming/precarga-y-peso-masivo-de-gta-6 #083.mp4",
+  "automatico": true,
+  "nota": 36.0,
+  "drive": "2026-11-14/gaming/precarga-y-peso-masivo-de-gta-6 #083.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAuto6",
+   "#RockstarGames",
+   "#Gaming",
+   "#PlayStation5",
+   "#Xbox",
+   "#Videojuegos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output006.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Grandes noticias para los fans de Rockstar Games."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 84,
+  "fecha": "2026-11-14T02:23",
+  "tema": "Precarga y novedades del nuevo tráiler de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Rockstar lanza nuevo tráiler de GTA 6 con metraje inédito!",
+  "archivo": "salida/2026-11-14/gaming/precarga-y-novedades-del-nuevo-trailer-de-gta-6 #084.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-14/gaming/precarga-y-novedades-del-nuevo-trailer-de-gta-6 #084.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAutoVI",
+   "#RockstarGames",
+   "#GamingNoticias",
+   "#Videojuegos",
+   "#GamingCommunity",
+   "#GTA"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output017.mp3",
+  "edicion": "clasico",
+  "arranque": "Si estás esperando el estreno de GTA 6, esto te interesa."
  }
 ]
