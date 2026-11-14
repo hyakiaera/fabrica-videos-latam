@@ -1427,5 +1427,31 @@
   "musica": "output017.mp3",
   "edicion": "clasico",
   "arranque": "Si estás esperando el estreno de GTA 6, esto te interesa."
+ },
+ {
+  "mezcla": "general",
+  "numero": 85,
+  "fecha": "2026-11-14T11:39",
+  "tema": "Milo J arrasa y se lleva cuatro Latin Grammy",
+  "categoria": "entretenimiento",
+  "estilo": "comic",
+  "titulo": "¡Cuatro Latin Grammy para Milo J! Conoce a todos los premiados",
+  "archivo": "salida/2026-11-14/entretenimiento/milo-j-arrasa-y-se-lleva-cuatro-latin-grammy #085.mp4",
+  "automatico": true,
+  "nota": 88.0,
+  "drive": "2026-11-14/entretenimiento/milo-j-arrasa-y-se-lleva-cuatro-latin-grammy #085.mp4",
+  "hashtags": [
+   "#MiloJ",
+   "#LatinGrammy",
+   "#MusicaLatina",
+   "#PremiosGrammy",
+   "#MusicaEnEspanol",
+   "#Entretenimiento"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output028.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Terminó llevándose cuatro Latin Grammy."
  }
 ]
