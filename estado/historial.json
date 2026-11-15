@@ -1533,5 +1533,31 @@
   "musica": "output009.mp3",
   "edicion": "clasico",
   "arranque": "Tres detalles de las ediciones de GTA 6."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 89,
+  "fecha": "2026-11-15T08:06",
+  "tema": "El truco del maquillaje en stick en 4 minutos y 'cloud skin'",
+  "categoria": "entretenimiento",
+  "estilo": "realista",
+  "titulo": "¡Maquillaje en 4 minutos! El truco que arrasa",
+  "archivo": "salida/2026-11-15/entretenimiento/el-truco-del-maquillaje-en-stick-en-4-minutos-y-cloud-skin #089.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-15/entretenimiento/el-truco-del-maquillaje-en-stick-en-4-minutos-y-cloud-skin #089.mp4",
+  "hashtags": [
+   "#maquillaje",
+   "#cloudskin",
+   "#trucosdebelleza",
+   "#beautytips",
+   "#makeup",
+   "#tendencias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output019.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Y justo ahí descubriste el truco que cambia tus mañanas."
  }
 ]
