@@ -1559,5 +1559,32 @@
   "musica": "output019.mp3",
   "edicion": "verde_neon",
   "arranque": "Y justo ahí descubriste el truco que cambia tus mañanas."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 90,
+  "fecha": "2026-11-15T19:37",
+  "tema": "Banda sonora de lujo con Cardi B y Travis Scott para GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Trataron de ocultarlo! La lista de GTA 6 con Cardi B y Travis Scott",
+  "archivo": "salida/2026-11-15/gaming/banda-sonora-de-lujo-con-cardi-b-y-travis-scott-para-gta-6 #090.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-15/gaming/banda-sonora-de-lujo-con-cardi-b-y-travis-scott-para-gta-6 #090.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#cardib",
+   "#travisscott",
+   "#gaming",
+   "#playboicarti",
+   "#rockstargames"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output011.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Nadie te dice que la lista secreta de canciones de GTA 6 ya se filtró por completo en redes sociales."
  }
 ]
