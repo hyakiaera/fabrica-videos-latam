@@ -1506,5 +1506,32 @@
   "musica": "curioso.mp3",
   "edicion": "amarillo",
   "arranque": "Se vendió por seiscientos veinticinco millones de dólares."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 88,
+  "fecha": "2026-11-15T01:09",
+  "tema": "Precios, ediciones y la polémica física de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Nadie te dice que GTA 6 no traerá disco físico",
+  "archivo": "salida/2026-11-15/gaming/precios-ediciones-y-la-polemica-fisica-de-gta-6 #088.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-15/gaming/precios-ediciones-y-la-polemica-fisica-de-gta-6 #088.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#playstation",
+   "#xbox",
+   "#gaming",
+   "#noticias",
+   "#videogames"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output009.mp3",
+  "edicion": "clasico",
+  "arranque": "Tres detalles de las ediciones de GTA 6."
  }
 ]
