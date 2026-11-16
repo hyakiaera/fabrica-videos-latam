@@ -1690,5 +1690,31 @@
   "musica": "output028.mp3",
   "edicion": "clasico",
   "arranque": "¿Tú pagarías para ver un desfile de superdeportivos en Miami?"
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 95,
+  "fecha": "2026-11-16T23:05",
+  "tema": "El 'hombre de la bufanda' en Corea del Sur que le ruega a la gente que NO compre sus productos",
+  "categoria": "mundo",
+  "estilo": "caricatura",
+  "titulo": "Deja de comprar esto. El hombre que le ruega a sus clientes que no lo hagan",
+  "archivo": "salida/2026-11-16/mundo/el-hombre-de-la-bufanda-en-corea-del-sur-que-le-ruega-a-la-g #095.mp4",
+  "automatico": true,
+  "nota": 94.0,
+  "drive": "2026-11-16/mundo/el-hombre-de-la-bufanda-en-corea-del-sur-que-le-ruega-a-la-g #095.mp4",
+  "hashtags": [
+   "#CoreaDelSur",
+   "#ScarfMan",
+   "#Viral",
+   "#Marketing",
+   "#SouthKorea",
+   "#Curiosidades"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output003.mp3",
+  "edicion": "celeste",
+  "arranque": "Deja de comprar lo primero que ves en internet."
  }
 ]
