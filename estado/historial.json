@@ -1612,5 +1612,31 @@
   "musica": "output012.mp3",
   "edicion": "amarillo",
   "arranque": "¿Reconocerías a un clásico de GTA 4 con dos segundos en pantalla?"
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 92,
+  "fecha": "2026-11-16T01:07",
+  "tema": "Cómo comprar pasajes de avión escondiendo tu IP para ahorrar hasta 40%",
+  "categoria": "curiosidades",
+  "estilo": "3d",
+  "titulo": "¿Cómo comprar pasajes de avión ocultando tu IP? Descúbrelo aquí",
+  "archivo": "salida/2026-11-16/curiosidades/como-comprar-pasajes-de-avion-escondiendo-tu-ip-para-ahorrar #092.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-16/curiosidades/como-comprar-pasajes-de-avion-escondiendo-tu-ip-para-ahorrar #092.mp4",
+  "hashtags": [
+   "#viajes",
+   "#vuelosbaratos",
+   "#ahorrarviajando",
+   "#consejosdeviaje",
+   "#travel",
+   "#flightdeals"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output023.mp3",
+  "edicion": "grande_centro",
+  "arranque": "¿Pagarías hasta cuarenta por ciento menos ocultando tu IP al buscar vuelos?"
  }
 ]
