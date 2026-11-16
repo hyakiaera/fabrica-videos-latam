@@ -1638,5 +1638,31 @@
   "musica": "output023.mp3",
   "edicion": "grande_centro",
   "arranque": "¿Pagarías hasta cuarenta por ciento menos ocultando tu IP al buscar vuelos?"
+ },
+ {
+  "mezcla": "general",
+  "numero": 93,
+  "fecha": "2026-11-16T08:10",
+  "tema": "¡Histórica captura de Starship! Así fue el impresionante regreso de la nave de Elon Musk",
+  "categoria": "ciencia",
+  "estilo": "cinematografico",
+  "titulo": "¡Histórica captura de Starship! Así fue el impresionante regreso",
+  "archivo": "salida/2026-11-16/ciencia/historica-captura-de-starship-asi-fue-el-impresionante-regre #093.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-16/ciencia/historica-captura-de-starship-asi-fue-el-impresionante-regre #093.mp4",
+  "hashtags": [
+   "#Starship",
+   "#SpaceX",
+   "#ElonMusk",
+   "#Ciencia",
+   "#Tecnologia",
+   "#Space"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output017.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Tres fases del histórico vuelo de SpaceX."
  }
 ]
