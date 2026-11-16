@@ -1664,5 +1664,31 @@
   "musica": "output017.mp3",
   "edicion": "verde_neon",
   "arranque": "Tres fases del histórico vuelo de SpaceX."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 94,
+  "fecha": "2026-11-16T12:52",
+  "tema": "Vice City: la Miami real detrás de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¿Sabías que Vice City es Miami? El mundo abierto de GTA 6",
+  "archivo": "salida/2026-11-16/gaming/vice-city-la-miami-real-detras-de-gta-6 #094.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-16/gaming/vice-city-la-miami-real-detras-de-gta-6 #094.mp4",
+  "hashtags": [
+   "#GTAVI",
+   "#ViceCity",
+   "#Miami",
+   "#Gaming",
+   "#Videojuegos",
+   "#GrandTheftAuto"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output028.mp3",
+  "edicion": "clasico",
+  "arranque": "¿Tú pagarías para ver un desfile de superdeportivos en Miami?"
  }
 ]
