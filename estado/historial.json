@@ -1742,5 +1742,32 @@
   "musica": "misterio.mp3",
   "edicion": "amarillo",
   "arranque": "Si llevas años jugando a Grand Theft Auto V, esto te importa."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 97,
+  "fecha": "2026-11-17T04:36",
+  "tema": "Nuevo escándalo nocturno salpica a Neymar",
+  "categoria": "deportes",
+  "estilo": "comic",
+  "titulo": "¡Escándalo nocturno! ¿Neymar engañó a su esposa?",
+  "archivo": "salida/2026-11-17/deportes/nuevo-escandalo-nocturno-salpica-a-neymar #097.mp4",
+  "automatico": true,
+  "nota": 83.3,
+  "drive": "2026-11-17/deportes/nuevo-escandalo-nocturno-salpica-a-neymar #097.mp4",
+  "hashtags": [
+   "#Neymar",
+   "#ElGrafico",
+   "#Vinicius",
+   "#Futbol",
+   "#Deportes",
+   "#Escandalo",
+   "#Noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output012.mp3",
+  "edicion": "grande_centro",
+  "arranque": "Esta polémica fiesta cambia el situación."
  }
 ]
