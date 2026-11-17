@@ -1716,5 +1716,31 @@
   "musica": "output003.mp3",
   "edicion": "celeste",
   "arranque": "Deja de comprar lo primero que ves en internet."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 96,
+  "fecha": "2026-11-17T02:03",
+  "tema": "Todo sobre el inminente lanzamiento de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡El último viaje por Los Santos antes de GTA 6!",
+  "archivo": "salida/2026-11-17/gaming/todo-sobre-el-inminente-lanzamiento-de-gta-6 #096.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-17/gaming/todo-sobre-el-inminente-lanzamiento-de-gta-6 #096.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAuto",
+   "#RockstarGames",
+   "#Gaming",
+   "#LosSantos",
+   "#GTAOnline"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Dark Fog» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "misterio.mp3",
+  "edicion": "amarillo",
+  "arranque": "Si llevas años jugando a Grand Theft Auto V, esto te importa."
  }
 ]
