@@ -1769,5 +1769,32 @@
   "musica": "output012.mp3",
   "edicion": "grande_centro",
   "arranque": "Esta polémica fiesta cambia el situación."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 98,
+  "fecha": "2026-11-17T13:23",
+  "tema": "El truco de Nueva Zelanda para jugar GTA 6 antes que nadie",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "El truco de Nueva Zelanda para jugar GTA 6 antes que nadie",
+  "archivo": "salida/2026-11-17/gaming/el-truco-de-nueva-zelanda-para-jugar-gta-6-antes-que-nadie #098.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-17/gaming/el-truco-de-nueva-zelanda-para-jugar-gta-6-antes-que-nadie #098.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAuto",
+   "#NewZealandTrick",
+   "#PlayStation",
+   "#Xbox",
+   "#Gaming",
+   "#Videojuegos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output002.mp3",
+  "edicion": "clasico",
+  "arranque": "Cero dólares adicionales."
  }
 ]
