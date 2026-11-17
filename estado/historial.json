@@ -1796,5 +1796,31 @@
   "musica": "output002.mp3",
   "edicion": "clasico",
   "arranque": "Cero dólares adicionales."
+ },
+ {
+  "mezcla": "general",
+  "numero": 99,
+  "fecha": "2026-11-17T21:54",
+  "tema": "La renuncia de Jensen Huang sacude a Nvidia y Wall Street",
+  "categoria": "tecnologia",
+  "estilo": "explicativo",
+  "titulo": "La renuncia de Jensen Huang sacude Nvidia y Wall Street",
+  "archivo": "salida/2026-11-17/tecnologia/la-renuncia-de-jensen-huang-sacude-a-nvidia-y-wall-street #099.mp4",
+  "automatico": true,
+  "nota": 79.3,
+  "drive": "2026-11-17/tecnologia/la-renuncia-de-jensen-huang-sacude-a-nvidia-y-wall-street #099.mp4",
+  "hashtags": [
+   "#Nvidia",
+   "#WallStreet",
+   "#JensenHuang",
+   "#Tecnologia",
+   "#Finanzas",
+   "#Noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Hiding Your Reality» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "curioso.mp3",
+  "edicion": "",
+  "arranque": "Minuto decisivo en la bolsa, Wall Street tiembla..."
  }
 ]
