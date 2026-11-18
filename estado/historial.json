@@ -1822,5 +1822,32 @@
   "musica": "curioso.mp3",
   "edicion": "",
   "arranque": "Minuto decisivo en la bolsa, Wall Street tiembla..."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 100,
+  "fecha": "2026-11-18T00:59",
+  "tema": "récords de ventas de GTA 5 que GTA 6 quiere romper",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¿Sabías que GTA 6 ya rompió récords antes de salir?",
+  "archivo": "salida/2026-11-18/gaming/records-de-ventas-de-gta-5-que-gta-6-quiere-romper #100.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-18/gaming/records-de-ventas-de-gta-5-que-gta-6-quiere-romper #100.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#gaming",
+   "#videojuegos",
+   "#rockstargames",
+   "#noticias",
+   "#gamer"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output010.mp3",
+  "edicion": "celeste",
+  "arranque": "GTA 6 contra GTA 5."
  }
 ]
