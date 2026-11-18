@@ -1902,5 +1902,31 @@
   "musica": "output014.mp3",
   "edicion": "amarillo",
   "arranque": "Maite Perroni no descarta su regreso a las telenovelas."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 103,
+  "fecha": "2026-11-18T21:29",
+  "tema": "GTA San Andreas: por qué sigue siendo el favorito de los latinos",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¿Por qué GTA San Andreas sigue siendo el favorito de todos?",
+  "archivo": "salida/2026-11-18/gaming/gta-san-andreas-por-que-sigue-siendo-el-favorito-de-los-lati #103.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-18/gaming/gta-san-andreas-por-que-sigue-siendo-el-favorito-de-los-lati #103.mp4",
+  "hashtags": [
+   "#gtasanandreas",
+   "#gta6",
+   "#cj",
+   "#gaming",
+   "#latino",
+   "#videojuegos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output019.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Tres razones por las que San Andreas sigue mandando."
  }
 ]
