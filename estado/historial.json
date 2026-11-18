@@ -1849,5 +1849,32 @@
   "musica": "output010.mp3",
   "edicion": "celeste",
   "arranque": "GTA 6 contra GTA 5."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 101,
+  "fecha": "2026-11-18T03:43",
+  "tema": "Cómo identificar aguacates perfectamente maduros en el súper con el truco del tallo",
+  "categoria": "curiosidades",
+  "estilo": "realista",
+  "titulo": "¡Identifica aguacates maduros con este truco del tallo! #Aguacate #Consejos",
+  "archivo": "salida/2026-11-18/curiosidades/como-identificar-aguacates-perfectamente-maduros-en-el-super #101.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-18/curiosidades/como-identificar-aguacates-perfectamente-maduros-en-el-super #101.mp4",
+  "hashtags": [
+   "#aguacate",
+   "#consejos",
+   "#supermercado",
+   "#cocina",
+   "#avocado",
+   "#tips",
+   "#trucos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output028.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Nadie te dice que apretar un aguacate en el supermercado solo lo arruina por dentro."
  }
 ]
