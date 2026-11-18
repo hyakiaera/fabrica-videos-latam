@@ -1876,5 +1876,31 @@
   "musica": "output028.mp3",
   "edicion": "verde_neon",
   "arranque": "Nadie te dice que apretar un aguacate en el supermercado solo lo arruina por dentro."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 102,
+  "fecha": "2026-11-18T13:15",
+  "tema": "¿Vuelve Maite Perroni a las telenovelas?",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "Maite Perroni no descarta regresar a las telenovelas. ¿Vuelve la reina?",
+  "archivo": "salida/2026-11-18/entretenimiento/vuelve-maite-perroni-a-las-telenovelas #102.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-18/entretenimiento/vuelve-maite-perroni-a-las-telenovelas #102.mp4",
+  "hashtags": [
+   "#MaitePerroni",
+   "#Telenovelas",
+   "#JaimeCamil",
+   "#Entretenimiento",
+   "#Famosos",
+   "#Univision"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output014.mp3",
+  "edicion": "amarillo",
+  "arranque": "Maite Perroni no descarta su regreso a las telenovelas."
  }
 ]
