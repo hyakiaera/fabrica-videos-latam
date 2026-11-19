@@ -1955,5 +1955,32 @@
   "musica": "output021.mp3",
   "edicion": "grande_centro",
   "arranque": "Antes nadie la conocía."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 105,
+  "fecha": "2026-11-19T03:09",
+  "tema": "despedida de GTA 5: los momentos más icónicos de sus años",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡13 años después! El adiós definitivo a Los Santos en GTA 5",
+  "archivo": "salida/2026-11-19/gaming/despedida-de-gta-5-los-momentos-mas-iconicos-de-sus-anos #105.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-19/gaming/despedida-de-gta-5-los-momentos-mas-iconicos-de-sus-anos #105.mp4",
+  "hashtags": [
+   "#gta5",
+   "#gtav",
+   "#gta6",
+   "#gaming",
+   "#lossantos",
+   "#videogames",
+   "#español"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Dark Fog» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "misterio.mp3",
+  "edicion": "celeste",
+  "arranque": "13 años esperando y el viaje está por terminar en Los Santos."
  }
 ]
