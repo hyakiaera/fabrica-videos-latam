@@ -1982,5 +1982,58 @@
   "musica": "misterio.mp3",
   "edicion": "celeste",
   "arranque": "13 años esperando y el viaje está por terminar en Los Santos."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 106,
+  "fecha": "2026-11-19T13:04",
+  "tema": "Críticas, puntajes en Metacritic y primeras reseñas de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "GTA 6 contra Zelda. Y no estuvo ni cerca.",
+  "archivo": "salida/2026-11-19/gaming/criticas-puntajes-en-metacritic-y-primeras-resenas-de-gta-6 #106.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-19/gaming/criticas-puntajes-en-metacritic-y-primeras-resenas-de-gta-6 #106.mp4",
+  "hashtags": [
+   "#gta6",
+   "#videojuegos",
+   "#gaming",
+   "#metacritic",
+   "#rockstargames",
+   "#noticias",
+   "#zelda"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output009.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Dos récords que GTA 6 destrozó."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 107,
+  "fecha": "2026-11-19T13:17",
+  "tema": "Calificaciones perfectas y primeras reseñas de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Las primeras reseñas de GTA 6! ¿Valió la pena la espera?",
+  "archivo": "salida/2026-11-19/gaming/calificaciones-perfectas-y-primeras-resenas-de-gta-6 #107.mp4",
+  "automatico": true,
+  "nota": 84.0,
+  "drive": "2026-11-19/gaming/calificaciones-perfectas-y-primeras-resenas-de-gta-6 #107.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#gaming",
+   "#vicecity",
+   "#rockstargames",
+   "#videojuegos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output016.mp3",
+  "edicion": "caja_negra",
+  "arranque": "El 100 por ciento de la crítica ya dio su calificación."
  }
 ]
