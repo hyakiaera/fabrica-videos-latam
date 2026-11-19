@@ -1928,5 +1928,32 @@
   "musica": "output019.mp3",
   "edicion": "caja_negra",
   "arranque": "Tres razones por las que San Andreas sigue mandando."
+ },
+ {
+  "mezcla": "mundo",
+  "numero": 104,
+  "fecha": "2026-11-19T00:17",
+  "tema": "Abuela de 81 años baila con Chris Brown y se vuelve viral en EE.UU.",
+  "categoria": "entretenimiento",
+  "estilo": "anime",
+  "titulo": "¡Abuela de 81 años baila con Chris Brown y se vuelve viral en EE.UU.!",
+  "archivo": "salida/2026-11-19/entretenimiento/abuela-de-81-anos-baila-con-chris-brown-y-se-vuelve-viral-en #104.mp4",
+  "automatico": true,
+  "nota": 88.0,
+  "drive": "2026-11-19/entretenimiento/abuela-de-81-anos-baila-con-chris-brown-y-se-vuelve-viral-en #104.mp4",
+  "hashtags": [
+   "#ChrisBrown",
+   "#Viral",
+   "#Tendencia",
+   "#EstadosUnidos",
+   "#Baile",
+   "#Noticias",
+   "#Concierto"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output021.mp3",
+  "edicion": "grande_centro",
+  "arranque": "Antes nadie la conocía."
  }
 ]
