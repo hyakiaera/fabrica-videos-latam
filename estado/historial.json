@@ -2035,5 +2035,31 @@
   "musica": "output016.mp3",
   "edicion": "caja_negra",
   "arranque": "El 100 por ciento de la crítica ya dio su calificación."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 108,
+  "fecha": "2026-11-19T21:43",
+  "tema": "Filas, locura y ambiente en las calles por el estreno mundial de GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡LOCURA TOTAL! GTA 6 ya está aquí y así se vive en las calles",
+  "archivo": "salida/2026-11-19/gaming/filas-locura-y-ambiente-en-las-calles-por-el-estreno-mundial #108.mp4",
+  "automatico": true,
+  "nota": 79.0,
+  "drive": "2026-11-19/gaming/filas-locura-y-ambiente-en-las-calles-por-el-estreno-mundial #108.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#RockstarGames",
+   "#ViceCity",
+   "#GamingNews",
+   "#GrandTheftAutoVI",
+   "#Miami"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output000.mp3",
+  "edicion": "amarillo",
+  "arranque": "La ciudad de Miami cambia para siempre hoy."
  }
 ]
