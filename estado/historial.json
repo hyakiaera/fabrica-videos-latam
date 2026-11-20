@@ -2114,5 +2114,32 @@
   "musica": "output008.mp3",
   "edicion": "caja_roja",
   "arranque": "Dos mil millones de dólares en su primer día."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 111,
+  "fecha": "2026-11-20T13:10",
+  "tema": "Cómo identificar gasolineras fraudulentas que dan litros incompletos con la prueba del bidón",
+  "categoria": "curiosidades",
+  "estilo": "realista",
+  "titulo": "¡Cuidado! Gasolineras te dan menos litros y así puedes comprobarlo",
+  "archivo": "salida/2026-11-20/curiosidades/como-identificar-gasolineras-fraudulentas-que-dan-litros-inc #111.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-20/curiosidades/como-identificar-gasolineras-fraudulentas-que-dan-litros-inc #111.mp4",
+  "hashtags": [
+   "#gasolinera",
+   "#profeco",
+   "#mexico",
+   "#estafa",
+   "#noticias",
+   "#gasoline",
+   "#fraud"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output013.mp3",
+  "edicion": "grande_centro",
+  "arranque": "Pagar veintiocho litros y recibir veinticinco es como tirar tu dinero directamente a la basura."
  }
 ]
