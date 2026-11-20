@@ -2087,5 +2087,32 @@
   "musica": "output002.mp3",
   "edicion": "celeste",
   "arranque": "PlayStation Network colapsa en pleno estreno."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 110,
+  "fecha": "2026-11-20T03:10",
+  "tema": "GTA 6 recauda 2,000 millones de dólares en su estreno y pulveriza récords",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Dos mil millones en un día! GTA 6 rompe todos los récords de la historia",
+  "archivo": "salida/2026-11-20/gaming/gta-6-recauda-2-000-millones-de-dolares-en-su-estreno-y-pulv #110.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-20/gaming/gta-6-recauda-2-000-millones-de-dolares-en-su-estreno-y-pulv #110.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#Gaming",
+   "#ViceCity",
+   "#Videojuegos",
+   "#NoticiasGaming",
+   "#PlayStation",
+   "#Xbox"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output008.mp3",
+  "edicion": "caja_roja",
+  "arranque": "Dos mil millones de dólares en su primer día."
  }
 ]
