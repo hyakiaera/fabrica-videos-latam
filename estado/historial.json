@@ -2061,5 +2061,31 @@
   "musica": "output000.mp3",
   "edicion": "amarillo",
   "arranque": "La ciudad de Miami cambia para siempre hoy."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 109,
+  "fecha": "2026-11-20T00:39",
+  "tema": "GTA 6 colapsa PlayStation Network en su debut",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "GTA 6 colapsa PlayStation Network antes de debutar en todo el mundo",
+  "archivo": "salida/2026-11-20/gaming/gta-6-colapsa-playstation-network-en-su-debut #109.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-20/gaming/gta-6-colapsa-playstation-network-en-su-debut #109.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#PlayStationNetwork",
+   "#PSN",
+   "#PlayStation",
+   "#GamingNoticias",
+   "#Videojuegos"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output002.mp3",
+  "edicion": "celeste",
+  "arranque": "PlayStation Network colapsa en pleno estreno."
  }
 ]
