@@ -2141,5 +2141,31 @@
   "musica": "output013.mp3",
   "edicion": "grande_centro",
   "arranque": "Pagar veintiocho litros y recibir veinticinco es como tirar tu dinero directamente a la basura."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 112,
+  "fecha": "2026-11-20T21:12",
+  "tema": "El temido error en PS5 que apaga tu consola al jugar GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Si juegas GTA 6 en PS5, el metal líquido te puede apagar la consola",
+  "archivo": "salida/2026-11-20/gaming/el-temido-error-en-ps5-que-apaga-tu-consola-al-jugar-gta-6 #112.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-20/gaming/el-temido-error-en-ps5-que-apaga-tu-consola-al-jugar-gta-6 #112.mp4",
+  "hashtags": [
+   "#PS5",
+   "#GTA6",
+   "#PlayStation5",
+   "#Gaming",
+   "#Videojuegos",
+   "#ErrorPS5"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output009.mp3",
+  "edicion": "clasico",
+  "arranque": "Si tu PlayStation 5 se apaga de repente al jugar GTA 6, esto te importa."
  }
 ]
