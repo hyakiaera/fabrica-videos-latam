@@ -2247,5 +2247,31 @@
   "musica": "output003.mp3",
   "edicion": "caja_roja",
   "arranque": "Cinco punto cinco."
+ },
+ {
+  "mezcla": "general",
+  "numero": 116,
+  "fecha": "2026-11-21T20:16",
+  "tema": "El histórico debut de Anthropic en la bolsa y el temor a la burbuja de la IA",
+  "categoria": "economia",
+  "estilo": "explicativo",
+  "titulo": "¿Puede estallar la burbuja de la inteligencia artificial tras el debut bursátil de Anthropic?",
+  "archivo": "salida/2026-11-21/economia/el-historico-debut-de-anthropic-en-la-bolsa-y-el-temor-a-la- #116.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-21/economia/el-historico-debut-de-anthropic-en-la-bolsa-y-el-temor-a-la- #116.mp4",
+  "hashtags": [
+   "#Anthropic",
+   "#BurbujaIA",
+   "#WallStreet",
+   "#Economia",
+   "#InteligenciaArtificial",
+   "#Finanzas"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output022.mp3",
+  "edicion": "",
+  "arranque": "Diez mil millones de dólares es lo que Anthropic logró en su debut bursátil histórico."
  }
 ]
