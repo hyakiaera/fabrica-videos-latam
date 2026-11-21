@@ -2221,5 +2221,31 @@
   "musica": "output001.mp3",
   "edicion": "celeste",
   "arranque": "Antoine Griezmann consuma su primer fracaso en la MLS."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 115,
+  "fecha": "2026-11-21T12:40",
+  "tema": "Bombardeo de reseñas negativas y polémicas en GTA VI",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Cincuenta y cinco de nota. Así arranca el review bombing de GTA 6.",
+  "archivo": "salida/2026-11-21/gaming/bombardeo-de-resenas-negativas-y-polemicas-en-gta-vi #115.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-21/gaming/bombardeo-de-resenas-negativas-y-polemicas-en-gta-vi #115.mp4",
+  "hashtags": [
+   "#GTAVI",
+   "#ReviewBombing",
+   "#Gaming",
+   "#Videojuegos",
+   "#RockstarGames",
+   "#NoticiasGaming"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output003.mp3",
+  "edicion": "caja_roja",
+  "arranque": "Cinco punto cinco."
  }
 ]
