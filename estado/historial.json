@@ -2273,5 +2273,31 @@
   "musica": "output022.mp3",
   "edicion": "",
   "arranque": "Diez mil millones de dólares es lo que Anthropic logró en su debut bursátil histórico."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 117,
+  "fecha": "2026-11-21T22:21",
+  "tema": "Alerta en Xbox: la función de tu consola por la que te pueden suspender jugando GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Alerta en Xbox: la función por la que te pueden suspender en GTA 6",
+  "archivo": "salida/2026-11-21/gaming/alerta-en-xbox-la-funcion-de-tu-consola-por-la-que-te-pueden #117.mp4",
+  "automatico": true,
+  "nota": 42.0,
+  "drive": "2026-11-21/gaming/alerta-en-xbox-la-funcion-de-tu-consola-por-la-que-te-pueden #117.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#Xbox",
+   "#GrandTheftAuto",
+   "#GamingNews",
+   "#Videojuegos",
+   "#GTA"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output027.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Ibas manejando en GTA 6..."
  }
 ]
