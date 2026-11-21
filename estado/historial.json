@@ -2194,5 +2194,32 @@
   "musica": "misterio.mp3",
   "edicion": "verde_neon",
   "arranque": "Nadie te dice que GTA 6 enfrenta una ola masiva de review bombing."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 114,
+  "fecha": "2026-11-21T03:11",
+  "tema": "El fracaso de Griezmann en la MLS y el dominio salarial de Messi",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "Antoine Griezmann fracasa en la MLS mientras Messi sigue como el rey salarial",
+  "archivo": "salida/2026-11-21/deportes/el-fracaso-de-griezmann-en-la-mls-y-el-dominio-salarial-de-m #114.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-21/deportes/el-fracaso-de-griezmann-en-la-mls-y-el-dominio-salarial-de-m #114.mp4",
+  "hashtags": [
+   "#Griezmann",
+   "#MLS",
+   "#Messi",
+   "#OrlandoCity",
+   "#Cincinnati",
+   "#Soccer",
+   "#Fútbol"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output001.mp3",
+  "edicion": "celeste",
+  "arranque": "Antoine Griezmann consuma su primer fracaso en la MLS."
  }
 ]
