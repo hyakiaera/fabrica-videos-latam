@@ -2167,5 +2167,32 @@
   "musica": "output009.mp3",
   "edicion": "clasico",
   "arranque": "Si tu PlayStation 5 se apaga de repente al jugar GTA 6, esto te importa."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 113,
+  "fecha": "2026-11-21T00:02",
+  "tema": "Review bombing a GTA 6 por bugs y contenido 'woke'",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Reseñas pésimas! GTA 6 sufre review bombing por propaganda woke",
+  "archivo": "salida/2026-11-20/gaming/review-bombing-a-gta-6-por-bugs-y-contenido-woke #113.mp4",
+  "automatico": true,
+  "nota": 58.0,
+  "drive": "2026-11-20/gaming/review-bombing-a-gta-6-por-bugs-y-contenido-woke #113.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#gaming",
+   "#videogames",
+   "#gamer",
+   "#noticias",
+   "#playstation"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Dark Fog» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "misterio.mp3",
+  "edicion": "verde_neon",
+  "arranque": "Nadie te dice que GTA 6 enfrenta una ola masiva de review bombing."
  }
 ]
