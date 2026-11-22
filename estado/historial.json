@@ -2352,5 +2352,32 @@
   "musica": "output002.mp3",
   "edicion": "clasico",
   "arranque": "...y justo ahí la Casa Blanca firma el indulto para Pete Rose."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 120,
+  "fecha": "2026-11-22T12:42",
+  "tema": "Caos en servidores y problemas técnicos en PS5 con GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Tres problemas graves que afectan a PS5 con GTA 6! El tercero nadie lo cree",
+  "archivo": "salida/2026-11-22/gaming/caos-en-servidores-y-problemas-tecnicos-en-ps5-con-gta-6 #120.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-22/gaming/caos-en-servidores-y-problemas-tecnicos-en-ps5-con-gta-6 #120.mp4",
+  "hashtags": [
+   "#gta6",
+   "#ps5",
+   "#playstation",
+   "#gaming",
+   "#noticias",
+   "#videogames",
+   "#xbox"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output003.mp3",
+  "edicion": "amarillo",
+  "arranque": "Tres fallas que arruinan la llegada de GTA 6."
  }
 ]
