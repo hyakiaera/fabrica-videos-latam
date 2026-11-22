@@ -2379,5 +2379,31 @@
   "musica": "output003.mp3",
   "edicion": "amarillo",
   "arranque": "Tres fallas que arruinan la llegada de GTA 6."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 121,
+  "fecha": "2026-11-22T20:30",
+  "tema": "¿El mejor de la historia? Las calificaciones de la crítica sobre GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "GTA 6, ¿el mejor de la historia?",
+  "archivo": "salida/2026-11-22/gaming/el-mejor-de-la-historia-las-calificaciones-de-la-critica-sob #121.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-22/gaming/el-mejor-de-la-historia-las-calificaciones-de-la-critica-sob #121.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAuto",
+   "#Gaming",
+   "#Metacritic",
+   "#Videojuegos",
+   "#Noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output025.mp3",
+  "edicion": "caja_roja",
+  "arranque": "Y justo ahí, Rockstar rompió todos los récords de la industria."
  }
 ]
