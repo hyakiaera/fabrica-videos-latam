@@ -2326,5 +2326,31 @@
   "musica": "output028.mp3",
   "edicion": "",
   "arranque": "Almacenar mal tus huevos compromete tu seguridad."
+ },
+ {
+  "mezcla": "deportes",
+  "numero": 119,
+  "fecha": "2026-11-22T08:13",
+  "tema": "El indulto póstumo de Trump a la leyenda del béisbol Pete Rose",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "Pete Rose recibe indulto póstumo de Trump tras ser reincorporado por MLB",
+  "archivo": "salida/2026-11-22/deportes/el-indulto-postumo-de-trump-a-la-leyenda-del-beisbol-pete-ro #119.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-22/deportes/el-indulto-postumo-de-trump-a-la-leyenda-del-beisbol-pete-ro #119.mp4",
+  "hashtags": [
+   "#PeteRose",
+   "#MLB",
+   "#Trump",
+   "#Beisbol",
+   "#Baseball",
+   "#NoticiasDeportes"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output002.mp3",
+  "edicion": "clasico",
+  "arranque": "...y justo ahí la Casa Blanca firma el indulto para Pete Rose."
  }
 ]
