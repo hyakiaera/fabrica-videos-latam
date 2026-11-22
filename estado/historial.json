@@ -2405,5 +2405,32 @@
   "musica": "output025.mp3",
   "edicion": "caja_roja",
   "arranque": "Y justo ahí, Rockstar rompió todos los récords de la industria."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 122,
+  "fecha": "2026-11-22T22:36",
+  "tema": "El jersey rojo que todas quieren este invierno",
+  "categoria": "entretenimiento",
+  "estilo": "realista",
+  "titulo": "El jersey rojo de Charlize Theron que arrasa en Zara y Mango",
+  "archivo": "salida/2026-11-22/entretenimiento/el-jersey-rojo-que-todas-quieren-este-invierno #122.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-22/entretenimiento/el-jersey-rojo-que-todas-quieren-este-invierno #122.mp4",
+  "hashtags": [
+   "#charlizetheron",
+   "#zara",
+   "#mango",
+   "#moda",
+   "#invierno",
+   "#jerseyrojo",
+   "#tendencias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output013.mp3",
+  "edicion": "caja_negra",
+  "arranque": "Si buscas una prenda que te levante el rostro al instante este invierno, esto te importa."
  }
 ]
