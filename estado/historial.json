@@ -2299,5 +2299,32 @@
   "musica": "output027.mp3",
   "edicion": "caja_negra",
   "arranque": "Ibas manejando en GTA 6..."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 118,
+  "fecha": "2026-11-22T01:17",
+  "tema": "Cómo detectar huevos pasados de moda en el súper con el test del vaso de agua",
+  "categoria": "curiosidades",
+  "estilo": "pizarra",
+  "titulo": "La prueba del vaso de agua para saber si tu huevo sirve",
+  "archivo": "salida/2026-11-22/curiosidades/como-detectar-huevos-pasados-de-moda-en-el-super-con-el-test #118.mp4",
+  "automatico": true,
+  "nota": 84.0,
+  "drive": "2026-11-22/curiosidades/como-detectar-huevos-pasados-de-moda-en-el-super-con-el-test #118.mp4",
+  "hashtags": [
+   "#huevos",
+   "#cocina",
+   "#tips",
+   "#supermercado",
+   "#consejos",
+   "#food",
+   "#hacks"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output028.mp3",
+  "edicion": "",
+  "arranque": "Almacenar mal tus huevos compromete tu seguridad."
  }
 ]
