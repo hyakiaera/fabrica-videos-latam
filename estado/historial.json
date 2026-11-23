@@ -2459,5 +2459,32 @@
   "musica": "output006.mp3",
   "edicion": "celeste",
   "arranque": "Antes cantaban en pequeños bares."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 124,
+  "fecha": "2026-11-23T09:11",
+  "tema": "La locura de los jugadores: ignoran las misiones para hacer locuras en GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡El 61 % de los jugadores en PS5 ignoran las misiones en GTA 6!",
+  "archivo": "salida/2026-11-23/gaming/la-locura-de-los-jugadores-ignoran-las-misiones-para-hacer-l #124.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-23/gaming/la-locura-de-los-jugadores-ignoran-las-misiones-para-hacer-l #124.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#Gaming",
+   "#PlayStation5",
+   "#RockstarGames",
+   "#Videojuegos",
+   "#Gamer",
+   "#PS5"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output007.mp3",
+  "edicion": "amarillo",
+  "arranque": "El 61 % de los jugadores de PS5 ya jugaron GTA 6."
  }
 ]
