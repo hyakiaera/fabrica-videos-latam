@@ -2432,5 +2432,32 @@
   "musica": "output013.mp3",
   "edicion": "caja_negra",
   "arranque": "Si buscas una prenda que te levante el rostro al instante este invierno, esto te importa."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 123,
+  "fecha": "2026-11-23T01:38",
+  "tema": "El dominio de los artistas latinos y sus giras millonarias",
+  "categoria": "entretenimiento",
+  "estilo": "caricatura",
+  "titulo": "¡Bad Bunny y Karol G arrasan! Giras latinas millonarias en 2026",
+  "archivo": "salida/2026-11-23/entretenimiento/el-dominio-de-los-artistas-latinos-y-sus-giras-millonarias #123.mp4",
+  "automatico": true,
+  "nota": 84.8,
+  "drive": "2026-11-23/entretenimiento/el-dominio-de-los-artistas-latinos-y-sus-giras-millonarias #123.mp4",
+  "hashtags": [
+   "#MusicaLatina",
+   "#BadBunny",
+   "#KarolG",
+   "#Grammy2026",
+   "#Billboard",
+   "#LatinMusic",
+   "#Giras2026"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output006.mp3",
+  "edicion": "celeste",
+  "arranque": "Antes cantaban en pequeños bares."
  }
 ]
