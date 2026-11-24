@@ -287,6 +287,27 @@ def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     return salida
 
 
+def etiquetar(ruta: Path, texto: str) -> Path:
+    """Etiqueta chiquita abajo a la derecha (ej. "RECREACIÓN") para imágenes que no son la foto real."""
+    from PIL import Image, ImageDraw, ImageFont
+    try:
+        img = Image.open(ruta).convert("RGB")
+        d = ImageDraw.Draw(img)
+        tam = max(18, img.width // 40)
+        from fabrica.config import RAIZ
+        letra = ImageFont.truetype(str(RAIZ / "resource" / "fonts" / "Montserrat-Bold.ttf"), tam)
+        caja = d.textbbox((0, 0), texto, font=letra)
+        w, h = caja[2] - caja[0] + tam, caja[3] - caja[1] + tam // 2
+        x, y = img.width - w - tam, img.height - h - tam * 3
+        d.rounded_rectangle([x, y, x + w, y + h], tam // 3, fill=(0, 0, 0))
+        d.text((x + tam // 2, y + tam // 4 - caja[1]), texto, font=letra, fill=(255, 255, 255))
+        salida = ruta.with_name(ruta.stem + "-recreacion.jpg")
+        img.save(salida, quality=92)
+        return salida
+    except Exception:
+        return ruta
+
+
 def foto_de_persona(nombre: str, carpeta: Path, archivo: str) -> tuple[Path, str] | None:
     """Foto principal del artículo de Wikipedia de la persona, solo si el artículo es de ella
     (su apellido está en el título)."""
@@ -455,6 +476,19 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             if tuya:
                 sumar("propias")
                 return preparar_real(tuya, aspecto), None
+        if escena.get("dato_clave") and banco:
+            # Dato indispensable: búsqueda profunda con varias frases (noticias, imágenes, artículos),
+            # cada foto revisada contra lo que se busca.
+            consultas = [c for c in (escena.get("consultas_foto") or []) if isinstance(c, str) and c.strip()]
+            for consulta in (consultas + [real, escena.get("busqueda_foto", "")])[:5]:
+                if not consulta:
+                    continue
+                hallado = de_internet(consulta, f"{consulta} — {descripcion}")
+                if hallado:
+                    logger.info(f"Escena {i}: dato clave encontrado con «{consulta}»")
+                    sumar("real")
+                    return preparar_real(hallado[0], aspecto), hallado[1]
+            logger.info(f"Escena {i}: no hay foto real del dato clave; se hará una recreación con etiqueta")
         es_persona = real and (escena.get("foto_real_tipo") or "").lower().startswith("persona")
         if es_persona and im.get("fotos_reales", True):
             # Persona famosa: la foto de SU artículo de Wikipedia (la IA revisora no reconoce caras,
@@ -502,6 +536,8 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
                         sumar("ia")
                         with candado:
                             generadas.append((ruta, escena.get("texto") or descripcion))
+                        if escena.get("dato_clave"):  # honestidad: no es la foto real
+                            ruta = etiquetar(ruta, "RECREACIÓN")
                         return ruta, None
                     ia_de_respaldo = ruta
                     logger.info(f"Escena {i}: la imagen no encaja con el guion, se intenta otra")

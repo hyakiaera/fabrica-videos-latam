@@ -91,12 +91,12 @@ def quitar_repetidas(cats: list[str]) -> list[str]:
 
 
 def preparar(cfg: dict, cats: list[str], trabajo: Path, al_azar: bool = False,
-             videos: bool = True) -> dict[str, tuple[Path, str]]:
+             videos: bool = True, raiz: str | None = None) -> dict[str, tuple[Path, str]]:
     """Baja las fotos (y videos, sin audio) de esas categorías y devuelve {nombre: (ruta, descripción)}.
     al_azar: toma una muestra distinta en cada video (para que no salgan siempre las mismas)."""
     import random
     maximo = int(cfg.get("imagenes", {}).get("max_fotos_propias", 40))
-    remoto = _remoto(cfg)
+    remoto = raiz or _remoto(cfg)  # raiz: otra carpeta de Drive (ej. la de videos horizontales)
     fotos: dict[str, tuple[Path, str]] = {}
     for cat in cats:
         destino = trabajo / "mis-fotos" / cat
@@ -107,7 +107,7 @@ def preparar(cfg: dict, cats: list[str], trabajo: Path, al_azar: bool = False,
                             "--max-size", "400M",
                             "--filter", f"+ *.{{{permitidos}}}", "--filter", "- *"],
                            capture_output=True, timeout=1800)
-        if (_local() / cat).is_dir():
+        if not raiz and (_local() / cat).is_dir():
             for p in (_local() / cat).rglob("*"):
                 if p.is_file() and p.suffix.lower() in EXTENSIONES + (".json",):
                     copia = destino / p.relative_to(_local() / cat)

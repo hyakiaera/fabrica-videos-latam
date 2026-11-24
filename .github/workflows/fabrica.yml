@@ -6,6 +6,7 @@ on:
     # Lunes a viernes: 7am, 12pm, 4pm y 10pm (4 videos)
     # Sábado y domingo: 7am, 11am, 3pm, 7pm y 10pm (5 videos)
     - cron: "5 13 * * *"      # 7am todos los días
+    - cron: "5 16 * * *"      # 10am todos los días: video largo HORIZONTAL (tu lista "videos horizontales info")
     - cron: "5 4 * * *"       # 10pm todos los días (en UTC ya es el día siguiente)
     - cron: "5 18 * * 1-5"    # 12pm lunes a viernes
     - cron: "5 22 * * 1-5"    # 4pm lunes a viernes
@@ -199,6 +200,14 @@ jobs:
             if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi
           else
             ARGS+=(--voz "$IN_VOZ" --clonar-voz no)
+          fi
+          # Video largo horizontal: la ronda de las 10am, o a mano escribiendo "horizontal" en Tema.
+          if [ "$CRON" = "5 16 * * *" ] || [ "$(echo "$IN_TEMA" | tr '[:upper:]' '[:lower:]' | xargs)" = "horizontal" ]; then
+            SAL_H="descargar,drive"
+            if [[ ",$PUB," == *,horizontal,* ]] || [ "$PUB" = "si" ]; then SAL_H="$SAL_H,publicar"; fi
+            if [ "$EVENTO" = "workflow_dispatch" ] && [[ ",$PUB," == *,manual,* ]]; then SAL_H="$SAL_H,publicar"; fi
+            python -m fabrica "${ARGS[@]}" --horizontal --salidas "$SAL_H" "${MARCA[@]}"
+            exit $?
           fi
           python -m fabrica "${ARGS[@]}" "${MARCA[@]}"
 

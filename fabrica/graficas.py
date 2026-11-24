@@ -126,6 +126,8 @@ def clip(g: dict, segundos: float, aspecto: str, estilo: str, salida: Path) -> P
     # La tarjeta queda en la parte de arriba para no chocar con los subtítulos.
     # Arriba: debajo queda el logo (centro izquierda, ~45 %) y más abajo los subtítulos (~72 %).
     tarjeta_caja = (60, alto * 0.07, ancho - 60, alto * 0.42)
+    if ancho > alto:  # horizontal: tarjeta ancha al centro-arriba (abajo van los subtítulos)
+        tarjeta_caja = (ancho * 0.14, alto * 0.07, ancho * 0.86, alto * 0.64)
     caja = (tarjeta_caja[0] + 50, tarjeta_caja[1] + 170, tarjeta_caja[2] - 50, tarjeta_caja[3] - 90)
     cuadros = max(1, round(segundos * FPS))
     proceso = subprocess.Popen(

@@ -15,6 +15,7 @@
 import argparse
 import json
 import re
+import shutil
 import sys
 import time
 import unicodedata
@@ -78,7 +79,8 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     fotos_propias = {}
     if tema.get("carpetas_fotos"):
         from fabrica import mis_fotos
-        fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo, al_azar=bool(tema.get("campana")))
+        fotos_propias = mis_fotos.preparar(cfg, tema["carpetas_fotos"], trabajo, al_azar=bool(tema.get("campana")),
+                                           raiz=tema.get("raiz_fotos"))
     if fotos_propias and "stock_video" in estilo.fuentes:
         # El estilo de videos de stock no usa fotos: con tus fotos se usa uno de imágenes.
         estilo = estilos.obtener("cinematografico")
@@ -153,7 +155,14 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
         except Exception as e:
             logger.warning(f"No se pudieron guardar las imágenes generadas: {e}")
 
-    ruta_relativa = f"{hoy}/{_slug(tema['categoria'])}"
+    horizontal = tema.get("formato") == "horizontal"
+    ruta_relativa = f"videos horizontales/{hoy}" if horizontal else f"{hoy}/{_slug(tema['categoria'])}"
+    if horizontal:
+        from fabrica import efectos, horizontal as hz
+        capitulos = hz.capitulos_en_descripcion(datos, efectos.duracion(final))
+        if capitulos:
+            datos["descripcion"] = f"{datos.get('descripcion', '')}\n\n{capitulos}".strip()
+            ficha = salidas.ficha_texto(datos, tema, creditos, conteo)
     carpeta_dia = Path(cfg.get("salida", {}).get("carpeta", "salida"))
     if not carpeta_dia.is_absolute():
         carpeta_dia = config.RAIZ / carpeta_dia
@@ -169,6 +178,10 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             origen = carpeta_dia / f"{nombre}{ext}"
             if origen.exists():
                 (temporal / origen.name).write_bytes(origen.read_bytes())
+        if horizontal:  # 3 Shorts sacados del video largo, en la misma carpeta de Drive
+            from fabrica import horizontal as hz
+            for k, corto in enumerate(hz.shorts_del_largo(guardado, datos, trabajo / "shorts"), 1):
+                shutil.copy(corto, temporal / f"{nombre} - short {k}.mp4")
         en_drive = salidas.subir_drive(cfg, temporal, ruta_relativa)
     publicado = False
     if "publicar" in opciones_salida and datos.get("calidad"):
@@ -214,6 +227,31 @@ def variar_estilos(temas: list[dict], historial: list[dict], ultimos: int = 3) -
             logger.info(f"Estilo: '{t['estilo']}' ya salió en los últimos videos; esta vez '{nuevo}'")
             t["estilo"] = nuevo
         usados.append(t.get("estilo", ""))
+
+
+def video_horizontal(cfg: dict, args) -> int:
+    """El video largo horizontal del día: tu lista (o uno automático), con todo."""
+    from fabrica import horizontal
+    opciones = set((args.salidas or "descargar").split(",")) | {"descargar"}
+    opciones = {o.strip() for o in opciones if o.strip()}
+    largo = horizontal.preparar_cfg(cfg)
+    trabajo = config.RAIZ / "storage" / "fabrica" / "horizontal"
+    tema = horizontal.tema_del_dia(largo, _historial(), trabajo)
+    if args.estilo and args.estilo != estilos.ESTILO_AUTOMATICO:
+        tema["estilo"] = args.estilo
+    if tema.get("voz"):  # "| voz: yo" en la línea del tema
+        v = tema["voz"].lower()
+        if v.startswith("yo"):
+            largo.setdefault("voz", {})["lector"] = "yo"
+        elif v in ("mujer", "hombre"):
+            largo.setdefault("voz", {})["genero"] = v
+    try:
+        hacer_video(largo, tema, opciones)
+    except Exception as e:
+        logger.exception(f"Falló el video horizontal '{tema['tema']}': {e}")
+        return 1
+    horizontal.tachar(largo, tema, trabajo)
+    return 0
 
 
 def una_ronda(cfg: dict, args) -> int:
@@ -294,6 +332,8 @@ def main(argv=None) -> int:
     p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
     p.add_argument("--avatar", help="no, intro y cierre, esquina, dividida o mixto")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
+    p.add_argument("--horizontal", action="store_true",
+                   help="hacer el video largo horizontal del día (tu lista 'videos horizontales info')")
     p.add_argument("--publicar-mejor", action="store_true",
                    help="al terminar, publicar el automático con mejor nota de las últimas 24 horas")
     p.add_argument("--solo-tendencias", action="store_true", help="solo mostrar temas elegidos")
@@ -343,6 +383,8 @@ def main(argv=None) -> int:
         ruta = vista_logo.generar(cfg, config.RAIZ / "salida" / "prueba-logo.jpg")
         logger.success(f"Imagen de prueba lista: {ruta}")
         return 0
+    if args.horizontal:
+        return video_horizontal(cfg, args)
     while True:
         codigo = una_ronda(cfg, args)
         if args.publicar_mejor:

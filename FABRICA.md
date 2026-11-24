@@ -363,6 +363,37 @@ rayas largas). La nota del gancho sale en la ficha `.txt`.
 - Cuidado con el copyright: usa tus propias grabaciones del juego (Rockstar permite gameplay
   propio); no subas videos de otros canales ni tráilers completos.
 
+## 18. Video largo horizontal diario (~5 minutos, YouTube)
+
+**Todos los días a las 10am** sale un video horizontal de unos 5 minutos.
+
+1. En Drive crea `Fabrica de Videos › videos horizontales info` y dentro un archivo **`temas.txt`**:
+   ```
+   1. video de ronaldo
+   2. san miguel el salvador | detalles: que diga su fecha de fundación
+   3. historia del café | voz: yo
+   ```
+   Solo agrega líneas cuando quieras; no hace falta crear listas nuevas.
+2. **Tus fotos y videos** de cada tema van en una carpeta que **empiece con el número** del tema:
+   `1`, `3 negocios`, `04`... (el nombre largo no importa). Los videos se usan sin audio.
+   Las fotos no necesitan nombre; a las de **personas o lugares específicos** ponles uno corto
+   (`casa-magico-nino.jpg`), porque la IA no reconoce caras ni sabe de quién es una casa.
+3. Cada día hace **el primer tema sin ✔** y lo tacha: `✔ 1. video de ronaldo  (hecho 25/11)`.
+   Si no queda ninguno, hace uno **automático** de información de valor y lo anota al final.
+
+El video trae: gancho, índice de capítulos, tarjeta en cada capítulo, mini gancho a la mitad,
+conclusión, **tu avatar al inicio (panel grande), a la mitad (círculo) y al final**, mapas,
+gráficas, datos reales (Wikipedia), **búsqueda profunda** de fotos para los datos clave (si no
+existe la foto real, una imagen con la etiqueta **"RECREACIÓN"**), miniatura horizontal, la
+descripción con **capítulos (00:00, 01:12...)** y **3 Shorts verticales** sacados del video
+(se guardan en la misma carpeta de Drive: `videos horizontales/fecha`).
+
+- A mano: Run workflow → en **Tema** escribe `horizontal`.
+- Publicarlo solo: agrega `horizontal` a la variable PUBLICAR (ej. `mejor,manual,horizontal`).
+  Ojo con el límite de Upload-Post.
+- Antes de publicar cualquier video, una **revisión automática** (pantalla negra, sin audio, muy
+  corto, sin imágenes) evita que salga uno malo; la ficha dice por qué no se publicó.
+
 ## Recomendaciones
 
 - **Revisa cada video antes de publicarlo.** La IA se puede equivocar con cifras o nombres, y

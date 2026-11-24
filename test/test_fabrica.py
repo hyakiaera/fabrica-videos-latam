@@ -1762,3 +1762,77 @@ class TestRevisionDeCalidad(unittest.TestCase):
         self.assertTrue(any("negra" in p for p in calidad.revisar(self._video("black"))))
         self.assertTrue(any("audio" in p for p in calidad.revisar(self._video("blue", audio=False))))
         self.assertTrue(any("corto" in p for p in calidad.revisar(self._video("blue", segundos=5))))
+
+
+class TestVideoHorizontal(unittest.TestCase):
+    LISTA = ("1. video de ronaldo\n"
+             "2. san miguel el salvador | detalles: que diga su fecha | voz: yo\n"
+             "\n"
+             "4. hdshdkdhdydhbsysbsb\n")
+
+    def test_lee_y_toma_el_primero_pendiente(self):
+        from fabrica import horizontal
+        temas = horizontal.leer(self.LISTA)
+        self.assertEqual([t["numero"] for t in temas], [1, 2, 4])
+        self.assertEqual(temas[1]["detalles"], "que diga su fecha")
+        self.assertEqual(temas[1]["voz"], "yo")
+        self.assertEqual(horizontal.siguiente(temas)["tema"], "video de ronaldo")
+
+    def test_tacha_y_sigue_con_el_siguiente(self):
+        from fabrica import horizontal
+        t1 = horizontal.siguiente(horizontal.leer(self.LISTA))
+        nuevo = horizontal.marcar(self.LISTA, t1)
+        self.assertTrue(nuevo.splitlines()[0].startswith("✔ 1. video de ronaldo  (hecho "))
+        t2 = horizontal.siguiente(horizontal.leer(nuevo))
+        self.assertEqual(t2["numero"], 2)
+        todo = horizontal.marcar(horizontal.marcar(nuevo, t2), horizontal.leer(horizontal.marcar(nuevo, t2))[2])
+        self.assertIsNone(horizontal.siguiente(horizontal.leer(todo)))
+        con_auto = horizontal.marcar(todo, None, automatico="La historia del café")
+        self.assertIn("(automático", con_auto.splitlines()[-1])
+        self.assertIsNone(horizontal.siguiente(horizontal.leer(con_auto)))
+
+    def test_carpeta_por_numero(self):
+        from fabrica import horizontal
+        salida = mock.Mock(stdout="1/\n3 negocios/\n04/\n14 otra/\n")
+        with mock.patch.object(horizontal, "_remoto", return_value="drive:x"), \
+             mock.patch.object(horizontal.subprocess, "run", return_value=salida):
+            self.assertEqual(horizontal.carpeta_del_numero({}, 3), "3 negocios")
+            self.assertEqual(horizontal.carpeta_del_numero({}, 4), "04")
+            self.assertEqual(horizontal.carpeta_del_numero({}, 1), "1")
+            self.assertIsNone(horizontal.carpeta_del_numero({}, 2))
+
+    def test_capitulos_en_la_descripcion(self):
+        from fabrica import horizontal
+        datos = {"escenas": [{"texto": "x" * 100} for _ in range(10)],
+                 "capitulos": [{"titulo": "Su infancia", "escena": 2}, {"titulo": "La fama", "escena": 6}]}
+        texto = horizontal.capitulos_en_descripcion(datos, 300)
+        self.assertEqual(texto.splitlines(), ["00:00 Introducción", "01:00 Su infancia", "03:00 La fama"])
+
+    def test_ajustes_del_video_largo(self):
+        from fabrica import horizontal
+        c = horizontal.preparar_cfg({"video": {"aspecto": "9:16"}})
+        self.assertEqual(c["video"]["aspecto"], "16:9")
+        self.assertEqual(c["guion"]["duracion_segundos"], 300)
+        self.assertEqual(c["avatar"]["modo"], "tres momentos")
+        self.assertIn("CAPÍTULOS", c["guion"]["instrucciones_extra"])
+
+    def test_shorts_del_largo(self):
+        import subprocess
+        import imageio_ffmpeg
+        from fabrica import horizontal
+        c = Path(tempfile.mkdtemp())
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-f", "lavfi", "-i",
+                        "testsrc=size=640x360:duration=40", "-f", "lavfi", "-i", "sine=d=40", "-shortest",
+                        "-pix_fmt", "yuv420p", str(c / "largo.mp4")], check=True)
+        cortos = horizontal.shorts_del_largo(c / "largo.mp4", {}, c / "s", cuantos=2, segundos=10)
+        self.assertEqual(len(cortos), 2)
+        r = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-i", str(cortos[0])], capture_output=True, text=True)
+        self.assertIn("1080x1920", r.stderr)
+
+    def test_etiqueta_recreacion(self):
+        from PIL import Image
+        c = Path(tempfile.mkdtemp())
+        Image.new("RGB", (1280, 720), (90, 140, 60)).save(c / "a.jpg")
+        salida = imagenes.etiquetar(c / "a.jpg", "RECREACIÓN")
+        self.assertNotEqual(salida, c / "a.jpg")
+        self.assertEqual(Image.open(salida).size, (1280, 720))
