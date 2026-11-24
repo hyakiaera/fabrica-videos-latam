@@ -36,6 +36,9 @@ def _partir(texto: str, letra, ancho_max: int, d: ImageDraw.ImageDraw) -> list[s
 
 
 def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> Path | None:
+    global W, H
+    # YouTube: 1280x720 para videos horizontales, 1080x1920 para Shorts.
+    W, H = (1280, 720) if cfg.get("video", {}).get("aspecto") == "16:9" else (1080, 1920)
     m = cfg.get("miniatura", {})
     if not m.get("activa", True):
         return None
@@ -60,17 +63,25 @@ def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> 
         archivo = NEGRITA.parent / LETRA_MINIATURA.get(datos.get("estilo_clave", ""), LETRA_MINIATURA_GENERAL)
         if archivo.name.startswith("Anton"):
             tam = int(tam * 1.15)  # Anton es angosta: cabe más grande
+        horizontal = W > H
+        if horizontal:  # YouTube horizontal: texto enorme a la izquierda, la imagen se ve a la derecha
+            tam = int(tam * 0.95)
+            capa = Image.new("L", (W, 1))
+            for x in range(W):
+                capa.putpixel((x, 0), int(max(0, 1 - x / (W * 0.7)) ** 1.2 * 215))
+            fondo = Image.composite(Image.new("RGB", (W, H), (0, 0, 0)), fondo, capa.resize((W, H)))
+            d = ImageDraw.Draw(fondo)
         letra = ImageFont.truetype(str(archivo if archivo.exists() else NEGRITA), tam)
-        lineas = _partir(texto, letra, W - 120, d)[:4]
-        y = H * 0.60
+        lineas = _partir(texto, letra, int(W * 0.6) if horizontal else W - 120, d)[:4]
+        y = (H - len(lineas) * tam * 1.08) / 2 if horizontal else H * 0.60
         propios = datos.get("miniatura") or {}
         colores = [propios.get("color_1") or m.get("color_1", "#FFE600"),
                    propios.get("color_2") or m.get("color_2", "#FFFFFF")]
         if propios.get("marco"):  # marco de color (estilo campaña, ej. neón GTA)
             d.rectangle([0, 0, W - 1, H - 1], outline=propios["marco"], width=22)
         for k, linea in enumerate(lineas):
-            d.text((W / 2, y), linea, font=letra, fill=colores[k % 2], anchor="mt",
-                   stroke_width=max(6, tam // 14), stroke_fill="#000000")
+            d.text((60 if horizontal else W / 2, y), linea, font=letra, fill=colores[k % 2],
+                   anchor="lt" if horizontal else "mt", stroke_width=max(6, tam // 14), stroke_fill="#000000")
             y += tam * 1.08
 
         cara = datos.get("avatar_clip")
@@ -80,18 +91,21 @@ def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> 
                 img = Image.open(foto).convert("RGB")
                 lado = min(img.size)
                 y0 = max(0, min(img.height - lado, int(img.height * 0.32 - lado / 2)))
-                img = img.crop(((img.width - lado) // 2, y0, (img.width - lado) // 2 + lado, y0 + lado)).resize((380, 380))
-                mascara = Image.new("L", (380, 380), 0)
-                ImageDraw.Draw(mascara).ellipse([0, 0, 379, 379], fill=255)
-                d.ellipse([W - 440 - 10, int(H * 0.13) - 10, W - 60 + 10, int(H * 0.13) + 390], fill="#FFE600")
-                fondo.paste(img, (W - 440, int(H * 0.13)), mascara)
+                c = 300 if horizontal else 380
+                img = img.crop(((img.width - lado) // 2, y0, (img.width - lado) // 2 + lado, y0 + lado)).resize((c, c))
+                mascara = Image.new("L", (c, c), 0)
+                ImageDraw.Draw(mascara).ellipse([0, 0, c - 1, c - 1], fill=255)
+                cy = int(H * 0.5 - c / 2) if horizontal else int(H * 0.13)
+                d.ellipse([W - c - 60 - 10, cy - 10, W - 60 + 10, cy + c + 10], fill="#FFE600")
+                fondo.paste(img, (W - c - 60, cy), mascara)
 
         marca = cfg.get("logo", {}).get("texto")
         if marca:
-            chica = ImageFont.truetype(str(NEGRITA), 44)
+            chica = ImageFont.truetype(str(NEGRITA), 30 if horizontal else 44)
             caja = d.textbbox((0, 0), marca, font=chica)
-            d.rounded_rectangle([50, 90, 50 + caja[2] + 50, 90 + caja[3] + 34], 24, fill=(0, 0, 0))
-            d.text((75, 105), marca, font=chica, fill="white")
+            y_m = 30 if horizontal else 90
+            d.rounded_rectangle([40, y_m, 40 + caja[2] + 50, y_m + caja[3] + 34], 24, fill=(0, 0, 0))
+            d.text((65, y_m + 15), marca, font=chica, fill="white")
         fondo.save(salida, quality=92)
         return salida
     except Exception as e:

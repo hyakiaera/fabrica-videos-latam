@@ -831,8 +831,8 @@ def _volar(a, b, t):
     return lon, lat, z
 
 
-@lru_cache(maxsize=1)
-def _papel() -> tuple[Image.Image, Image.Image]:
+@lru_cache(maxsize=2)
+def _papel(ANCHO: int = ANCHO, ALTO: int = ALTO) -> tuple[Image.Image, Image.Image]:
     """Textura de papel viejo (manchas suaves y fibras) y viñeta de bordes quemados, hechas aquí."""
     rnd = random.Random(7)
     chico = Image.new("L", (ANCHO // 8, ALTO // 8))
@@ -850,7 +850,7 @@ def _papel() -> tuple[Image.Image, Image.Image]:
 def antiguo(cuadro: Image.Image) -> Image.Image:
     """Convierte el mapa satelital en un mapa de papel antiguo (sepia, papel, bordes quemados)."""
     from PIL import ImageOps
-    textura, vineta = _papel()
+    textura, vineta = _papel(*cuadro.size)
     gris = ImageOps.autocontrast(cuadro.convert("L"), cutoff=2)
     sepia = ImageOps.colorize(gris, black=(70, 45, 22), mid=(176, 140, 92), white=(242, 224, 186))
     papel = ImageOps.colorize(textura, black=(150, 115, 70), white=(245, 230, 195))
@@ -1030,7 +1030,14 @@ class Estado:
         self.pegatina = pegatina
 
 
+def _lienzo_para(aspecto: str) -> None:
+    """Vertical 720x1280 o horizontal 1280x720 (se agranda después al tamaño final)."""
+    global ANCHO, ALTO
+    ANCHO, ALTO = (1280, 720) if aspecto == "16:9" else (720, 1280)
+
+
 def clip(m: dict, segundos: float, aspecto: str, salida: Path, estado: Estado | None = None) -> Path:
+    _lienzo_para(aspecto)
     estado = estado or Estado()
     escena = preparar(m, estado.pegatina)
     destino = encuadre(escena["formas"], zoom=escena.get("zoom")) or estado.camara

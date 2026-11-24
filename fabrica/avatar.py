@@ -6,6 +6,8 @@ tengas que estar presente. Después se pone en el video de varias formas:
   esquina         imágenes del tema y tú en un círculo arriba a la derecha
   dividida        tú arriba, imágenes y subtítulos abajo (estilo análisis)
   mixto           intro completo + esquina en medio + cierre completo
+  tres momentos   (videos largos) inicio grande, un ratito en círculo a la mitad y cierre grande;
+                  en horizontal, "grande" es un panel a la izquierda (pantalla dividida)
 
 Si algo falla (Kaggle ocupado, no se ve tu cara...), el video sale sin avatar."""
 
@@ -22,7 +24,7 @@ from loguru import logger
 
 from fabrica.config import RAIZ, secreto
 
-MODOS = ("intro y cierre", "esquina", "dividida", "mixto")
+MODOS = ("intro y cierre", "esquina", "dividida", "mixto", "tres momentos")
 HISTORIAL = RAIZ / "estado" / "avatares.json"
 VIDEOS = (".mp4", ".mov", ".m4v", ".webm")
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
@@ -129,6 +131,17 @@ def audio_para_avatar(narracion: Path, m: str, intro: float, cierre: float, carp
     en los demás modos, toda la narración."""
     salida = carpeta / "audio.wav"
     total = _duracion(narracion)
+    if m == "tres momentos" and total > intro + cierre + 20:
+        medio = min(10.0, intro)
+        mitad = total / 2 - medio / 2
+        _ff("-i", narracion, "-filter_complex",
+            f"[0:a]atrim=0:{intro},asetpts=PTS-STARTPTS[a];"
+            f"anullsrc=r=16000:cl=mono,atrim=0:0.4[s1];"
+            f"[0:a]atrim={mitad:.2f}:{mitad + medio:.2f},asetpts=PTS-STARTPTS[b];"
+            f"anullsrc=r=16000:cl=mono,atrim=0:0.4[s2];"
+            f"[0:a]atrim={total - cierre}:{total},asetpts=PTS-STARTPTS[c];"
+            f"[a][s1][b][s2][c]concat=n=5:v=0:a=1[o]", "-map", "[o]", "-ac", "1", "-ar", "16000", salida)
+        return salida, total
     if m == "intro y cierre" and total > intro + cierre + 4:
         _ff("-i", narracion, "-filter_complex",
             f"[0:a]atrim=0:{intro},asetpts=PTS-STARTPTS[a];"
@@ -252,11 +265,42 @@ def _cara(lado: int) -> str:
             f"scale={lado}:{lado},setsar=1")
 
 
+def _tamano(video: Path) -> tuple[int, int]:
+    import re as _re
+    r = subprocess.run([FFMPEG, "-i", str(video)], capture_output=True, text=True)
+    m = _re.search(r"Video:.*?(\d{3,5})x(\d{3,5})", r.stderr)
+    return (int(m.group(1)), int(m.group(2))) if m else (1080, 1920)
+
+
+def _tres_momentos(video: Path, avatar: Path, intro: float, cierre: float, total: float,
+                   W: int, H: int) -> str:
+    """Inicio y cierre grandes (panel a la izquierda en horizontal, pantalla completa en vertical)
+    y un ratito en círculo a la mitad. Los pedazos del avatar están en el mismo orden que el audio."""
+    medio = min(10.0, intro)
+    mitad = total / 2 - medio / 2
+    a2 = intro + 0.4               # dónde empieza el pedazo de la mitad en el clip del avatar
+    a3 = a2 + medio + 0.4          # y el del cierre
+    horizontal = W > H
+    grande = _cubrir(int(W * 0.4), H) if horizontal else _cubrir(W, H)
+    lado = int(min(W, H) * 0.32)
+    circulo = (f"{_cara(lado)},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
+               f"a='if(lte(hypot(X-{lado / 2},Y-{lado / 2}),{lado / 2 - 4}),255,0)'")
+    return (f"[1:v]split=3[p1][p2][p3];"
+            f"[p1]trim=0:{intro},setpts=PTS-STARTPTS,{grande}[g1];"
+            f"[p2]trim={a2:.2f}:{a2 + medio:.2f},setpts=PTS-STARTPTS+{mitad:.2f}/TB,{circulo}[c2];"
+            f"[p3]trim=start={a3:.2f},setpts=PTS-STARTPTS+{total - cierre:.2f}/TB,{grande}[g3];"
+            f"[0:v][g1]overlay=0:0:eof_action=pass:enable='lt(t,{intro})'[v1];"
+            f"[v1][c2]overlay=W-w-40:40:eof_action=pass:enable='between(t,{mitad:.2f},{mitad + medio:.2f})'[v2];"
+            f"[v2][g3]overlay=0:0:eof_action=pass:enable='gte(t,{total - cierre:.2f})'[v]")
+
+
 def componer(video: Path, avatar: Path, m: str, intro: float, cierre: float, salida: Path) -> Path:
     """Pone el avatar (solo su imagen; el audio sigue siendo el del video) según el modo."""
     total = _duracion(video)
-    W, H = 1080, 1920
-    if m == "intro y cierre":
+    W, H = _tamano(video)
+    if m == "tres momentos":
+        filtro = _tres_momentos(video, avatar, intro, cierre, total, W, H)
+    elif m == "intro y cierre":
         fin_intro = min(intro, _duracion(avatar))
         inicio_cierre_av = fin_intro + 0.4
         filtro = (f"[1:v]trim=0:{fin_intro},setpts=PTS-STARTPTS,{_cubrir(W, H)}[a];"
