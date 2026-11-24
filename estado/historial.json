@@ -2539,5 +2539,32 @@
   "edicion": "caja_negra",
   "calidad": [],
   "arranque": "La advertencia real: Estados Unidos cambia el crimen en los videojuegos."
+ },
+ {
+  "mezcla": "general",
+  "numero": 127,
+  "fecha": "2026-11-24T05:57",
+  "tema": "El contrato récord de Tarik Skubal con los Mets",
+  "categoria": "deportes",
+  "estilo": "cinematografico",
+  "titulo": "Tarik Skubal y los Mets: ¿El contrato récord de 450 millones!",
+  "archivo": "salida/2026-11-24/deportes/el-contrato-record-de-tarik-skubal-con-los-mets #127.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-24/deportes/el-contrato-record-de-tarik-skubal-con-los-mets #127.mp4",
+  "hashtags": [
+   "#TarikSkubal",
+   "#Mets",
+   "#MLB",
+   "#Béisbol",
+   "#GrandesLigas",
+   "#Deportes"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Dark Fog» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "misterio.mp3",
+  "edicion": "anton_amarillo",
+  "calidad": [],
+  "arranque": "Nadie te dice que un contrato de 450 millones cambia el béisbol."
  }
 ]
