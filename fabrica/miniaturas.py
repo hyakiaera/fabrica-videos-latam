@@ -56,7 +56,11 @@ def crear(cfg: dict, datos: dict, imagenes: list, video: Path, salida: Path) -> 
 
         texto = (datos.get("titulo_miniatura") or " ".join(datos.get("titulo", "").split()[:5])).upper()
         tam = 150 if len(texto) < 18 else 120 if len(texto) < 30 else 96
-        letra = ImageFont.truetype(str(NEGRITA), tam)
+        from fabrica.estilos import LETRA_MINIATURA, LETRA_MINIATURA_GENERAL
+        archivo = NEGRITA.parent / LETRA_MINIATURA.get(datos.get("estilo_clave", ""), LETRA_MINIATURA_GENERAL)
+        if archivo.name.startswith("Anton"):
+            tam = int(tam * 1.15)  # Anton es angosta: cabe más grande
+        letra = ImageFont.truetype(str(archivo if archivo.exists() else NEGRITA), tam)
         lineas = _partir(texto, letra, W - 120, d)[:4]
         y = H * 0.60
         propios = datos.get("miniatura") or {}

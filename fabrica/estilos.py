@@ -12,6 +12,13 @@ REGLAS_IMAGEN = ("professional high quality artwork, well-proportioned anatomy, 
                  "no realistic faces of real famous people")
 
 
+# Letra de la miniatura según el estilo (todas libres: OFL / Apache).
+LETRA_MINIATURA = {"caricatura": "Bangers-Regular.ttf", "comic": "Bangers-Regular.ttf",
+                   "anime": "LuckiestGuy-Regular.ttf", "3d": "LuckiestGuy-Regular.ttf",
+                   "pizarra": "PermanentMarker-Regular.ttf", "videojuego": "RussoOne-Regular.ttf"}
+LETRA_MINIATURA_GENERAL = "Anton-Regular.ttf"  # la de los videos virales: alta, gruesa, se lee de lejos
+
+
 @dataclass(frozen=True)
 class Estilo:
     nombre: str
@@ -38,6 +45,7 @@ ESTILOS: dict[str, Estilo] = {
         "pastel colors, soft beige background, simple shapes, editorial explainer style",
         color_texto="#1E1E1E", color_borde="#FFFFFF", fondo_subtitulo="#FFFFFF",
         temas_ideales=["tecnologia", "economia", "politica", "noticias", "ciencia"],
+        fuente_letra="Poppins-ExtraBold.ttf",
     ),
     "caricatura": Estilo(
         "Caricatura",
@@ -45,6 +53,7 @@ ESTILOS: dict[str, Estilo] = {
         "high quality 2D cartoon illustration of {escena}, modern animated TV series style, "
         "clean bold outlines, vibrant flat colors, appealing character design, friendly expressive faces",
         temas_ideales=["entretenimiento", "farandula", "deportes", "virales"],
+        fuente_letra="Bangers-Regular.ttf",
     ),
     "comic": Estilo(
         "Cómic",
@@ -52,6 +61,7 @@ ESTILOS: dict[str, Estilo] = {
         "comic book panel of {escena}, dynamic angle, halftone dots, bold ink lines, dramatic colors",
         color_texto="#FFE600",
         temas_ideales=["deportes", "entretenimiento", "historias"],
+        fuente_letra="Bangers-Regular.ttf",
     ),
     "artistico": Estilo(
         "Artístico (óleo)",
@@ -74,12 +84,14 @@ ESTILOS: dict[str, Estilo] = {
         "simple doodle explainer, minimal color accents",
         color_texto="#111111", color_borde="#FFFFFF", fondo_subtitulo="#FFF59D",
         temas_ideales=["aprendizaje", "ciencia", "como funciona"],
+        fuente_letra="PermanentMarker-Regular.ttf",
     ),
     "anime": Estilo(
         "Anime",
         "Ilustración estilo anime.",
         "anime style illustration of {escena}, cel shading, vivid colors, detailed background",
         temas_ideales=["videojuegos", "entretenimiento", "tecnologia"],
+        fuente_letra="LuckiestGuy-Regular.ttf",
     ),
     "3d": Estilo(
         "Animación 3D",
@@ -87,12 +99,14 @@ ESTILOS: dict[str, Estilo] = {
         "3D animated movie style render of {escena}, soft global illumination, cute stylized, "
         "high detail",
         temas_ideales=["infantil", "curiosidades", "tecnologia"],
+        fuente_letra="LuckiestGuy-Regular.ttf",
     ),
     "cinematografico": Estilo(
         "Cinematográfico",
         "Foto generada con IA de aspecto cinematográfico.",
         "cinematic photo of {escena}, dramatic lighting, shallow depth of field, 35mm film look",
         temas_ideales=["noticias", "misterio", "deportes"],
+        fuente_letra="Anton-Regular.ttf",
     ),
     "noticiero": Estilo(
         "Noticiero (fotos reales de las noticias)",
@@ -101,6 +115,7 @@ ESTILOS: dict[str, Estilo] = {
         fuentes=("web", "wikimedia", "pexels", "ia"),
         fondo_subtitulo="#C62828",
         temas_ideales=["noticias", "deportes", "politica"],
+        fuente_letra="ArchivoBlack-Regular.ttf",
     ),
     "realista": Estilo(
         "Realista (fotos reales de internet)",
@@ -108,6 +123,7 @@ ESTILOS: dict[str, Estilo] = {
         "realistic photo of {escena}, natural light, high detail",
         fuentes=("web", "wikimedia", "pexels", "ia"),
         temas_ideales=["productos", "compras", "tecnologia", "lugares", "general"],
+        fuente_letra="Poppins-ExtraBold.ttf",
     ),
     "geografia": Estilo(
         "Geografía (mapas animados)",
@@ -126,7 +142,7 @@ ESTILOS: dict[str, Estilo] = {
         "neon pink and teal sunset, palm trees, sports cars, cinematic third-person camera, high detail, "
         "game art, no logos, no text, no brand marks",
         fuentes=("web", "ia", "wikimedia"),
-        fuente_letra="Montserrat-ExtraBold.ttf",
+        fuente_letra="RussoOne-Regular.ttf",
         temas_ideales=["videojuegos", "gaming", "gta"],
     ),
     "videos_stock": Estilo(

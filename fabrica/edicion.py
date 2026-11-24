@@ -20,6 +20,11 @@ LOOKS = {
     "caja_roja": dict(font_name="Montserrat-Bold.ttf", text_fore_color="#FFFFFF", stroke_color="#000000",
                       font_size=60, stroke_width=0.0, custom_position=74, text_background_color="#D32F2F",
                       rounded_subtitle_background=True),
+    "anton_amarillo": dict(font_name="Anton-Regular.ttf", text_fore_color="#FFD400", stroke_color="#000000",
+                           font_size=82, stroke_width=3.5, custom_position=68),
+    "poppins_caja": dict(font_name="Poppins-ExtraBold.ttf", text_fore_color="#111111", stroke_color="#FFFFFF",
+                         font_size=58, stroke_width=0.0, custom_position=74, text_background_color="#FFFFFF",
+                         rounded_subtitle_background=True),
     "celeste": dict(font_name="Montserrat-ExtraBold.ttf", text_fore_color="#7FD8FF", stroke_color="#00111F",
                     font_size=74, stroke_width=3.0, custom_position=70),
 }

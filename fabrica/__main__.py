@@ -93,6 +93,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     tema.setdefault("evitar_arranques", [e.get("arranque", "") for e in _historial()[-10:] if e.get("arranque")])
     datos = guion.escribir(cfg, tema, estilo, fotos_propias)
     datos.setdefault("categoria", tema.get("categoria", ""))
+    datos["estilo_clave"] = tema.get("estilo", "")
     if tema.get("miniatura"):
         datos["miniatura"] = tema["miniatura"]  # colores de la campaña (ej. neón para GTA)
     logger.info(f"Guion: tono {datos.get('tono', '?')}, tipo {datos.get('tipo_contenido', '?')}")

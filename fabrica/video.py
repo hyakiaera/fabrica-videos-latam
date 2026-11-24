@@ -59,6 +59,8 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     if v.get("looks_variados", True) and not estilo.fondo_subtitulo:
         from fabrica import edicion
         nombre_look, look = edicion.elegir()
+        if estilo.fuente_letra not in ("BeVietnamPro-Bold.ttf", "Montserrat-ExtraBold.ttf"):
+            look.pop("font_name", None)  # el estilo trae su propia letra (ej. Bangers en caricatura)
         params.update(look)
         datos["edicion"] = nombre_look
         logger.info(f"Edición: look '{nombre_look}'")
