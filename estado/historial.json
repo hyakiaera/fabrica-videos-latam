@@ -2486,5 +2486,31 @@
   "musica": "output007.mp3",
   "edicion": "amarillo",
   "arranque": "El 61 % de los jugadores de PS5 ya jugaron GTA 6."
+ },
+ {
+  "mezcla": "general",
+  "numero": 125,
+  "fecha": "2026-11-24T00:51",
+  "tema": "El tráiler final de Avengers: Doomsday desata la locura",
+  "categoria": "entretenimiento",
+  "estilo": "anime",
+  "titulo": "¡Avengers Doomsday desata la locura! Fecha de estreno y cast revelados",
+  "archivo": "salida/2026-11-24/entretenimiento/el-trailer-final-de-avengers-doomsday-desata-la-locura #125.mp4",
+  "automatico": true,
+  "nota": 81.5,
+  "drive": "2026-11-24/entretenimiento/el-trailer-final-de-avengers-doomsday-desata-la-locura #125.mp4",
+  "hashtags": [
+   "#AvengersDoomsday",
+   "#Marvel",
+   "#Cine",
+   "#Estreno",
+   "#Mexico",
+   "#Entretenimiento"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output005.mp3",
+  "edicion": "caja_roja",
+  "arranque": "Nadie te dice que el tráiler final de Avengers Doomsday iba a causar semejante revuelo en redes."
  }
 ]
