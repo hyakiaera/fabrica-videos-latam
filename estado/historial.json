@@ -2512,5 +2512,32 @@
   "musica": "output005.mp3",
   "edicion": "caja_roja",
   "arranque": "Nadie te dice que el tráiler final de Avengers Doomsday iba a causar semejante revuelo en redes."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 126,
+  "fecha": "2026-11-24T04:21",
+  "tema": "Alerta policial por GTA 6: La advertencia a jugadores sobre crímenes reales",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Alerta policial por GTA 6: ¡lo que pasa en el juego se queda en el juego!",
+  "archivo": "salida/2026-11-24/gaming/alerta-policial-por-gta-6-la-advertencia-a-jugadores-sobre-c #126.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-24/gaming/alerta-policial-por-gta-6-la-advertencia-a-jugadores-sobre-c #126.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#Policia",
+   "#Gaming",
+   "#Videojuegos",
+   "#NoticiasGaming",
+   "#GrandTheftAuto"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output016.mp3",
+  "edicion": "caja_negra",
+  "calidad": [],
+  "arranque": "La advertencia real: Estados Unidos cambia el crimen en los videojuegos."
  }
 ]
