@@ -128,6 +128,14 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     from fabrica import avatar
     crudo = avatar.agregar(cfg, crudo, datos, _slug(tema.get("categoria", "general")), trabajo, numero)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
+    from fabrica import calidad
+    conteo["_escenas"] = sum(1 for e in datos.get("escenas", []) if not e.get("grafica") and not e.get("mapa"))
+    conteo["_graficas"] = sum(1 for e in datos.get("escenas", []) if e.get("grafica") or e.get("mapa"))
+    try:
+        datos["calidad"] = calidad.revisar(final, conteo)
+    except Exception as e:
+        logger.warning(f"Revisión del video: no se pudo hacer ({e})")
+        datos["calidad"] = []
     from fabrica import miniaturas
     mini = (miniaturas.crear(cfg, datos, fotos, final, trabajo / f"{nombre}.jpg")
             or video.miniatura(final, trabajo / f"{nombre}.jpg"))
@@ -163,7 +171,9 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
                 (temporal / origen.name).write_bytes(origen.read_bytes())
         en_drive = salidas.subir_drive(cfg, temporal, ruta_relativa)
     publicado = False
-    if "publicar" in opciones_salida:
+    if "publicar" in opciones_salida and datos.get("calidad"):
+        logger.warning("Publicar: este video NO se publica por la revisión: " + "; ".join(datos["calidad"]))
+    elif "publicar" in opciones_salida:
         publicado = bool(salidas.publicar(cfg, guardado, datos).get("success"))
 
     entradas = _historial()
@@ -175,6 +185,7 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
                      "hashtags": datos.get("hashtags", [])[:8], "publicado": publicado,
                      "credito_musica": datos.get("credito_musica", ""),
                      "musica": datos.get("musica_usada", ""), "edicion": datos.get("edicion", ""),
+                     "calidad": datos.get("calidad", []),
                      "arranque": re.split(r"(?<=[.!?])\s", datos.get("guion", "").strip(), maxsplit=1)[0][:120]})
     _guardar_historial(entradas)
     return guardado

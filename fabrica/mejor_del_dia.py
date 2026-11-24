@@ -87,7 +87,7 @@ def elegir(entradas: list[dict], ahora: datetime | None = None, horas: float = 2
         logger.info("Mejor del día: ya se publicó uno hoy")
         return None
     candidatos = [e for e in recientes if e.get("automatico") and e.get("drive")
-                  and not e.get("publicado") and e.get("nota") is not None]
+                  and not e.get("publicado") and e.get("nota") is not None and not e.get("calidad")]
     if not candidatos:
         return None
     return max(candidatos, key=lambda e: e["nota"])

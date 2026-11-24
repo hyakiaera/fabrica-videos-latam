@@ -1739,3 +1739,26 @@ class TestLogoDeCierre(unittest.TestCase):
 
         self.assertLess(pixel(1)[0], 40)        # al principio: sin logo
         self.assertGreater(pixel(4.7)[0], 200)  # al final: el logo rojo en el centro
+
+
+class TestRevisionDeCalidad(unittest.TestCase):
+    def _video(self, color, audio=True, segundos=20):
+        import subprocess
+        import imageio_ffmpeg
+        c = Path(tempfile.mkdtemp())
+        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-f", "lavfi", "-i",
+               f"color=c={color}:s=320x568:d={segundos}"]
+        if audio:
+            cmd += ["-f", "lavfi", "-i", f"sine=d={segundos}", "-shortest"]
+        subprocess.run(cmd + ["-pix_fmt", "yuv420p", str(c / "v.mp4")], check=True)
+        return c / "v.mp4"
+
+    def test_video_bueno_pasa(self):
+        from fabrica import calidad
+        self.assertEqual(calidad.revisar(self._video("blue")), [])
+
+    def test_negro_o_sin_audio_no_pasa(self):
+        from fabrica import calidad
+        self.assertTrue(any("negra" in p for p in calidad.revisar(self._video("black"))))
+        self.assertTrue(any("audio" in p for p in calidad.revisar(self._video("blue", audio=False))))
+        self.assertTrue(any("corto" in p for p in calidad.revisar(self._video("blue", segundos=5))))
