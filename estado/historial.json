@@ -2650,5 +2650,32 @@
   "edicion": "celeste",
   "calidad": [],
   "arranque": "Si juegas videojuegos y esperas GTA 6, esto te importa."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 131,
+  "fecha": "2026-11-25T04:59",
+  "tema": "Felipe Holguin asume como CEO de Universal Music Latin America",
+  "categoria": "entretenimiento",
+  "estilo": "comic",
+  "titulo": "Felipe Holguin asume como nuevo CEO de Universal Music Latin America",
+  "archivo": "salida/2026-11-25/entretenimiento/felipe-holguin-asume-como-ceo-de-universal-music-latin-ameri #131.mp4",
+  "automatico": true,
+  "nota": 64.0,
+  "drive": "2026-11-25/entretenimiento/felipe-holguin-asume-como-ceo-de-universal-music-latin-ameri #131.mp4",
+  "hashtags": [
+   "#FelipeHolguin",
+   "#UniversalMusic",
+   "#MusicaLatina",
+   "#Entretenimiento",
+   "#NoticiasMusica",
+   "#MusicBusiness"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output023.mp3",
+  "edicion": "grande_centro",
+  "calidad": [],
+  "arranque": "Felipe Holguin toma las riendas como CEO de Universal Music Latin America."
  }
 ]
