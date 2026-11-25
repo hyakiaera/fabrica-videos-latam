@@ -2677,5 +2677,33 @@
   "edicion": "grande_centro",
   "calidad": [],
   "arranque": "Felipe Holguin toma las riendas como CEO de Universal Music Latin America."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 132,
+  "fecha": "2026-11-25T14:23",
+  "tema": "Primeras horas: trucos y secretos descubiertos",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Deja de perder tus partidas de GTA 6. Descubre cómo guardar y el clima real",
+  "archivo": "salida/2026-11-25/gaming/primeras-horas-trucos-y-secretos-descubiertos #132.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-25/gaming/primeras-horas-trucos-y-secretos-descubiertos #132.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gtavi",
+   "#gaming",
+   "#videogames",
+   "#playstation",
+   "#xbox",
+   "#noticiasgaming"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output005.mp3",
+  "edicion": "anton_amarillo",
+  "calidad": [],
+  "arranque": "Deja de arriesgar tu progreso en GTA 6."
  }
 ]
