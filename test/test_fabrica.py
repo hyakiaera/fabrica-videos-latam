@@ -1814,7 +1814,7 @@ class TestVideoHorizontal(unittest.TestCase):
         self.assertEqual(c["video"]["aspecto"], "16:9")
         self.assertEqual(c["guion"]["duracion_segundos"], 300)
         self.assertEqual(c["avatar"]["modo"], "tres momentos")
-        self.assertIn("CAPÍTULOS", c["guion"]["instrucciones_extra"])
+        self.assertIn("por partes", c["guion"]["instrucciones_extra"])
 
     def test_shorts_del_largo(self):
         import subprocess
@@ -1836,3 +1836,51 @@ class TestVideoHorizontal(unittest.TestCase):
         salida = imagenes.etiquetar(c / "a.jpg", "RECREACIÓN")
         self.assertNotEqual(salida, c / "a.jpg")
         self.assertEqual(Image.open(salida).size, (1280, 720))
+
+
+class TestVideoLargoPorPartes(unittest.TestCase):
+    def test_escribe_5_partes_con_50_escenas(self):
+        from fabrica import horizontal
+        llamadas = []
+
+        def pedir(cfg, sistema, usuario, temperatura=0.7):
+            llamadas.append(usuario)
+            if "SOLO EL PLAN" in usuario:
+                return {"titulo": "El satélite", "guion": "", "escenas": [], "partes": ["a", "b", "c", "d", "e"],
+                        "capitulos": ["Inicio", "La caída", "El misterio", "Después", "Conclusión"]}
+            n = len(llamadas) - 1
+            return {"guion": " ".join(["palabra"] * 150) + f" parte{n}.",
+                    "escenas": [{"texto": f"e{n}-{k}", "imagen": "x"} for k in range(10)]}
+
+        with mock.patch.object(ia, "pedir_json", side_effect=pedir):
+            datos = horizontal.escribir_por_partes({}, {"tema": "satélite"}, "sis", "base")
+        self.assertEqual(len(llamadas), 6)
+        self.assertEqual(len(datos["escenas"]), 50)
+        self.assertGreater(len(datos["guion"].split()), 700)
+        self.assertEqual([c["escena"] for c in datos["capitulos"]], [10, 20, 30, 40])
+        self.assertIn("Lo que ya se dijo", llamadas[2])
+        self.assertIn("mapa", llamadas[1])
+
+    def test_avatar_en_horizontal_usa_tu_voz_sin_modelo(self):
+        from fabrica import horizontal
+        c = horizontal.preparar_cfg({"voz": {"genero": "hombre"}})
+        self.assertEqual(c["voz"]["lector"], "yo")
+        self.assertFalse(c["voz"]["yo_pulir"])
+        self.assertEqual(c["imagenes"]["max_imagenes"], 60)
+
+    def test_titulo_de_youtube_maximo_100(self):
+        import sys, types
+        vistos = []
+
+        def cross(video, titulo, platforms, youtube_extra, account):
+            vistos.append(youtube_extra)
+            return {"success": True}
+
+        falso = types.ModuleType("app.services.upload_post")
+        falso.cross_post_video = cross
+        largo = "¡Increíble! " + "palabra " * 20
+        with mock.patch.dict(sys.modules, {"app.services.upload_post": falso}), \
+             mock.patch.object(salidas, "secreto", side_effect=lambda k: "x"), \
+             mock.patch.object(salidas, "perfil_upload_post", return_value="desvergueofficial"):
+            salidas.publicar({}, Path("/v.mp4"), {"titulo": largo, "hashtags": []})
+        self.assertLessEqual(len(vistos[0]["youtube_title"]), 100)

@@ -141,10 +141,18 @@ def publicar(cfg: dict, video: Path, datos: dict) -> dict:
         corto = f"{datos['titulo'][:90]}\n{datos['credito_musica']}"
     corto = corto[:280]
 
+    # YouTube acepta títulos de máximo 100 letras (uno de 119 hizo fallar la publicación).
+    titulo_yt = datos["titulo"].strip()
+    if len(titulo_yt) > 100:
+        titulo_yt = titulo_yt[:100].rsplit(" ", 1)[0].rstrip(" ,.:;-")
+    extra_yt = {"selfDeclaredMadeForKids": False, "youtube_title": titulo_yt}
+    if datos.get("descripcion"):
+        extra_yt["youtube_description"] = (datos["descripcion"] + (f"\n\n{datos['credito_musica']}"
+                                                                   if datos.get("credito_musica") else ""))[:4900]
+
     def subir(redes):
         texto = corto if redes == ["x"] else (titulo[:500] if redes == ["threads"] else titulo)
-        return cross_post_video(str(video), texto, platforms=redes,
-                                youtube_extra={"selfDeclaredMadeForKids": False}, account=cuenta)
+        return cross_post_video(str(video), texto, platforms=redes, youtube_extra=extra_yt, account=cuenta)
 
     if "x" in plataformas and len(plataformas) > 1:
         otras = [r for r in plataformas if r != "x"]

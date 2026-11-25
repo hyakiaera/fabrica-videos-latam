@@ -412,10 +412,15 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
     usar_clips = bool(im.get("clips", True)) and any(ESTILOS.get(k) is estilo for k in estilos_clip)
     cada_clip = max(1, int(round(1 / max(0.05, float(im.get("clips_proporcion", 0.4))))))
 
+    clips_usados: set[str] = set()
+
     def de_clip(i, escena, descripcion):
         from fabrica import fotos_web
         consulta = escena.get("busqueda_stock") or escena.get("busqueda_foto") or tema
-        candidatos = fotos_web.clips_stock(consulta)[:6]
+        # Ningún clip repetido: ni en este video ni en los de las últimas semanas.
+        with candado:
+            candidatos = [c for c in fotos_web.clips_stock(consulta)
+                          if c[0] not in clips_usados and not fotos_web.ya_usada(c[0])][:6]
         miniaturas = []
         for k, (url, mini, _) in enumerate(candidatos):
             ruta = fotos_web._bajar(mini, carpeta / f"clip-{i:02d}-{k}.jpg") if mini else None
@@ -427,6 +432,11 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
         if not buenos:
             return None
         url, _, credito = candidatos[validas[buenos[0]][0]]
+        with candado:
+            if url in clips_usados:
+                return None
+            clips_usados.add(url)
+        fotos_web.marcar_usada(url)
         destino = carpeta / f"clip-{i:02d}.mp4"
         try:
             r = requests.get(url, timeout=120)
@@ -569,6 +579,11 @@ def para_escenas(cfg: dict, escenas: list[dict], estilo: Estilo, aspecto: str,
             if hallado:
                 sumar("real")
                 return al_estilo(hallado[0], escena_completa), hallado[1]
+        if im.get("clip_de_respaldo") and not real:
+            # (videos largos) antes de repetir una imagen: un clip de video real del tema
+            hallado = de_clip(i, escena, escena_completa)
+            if hallado:
+                return hallado
         if ia_de_respaldo and im.get("usar_rechazadas", False):
             sumar("ia")
             return ia_de_respaldo, None

@@ -135,7 +135,17 @@ def preparar_cfg(cfg: dict) -> dict:
     g["max_escenas"] = int(h.get("max_escenas", 42))
     g["segundos_por_escena"] = int(h.get("segundos_por_escena", 7))
     g["instrucciones_extra"] = (g.get("instrucciones_extra", "") + "\n" + LARGO).strip()
-    nuevo.setdefault("imagenes", {})["max_imagenes"] = int(h.get("max_imagenes", 22))
+    im = nuevo.setdefault("imagenes", {})
+    im["max_imagenes"] = int(h.get("max_imagenes", 60))          # una imagen distinta por escena
+    im["clips_proporcion"] = float(h.get("clips_proporcion", 0.5))  # la mitad, clips de video reales
+    im["clips_estilos"] = ["realista", "noticiero", "cinematografico"]
+    im["simultaneas"] = int(h.get("simultaneas", 4))
+    im["clip_de_respaldo"] = True  # si una escena no encuentra foto, un clip real antes que repetir
+    if h.get("avatar", True):
+        # Con avatar SIEMPRE tu voz ("yo"), sin el modelo HYAKO (así quedamos).
+        v = nuevo.setdefault("voz", {})
+        v["lector"] = "yo"
+        v["yo_pulir"] = False
     a = nuevo.setdefault("avatar", {})
     if h.get("avatar", True):  # tú al inicio, a la mitad y al final ([horizontal] avatar = false lo quita)
         a["modo"] = "tres momentos"
@@ -150,15 +160,78 @@ def preparar_cfg(cfg: dict) -> dict:
     return nuevo
 
 
-LARGO = """VIDEO LARGO HORIZONTAL (~5 minutos, YouTube): estructura por CAPÍTULOS.
-- 0:00-0:15 GANCHO fuerte: la promesa del video y lo más impactante.
-- Luego una escena con grafica "tarjeta" titulada "En este video" que lista los capítulos.
-- 3 o 4 capítulos; la PRIMERA escena de cada capítulo lleva grafica "tarjeta" con el título del
-  capítulo (ej. titulo "Capítulo 2", lineas ["Su infancia en San Salvador"]).
-- A la mitad, un mini gancho para que no se vayan ("pero lo más increíble viene ahora...").
-- Conclusión con 3 puntos clave (grafica "tarjeta") y cierre con una pregunta para comentar.
-- Usa mapas cuando se hable de lugares y gráficas cuando haya cifras.
-Agrega al JSON "capitulos": [{"titulo": "...", "escena": número de escena donde empieza}].
+PARTES = [
+    ("Introducción y capítulo 1", "Empieza con el GANCHO fuerte (lo más impactante en 15 segundos) y una frase que "
+     "adelante de qué trata el video; luego arranca el primer capítulo."),
+    ("Capítulo 2", "Sigue la historia: el contexto y los datos más importantes."),
+    ("Capítulo 3", "Lo más sorprendente. Empieza con un mini gancho ('pero lo más increíble viene ahora...')."),
+    ("Capítulo 4", "Las consecuencias, lo que pasó después, comparaciones."),
+    ("Conclusión", "Resume en 3 puntos lo más importante y cierra con una pregunta para comentar."),
+]
+
+
+def escribir_por_partes(cfg: dict, tema: dict, sistema: str, usuario: str) -> dict:
+    """Guion de ~5 minutos escrito en 5 partes de ~150 palabras y 10 escenas cada una
+    (50 escenas: 50 imágenes distintas, 5 mapas, 2 gráficas). La primera llamada hace el plan."""
+    h = cfg.get("horizontal", {})
+    palabras = int(h.get("palabras_por_parte", 155))
+    escenas_parte = int(h.get("escenas_por_parte", 10))
+    plan = ia.pedir_json(cfg, sistema, usuario + (
+        "\n\nAHORA SOLO EL PLAN de un video de 5 minutos en 5 partes. Devuelve el JSON pedido arriba pero "
+        "con \"guion\" vacío y \"escenas\": [], y agrega \"partes\": [5 frases: qué cuenta cada parte "
+        "(introducción, 3 capítulos y conclusión), con los datos reales que usará] y \"capitulos\": "
+        "[5 títulos cortos]."), temperatura=0.7)
+    ideas = plan.get("partes") or [p[1] for p in PARTES]
+    titulos = plan.get("capitulos") or [p[0] for p in PARTES]
+    textos, escenas, capitulos, contado = [], [], [], []
+    for k, (nombre, guia) in enumerate(PARTES):
+        idea = ideas[k] if k < len(ideas) else guia
+        titulo_cap = titulos[k] if k < len(titulos) else nombre
+        mapa = ("Una de sus escenas lleva grafica tipo \"mapa\" con el lugar del que se habla "
+                "(lugar buscable con país).")
+        cifra = (" Otra escena lleva grafica \"barras\" o \"cifra\" con un dato REAL de las fuentes."
+                 if k in (1, 3) else "")
+        pedido = (f"\n\nAHORA ESCRIBE SOLO LA PARTE {k + 1} de 5 de un video de 5 minutos: «{titulo_cap}».\n"
+                  f"Qué cuenta: {idea}\nCómo: {guia}\n"
+                  f"Lo que ya se dijo (NO lo repitas): {' '.join(contado)[-1500:] or 'nada todavía'}\n"
+                  f"Escribe unas {palabras} palabras en \"guion\" (solo esta parte) y EXACTAMENTE "
+                  f"{escenas_parte} escenas en orden. Cada escena con una imagen DISTINTA y concreta de lo que "
+                  f"se dice; \"busqueda_stock\" con 1-3 palabras en inglés para un clip de video real. {mapa}"
+                  f"{cifra} La primera escena de esta parte lleva grafica \"tarjeta\" con el título del "
+                  f"capítulo (titulo \"Capítulo {k + 1}\" o \"Conclusión\", lineas [\"{titulo_cap}\"]).")
+        try:
+            parte = ia.pedir_json(cfg, sistema, usuario + pedido, temperatura=0.8)
+        except Exception as e:
+            logger.warning(f"Video largo: la parte {k + 1} falló ({e})")
+            continue
+        texto = str(parte.get("guion", "")).strip()
+        nuevas = [e for e in (parte.get("escenas") or []) if isinstance(e, dict)]
+        if not texto or not nuevas:
+            continue
+        capitulos.append({"titulo": titulo_cap, "escena": len(escenas)})
+        textos.append(texto)
+        contado.append(texto)
+        escenas += nuevas
+        if k == 0:
+            for clave in ("ganchos", "pronunciacion"):
+                if parte.get(clave):
+                    plan[clave] = parte[clave]
+    if not textos:
+        raise ValueError("La IA no pudo escribir el video largo")
+    datos = dict(plan)
+    datos["guion"] = "\n\n".join(textos)
+    datos["escenas"] = escenas
+    datos["capitulos"] = [c for c in capitulos if c["escena"] > 0] or capitulos
+    total = len(datos["guion"].split())
+    logger.info(f"Video largo: {len(textos)} partes, {total} palabras (~{total / 2.5 / 60:.1f} min), "
+                f"{len(escenas)} escenas")
+    return datos
+
+
+LARGO = """VIDEO LARGO HORIZONTAL (~5 minutos, YouTube), se escribe por partes.
+Cada parte cuenta algo NUEVO (nada repetido), con datos reales de la ficha y de los titulares.
+Las imágenes deben mostrar EXACTAMENTE lo que se dice (si se habla de un satélite: el satélite,
+el cohete, la sala de control; nunca algo genérico como un micrófono o una persona cualquiera).
 DATOS INDISPENSABLES: si una escena muestra algo concreto que necesita su foto REAL (la casa
 donde creció, un documento, un lugar exacto), pon en esa escena "dato_clave": true y en
 "consultas_foto" 3 búsquedas distintas en español e inglés para encontrar esa foto."""
@@ -263,7 +336,8 @@ def tema_del_dia(cfg: dict, historial: list[dict], trabajo: Path) -> dict:
         tema["fuentes"] = tendencias.buscar_noticias(tema["tema"], 6)
     except Exception:
         pass
-    tema["estilo"] = random.choice(["cinematografico", "realista", "explicativo", "noticiero"])
+    # Estilos con fotos y clips de video reales (los de dibujo gastan la cuota de imágenes con IA).
+    tema["estilo"] = random.choice(["cinematografico", "realista", "noticiero"])
     tema["formato"] = "horizontal"
     return tema
 

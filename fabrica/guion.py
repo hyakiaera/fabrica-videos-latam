@@ -194,7 +194,12 @@ REGLAS PARA LAS IMÁGENES (muy importante, deben encajar con lo que se narra):
   "soccer coach" (salen fotos de fútbol americano o de otros equipos).
 - Personas reales famosas: en "imagen" no describas su cara (descríbelas de espaldas, de lejos o
   por su camiseta/uniforme); pon su nombre en "foto_real" para usar una foto real con licencia."""
-    datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)
+    if tema.get("formato") == "horizontal":
+        # Video largo: se escribe por partes (una IA no escribe 5 minutos de un solo intento).
+        from fabrica import horizontal
+        datos = horizontal.escribir_por_partes(cfg, tema, sistema, usuario)
+    else:
+        datos = ia.pedir_json(cfg, sistema, usuario, temperatura=0.8)
     if not datos.get("guion") or not datos.get("escenas"):
         raise ValueError("La IA devolvió un guion incompleto")
     datos["hashtags"] = [h if h.startswith("#") else f"#{h}" for h in datos.get("hashtags", [])]

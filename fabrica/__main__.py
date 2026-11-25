@@ -243,8 +243,9 @@ def video_horizontal(cfg: dict, args) -> int:
         v = tema["voz"].lower()
         if v.startswith("yo"):
             largo.setdefault("voz", {})["lector"] = "yo"
-        elif v in ("mujer", "hombre"):
-            largo.setdefault("voz", {})["genero"] = v
+        elif v in ("mujer", "hombre", "jorge"):
+            largo.setdefault("voz", {})["lector"] = ""
+            largo["voz"]["genero"] = "mujer" if v == "mujer" else "hombre"
     try:
         hacer_video(largo, tema, opciones)
     except Exception as e:

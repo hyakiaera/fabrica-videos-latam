@@ -281,10 +281,28 @@ def _tres_momentos(video: Path, avatar: Path, intro: float, cierre: float, total
     a2 = intro + 0.4               # dónde empieza el pedazo de la mitad en el clip del avatar
     a3 = a2 + medio + 0.4          # y el del cierre
     horizontal = W > H
-    grande = _cubrir(int(W * 0.4), H) if horizontal else _cubrir(W, H)
     lado = int(min(W, H) * 0.32)
     circulo = (f"{_cara(lado)},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
                f"a='if(lte(hypot(X-{lado / 2},Y-{lado / 2}),{lado / 2 - 4}),255,0)'")
+    if horizontal:
+        # Horizontal: siempre chiquito en un círculo abajo a la derecha, con aro blanco.
+        lado = int(H * 0.28)
+        circulo = (f"{_cara(lado)},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
+                   f"a='if(lte(hypot(X-{lado / 2},Y-{lado / 2}),{lado / 2 - 2}),255,0)'")
+        aro = lado + 12
+        ventanas = (f"lt(t,{intro})+between(t,{mitad:.2f},{mitad + medio:.2f})+gte(t,{total - cierre:.2f})")
+        donde = f"W-{lado}-40:H-{lado}-40"
+        return (f"color=c=white:s={aro}x{aro}:d={total:.2f},format=rgba,"
+                f"geq=r='255':g='255':b='255':a='if(lte(hypot(X-{aro / 2},Y-{aro / 2}),{aro / 2 - 1}),255,0)'[aro];"
+                f"[1:v]split=3[p1][p2][p3];"
+                f"[p1]trim=0:{intro},setpts=PTS-STARTPTS,{circulo}[c1];"
+                f"[p2]trim={a2:.2f}:{a2 + medio:.2f},setpts=PTS-STARTPTS+{mitad:.2f}/TB,{circulo}[c2];"
+                f"[p3]trim=start={a3:.2f},setpts=PTS-STARTPTS+{total - cierre:.2f}/TB,{circulo}[c3];"
+                f"[0:v][aro]overlay=W-{aro}-34:H-{aro}-34:enable='{ventanas}'[v0];"
+                f"[v0][c1]overlay={donde}:eof_action=pass:enable='lt(t,{intro})'[v1];"
+                f"[v1][c2]overlay={donde}:eof_action=pass:enable='between(t,{mitad:.2f},{mitad + medio:.2f})'[v2];"
+                f"[v2][c3]overlay={donde}:eof_action=pass:enable='gte(t,{total - cierre:.2f})'[v]")
+    grande = _cubrir(W, H)
     return (f"[1:v]split=3[p1][p2][p3];"
             f"[p1]trim=0:{intro},setpts=PTS-STARTPTS,{grande}[g1];"
             f"[p2]trim={a2:.2f}:{a2 + medio:.2f},setpts=PTS-STARTPTS+{mitad:.2f}/TB,{circulo}[c2];"

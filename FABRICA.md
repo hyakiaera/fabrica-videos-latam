@@ -381,8 +381,12 @@ rayas largas). La nota del gancho sale en la ficha `.txt`.
 3. Cada día hace **el primer tema sin ✔** y lo tacha: `✔ 1. video de ronaldo  (hecho 25/11)`.
    Si no queda ninguno, hace uno **automático** de información de valor y lo anota al final.
 
-El video trae: gancho, índice de capítulos, tarjeta en cada capítulo, mini gancho a la mitad,
-conclusión, **tu avatar al inicio (panel grande), a la mitad (círculo) y al final**, mapas,
+El guion se escribe **en 5 partes** (introducción, 3 capítulos y conclusión: ~750 palabras ≈ 5 min)
+con **50 escenas distintas**: 5 mapas, 2 gráficas y el resto fotos reales y **clips de video reales**
+(la mitad), sin repetir ninguno. Con avatar, la voz es **la tuya ("yo") sin el modelo HYAKO**.
+
+El video trae: gancho, tarjeta en cada capítulo, mini gancho a la mitad, conclusión,
+**tu avatar chiquito en un círculo abajo a la derecha al inicio, a la mitad y al final**, mapas,
 gráficas, datos reales (Wikipedia), **búsqueda profunda** de fotos para los datos clave (si no
 existe la foto real, una imagen con la etiqueta **"RECREACIÓN"**), miniatura horizontal, la
 descripción con **capítulos (00:00, 01:12...)** y **3 Shorts verticales** sacados del video
