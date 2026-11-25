@@ -1914,3 +1914,24 @@ class TestVideoLargoFlexible(unittest.TestCase):
     def test_tema_con_mucha_informacion_hasta_cinco(self):
         datos, llamadas = self._hacer(9)
         self.assertEqual(len(llamadas), 6)  # plan + 5 partes (máximo)
+
+
+class TestCarpetaSinMayusculas(unittest.TestCase):
+    def test_encuentra_la_carpeta_escrita_distinto(self):
+        from fabrica import horizontal
+        horizontal._CARPETA_REAL.clear()
+
+        def correr(cmd, **kw):
+            destino = cmd[2]
+            if destino.endswith("Fabrica de Videos"):
+                return mock.Mock(stdout="2026-11-25/\nVIDEOS HORIZONTALES INFO/\nvideos horizontales info/\nmis fotos/\n")
+            if destino.endswith("VIDEOS HORIZONTALES INFO"):
+                return mock.Mock(stdout="foto.jpg\n")
+            return mock.Mock(stdout="TEMAS.TXT\n")
+
+        with mock.patch.object(horizontal.shutil, "which", return_value="/usr/bin/rclone"), \
+             mock.patch.object(horizontal.subprocess, "run", side_effect=correr):
+            remoto = horizontal._remoto({})
+            self.assertTrue(remoto.endswith("/videos horizontales info"))  # la que tiene la lista
+            self.assertEqual(horizontal._archivo_lista(remoto), "TEMAS.TXT")
+        horizontal._CARPETA_REAL.clear()

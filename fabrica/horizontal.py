@@ -31,11 +31,57 @@ MARCA = "✔"
 LINEA = re.compile(r"^\s*(?P<hecho>✔|✓|\[x\])?\s*(?P<num>\d+)\s*[.)\-:]?\s*(?P<texto>.+?)\s*$", re.I)
 
 
+_CARPETA_REAL: dict = {}
+
+
+def _igual(a: str, b: str) -> bool:
+    """Mismo nombre sin importar MAYÚSCULAS, acentos ni espacios de más."""
+    import unicodedata
+
+    def limpio(t):
+        t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+        return " ".join(t.replace("_", " ").split())
+    return limpio(a) == limpio(b)
+
+
 def _remoto(cfg: dict) -> str | None:
+    """La carpeta de Drive aunque esté escrita distinto ("VIDEOS HORIZONTALES INFO", "Videos horizontales info")."""
     if not shutil.which("rclone"):
         return None
     d = cfg.get("drive", {})
-    return f"{d.get('remoto', 'drive')}:{d.get('carpeta', 'Fabrica de Videos')}/{CARPETA}"
+    base = f"{d.get('remoto', 'drive')}:{d.get('carpeta', 'Fabrica de Videos')}"
+    if base not in _CARPETA_REAL:
+        nombre = CARPETA
+        try:
+            r = subprocess.run(["rclone", "lsf", base, "--dirs-only"], capture_output=True, text=True, timeout=120)
+            iguales = [x.rstrip("/") for x in r.stdout.splitlines() if _igual(x.rstrip("/"), CARPETA)]
+            if iguales:
+                # si hay varias (ej. una en mayúsculas y otra en minúsculas), la que tenga temas.txt
+                nombre = iguales[0]
+                for candidata in iguales:
+                    hay = subprocess.run(["rclone", "lsf", f"{base}/{candidata}", "--files-only"],
+                                         capture_output=True, text=True, timeout=120).stdout
+                    if any(_igual(f, ARCHIVO) for f in hay.splitlines()):
+                        nombre = candidata
+                        break
+                if nombre != CARPETA:
+                    logger.info(f"Video horizontal: tu carpeta se llama '{nombre}'")
+        except Exception:
+            pass
+        _CARPETA_REAL[base] = f"{base}/{nombre}"
+    return _CARPETA_REAL[base]
+
+
+def _archivo_lista(remoto: str) -> str:
+    """temas.txt aunque esté como TEMAS.TXT o Temas.txt."""
+    try:
+        r = subprocess.run(["rclone", "lsf", remoto, "--files-only"], capture_output=True, text=True, timeout=120)
+        for f in r.stdout.splitlines():
+            if _igual(f, ARCHIVO):
+                return f
+    except Exception:
+        pass
+    return ARCHIVO
 
 
 def leer(texto: str) -> list[dict]:
@@ -80,7 +126,8 @@ def bajar_lista(cfg: dict, destino: Path) -> str:
     remoto = _remoto(cfg)
     archivo = destino / ARCHIVO
     if remoto:
-        subprocess.run(["rclone", "copyto", f"{remoto}/{ARCHIVO}", str(archivo)], capture_output=True, timeout=120)
+        subprocess.run(["rclone", "copyto", f"{remoto}/{_archivo_lista(remoto)}", str(archivo)],
+                       capture_output=True, timeout=120)
     return archivo.read_text(encoding="utf-8", errors="ignore") if archivo.exists() else ""
 
 
@@ -89,7 +136,8 @@ def subir_lista(cfg: dict, texto: str, destino: Path) -> None:
     archivo = destino / ARCHIVO
     archivo.write_text(texto, encoding="utf-8")
     if remoto:
-        subprocess.run(["rclone", "copyto", str(archivo), f"{remoto}/{ARCHIVO}"], capture_output=True, timeout=120)
+        subprocess.run(["rclone", "copyto", str(archivo), f"{remoto}/{_archivo_lista(remoto)}"],
+                       capture_output=True, timeout=120)
 
 
 def carpeta_del_numero(cfg: dict, numero: int) -> str | None:

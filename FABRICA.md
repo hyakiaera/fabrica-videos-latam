@@ -387,7 +387,7 @@ con **10 escenas distintas por parte**: un mapa por parte, 1-2 gráficas y el re
 (la mitad), sin repetir ninguno. Con avatar, la voz es **la tuya ("yo") sin el modelo HYAKO**.
 
 El video trae: gancho, tarjeta en cada capítulo, mini gancho a la mitad, conclusión,
-**tu avatar chiquito en un círculo abajo a la derecha al inicio, a la mitad y al final**, mapas,
+**tu avatar en un recuadro chiquito abajo a la derecha (cabeza y pecho, la cara siempre completa) al inicio, a la mitad y al final**, mapas,
 gráficas, datos reales (Wikipedia), **búsqueda profunda** de fotos para los datos clave (si no
 existe la foto real, una imagen con la etiqueta **"RECREACIÓN"**), miniatura horizontal, la
 descripción con **capítulos (00:00, 01:12...)** y **3 Shorts verticales** sacados del video
