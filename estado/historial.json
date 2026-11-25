@@ -2622,5 +2622,33 @@
   "edicion": "verde_neon",
   "calidad": [],
   "arranque": "Un satélite cambia el espacio."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 130,
+  "fecha": "2026-11-25T02:23",
+  "tema": "Bad Bunny estrena su propia estación de radio en GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡BAD BUNNY TENDRÁ SU PROPIA ESTACIÓN DE RADIO EN GTA 6!",
+  "archivo": "salida/2026-11-25/gaming/bad-bunny-estrena-su-propia-estacion-de-radio-en-gta-6 #130.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-25/gaming/bad-bunny-estrena-su-propia-estacion-de-radio-en-gta-6 #130.mp4",
+  "hashtags": [
+   "#BadBunny",
+   "#GTA6",
+   "#GrandTheftAuto",
+   "#Gaming",
+   "#MusicaUrbana",
+   "#PlayStation",
+   "#Xbox"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output007.mp3",
+  "edicion": "celeste",
+  "calidad": [],
+  "arranque": "Si juegas videojuegos y esperas GTA 6, esto te importa."
  }
 ]
