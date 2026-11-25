@@ -381,8 +381,9 @@ rayas largas). La nota del gancho sale en la ficha `.txt`.
 3. Cada día hace **el primer tema sin ✔** y lo tacha: `✔ 1. video de ronaldo  (hecho 25/11)`.
    Si no queda ninguno, hace uno **automático** de información de valor y lo anota al final.
 
-El guion se escribe **en 5 partes** (introducción, 3 capítulos y conclusión: ~750 palabras ≈ 5 min)
-con **50 escenas distintas**: 5 mapas, 2 gráficas y el resto fotos reales y **clips de video reales**
+El guion se escribe **por partes** (introducción, capítulos y conclusión). Dura **entre 2 minutos y
+medio y 5 minutos** según cuánta información real tenga el tema (3 a 5 partes, nunca menos de 3),
+con **10 escenas distintas por parte**: un mapa por parte, 1-2 gráficas y el resto fotos reales y **clips de video reales**
 (la mitad), sin repetir ninguno. Con avatar, la voz es **la tuya ("yo") sin el modelo HYAKO**.
 
 El video trae: gancho, tarjeta en cada capítulo, mini gancho a la mitad, conclusión,

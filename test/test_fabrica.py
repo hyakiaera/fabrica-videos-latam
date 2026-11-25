@@ -1847,6 +1847,7 @@ class TestVideoLargoPorPartes(unittest.TestCase):
             llamadas.append(usuario)
             if "SOLO EL PLAN" in usuario:
                 return {"titulo": "El satélite", "guion": "", "escenas": [], "partes": ["a", "b", "c", "d", "e"],
+                        "numero_partes": 5,
                         "capitulos": ["Inicio", "La caída", "El misterio", "Después", "Conclusión"]}
             n = len(llamadas) - 1
             return {"guion": " ".join(["palabra"] * 150) + f" parte{n}.",
@@ -1884,3 +1885,32 @@ class TestVideoLargoPorPartes(unittest.TestCase):
              mock.patch.object(salidas, "perfil_upload_post", return_value="desvergueofficial"):
             salidas.publicar({}, Path("/v.mp4"), {"titulo": largo, "hashtags": []})
         self.assertLessEqual(len(vistos[0]["youtube_title"]), 100)
+
+
+class TestVideoLargoFlexible(unittest.TestCase):
+    def _hacer(self, numero):
+        from fabrica import horizontal
+        llamadas = []
+
+        def pedir(cfg, sistema, usuario, temperatura=0.7):
+            llamadas.append(usuario)
+            if "SOLO EL PLAN" in usuario:
+                return {"titulo": "t", "guion": "", "escenas": [], "numero_partes": numero,
+                        "partes": [f"idea {i}" for i in range(max(numero, 1))],
+                        "capitulos": [f"cap {i}" for i in range(max(numero, 1))]}
+            return {"guion": " ".join(["palabra"] * 150) + ".",
+                    "escenas": [{"texto": "x", "imagen": "x"} for _ in range(10)]}
+
+        with mock.patch.object(ia, "pedir_json", side_effect=pedir):
+            datos = horizontal.escribir_por_partes({}, {"tema": "t"}, "sis", "base")
+        return datos, llamadas
+
+    def test_tema_corto_minimo_dos_minutos_y_medio(self):
+        datos, llamadas = self._hacer(2)  # la IA pidió 2 partes: se suben a 3 (mínimo)
+        self.assertEqual(len(llamadas), 4)
+        self.assertGreaterEqual(len(datos["guion"].split()) / 2.5, 150)  # ≥ 2.5 minutos
+        self.assertIn("Conclusión", llamadas[-1])
+
+    def test_tema_con_mucha_informacion_hasta_cinco(self):
+        datos, llamadas = self._hacer(9)
+        self.assertEqual(len(llamadas), 6)  # plan + 5 partes (máximo)

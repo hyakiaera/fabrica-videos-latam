@@ -177,28 +177,42 @@ def escribir_por_partes(cfg: dict, tema: dict, sistema: str, usuario: str) -> di
     palabras = int(h.get("palabras_por_parte", 155))
     escenas_parte = int(h.get("escenas_por_parte", 10))
     plan = ia.pedir_json(cfg, sistema, usuario + (
-        "\n\nAHORA SOLO EL PLAN de un video de 5 minutos en 5 partes. Devuelve el JSON pedido arriba pero "
-        "con \"guion\" vacío y \"escenas\": [], y agrega \"partes\": [5 frases: qué cuenta cada parte "
-        "(introducción, 3 capítulos y conclusión), con los datos reales que usará] y \"capitulos\": "
-        "[5 títulos cortos]."), temperatura=0.7)
-    ideas = plan.get("partes") or [p[1] for p in PARTES]
-    titulos = plan.get("capitulos") or [p[0] for p in PARTES]
+        "\n\nAHORA SOLO EL PLAN. El video dura entre 2 minutos y medio y 5 minutos SEGÚN CUÁNTA "
+        "INFORMACIÓN REAL E INTERESANTE haya del tema (no rellenes): decide \"numero_partes\" entre 3 y 5 "
+        "(3 ≈ 2.5-3 min, 4 ≈ 4 min, 5 ≈ 5 min). Devuelve el JSON pedido arriba pero con \"guion\" vacío y "
+        "\"escenas\": [], y agrega \"numero_partes\", \"partes\": [una frase por parte: qué cuenta "
+        "(introducción, capítulos y conclusión), con los datos reales que usará] y \"capitulos\": "
+        "[un título corto por parte]."), temperatura=0.7)
+    try:
+        n = int(plan.get("numero_partes") or len(plan.get("partes") or []) or 5)
+    except (TypeError, ValueError):
+        n = 5
+    n = max(int(h.get("minimo_partes", 3)), min(5, n))  # mínimo 3 partes ≈ 2.5 minutos
+    partes = PARTES[: n - 1] + [PARTES[-1]]               # introducción, capítulos y conclusión
+    ideas = plan.get("partes") or [p[1] for p in partes]
+    titulos = plan.get("capitulos") or [p[0] for p in partes]
+    if len(ideas) != n:  # la conclusión siempre es la última idea
+        ideas = (list(ideas[: n - 1]) + [ideas[-1]]) if len(ideas) > n else list(ideas)
+    if len(titulos) > n:
+        titulos = list(titulos[: n - 1]) + [titulos[-1]]
+    logger.info(f"Video largo: {n} partes (≈{n * palabras / 2.5 / 60:.1f} min) según la información del tema")
     textos, escenas, capitulos, contado = [], [], [], []
-    for k, (nombre, guia) in enumerate(PARTES):
+    for k, (nombre, guia) in enumerate(partes):
         idea = ideas[k] if k < len(ideas) else guia
         titulo_cap = titulos[k] if k < len(titulos) else nombre
         mapa = ("Una de sus escenas lleva grafica tipo \"mapa\" con el lugar del que se habla "
                 "(lugar buscable con país).")
         cifra = (" Otra escena lleva grafica \"barras\" o \"cifra\" con un dato REAL de las fuentes."
-                 if k in (1, 3) else "")
-        pedido = (f"\n\nAHORA ESCRIBE SOLO LA PARTE {k + 1} de 5 de un video de 5 minutos: «{titulo_cap}».\n"
+                 if k in ((1, 3) if n >= 5 else (1,)) else "")
+        rotulo = "Conclusión" if k == n - 1 else f"Capítulo {k + 1}"  # (sin f-strings anidados: Python 3.11)
+        pedido = (f"\n\nAHORA ESCRIBE SOLO LA PARTE {k + 1} de {n}: «{titulo_cap}».\n"
                   f"Qué cuenta: {idea}\nCómo: {guia}\n"
                   f"Lo que ya se dijo (NO lo repitas): {' '.join(contado)[-1500:] or 'nada todavía'}\n"
                   f"Escribe unas {palabras} palabras en \"guion\" (solo esta parte) y EXACTAMENTE "
                   f"{escenas_parte} escenas en orden. Cada escena con una imagen DISTINTA y concreta de lo que "
                   f"se dice; \"busqueda_stock\" con 1-3 palabras en inglés para un clip de video real. {mapa}"
                   f"{cifra} La primera escena de esta parte lleva grafica \"tarjeta\" con el título del "
-                  f"capítulo (titulo \"Capítulo {k + 1}\" o \"Conclusión\", lineas [\"{titulo_cap}\"]).")
+                  f"capítulo (titulo \"{rotulo}\", lineas [\"{titulo_cap}\"]).")
         try:
             parte = ia.pedir_json(cfg, sistema, usuario + pedido, temperatura=0.8)
         except Exception as e:
