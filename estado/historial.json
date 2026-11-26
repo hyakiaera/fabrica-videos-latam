@@ -2815,5 +2815,33 @@
   "edicion": "verde_neon",
   "calidad": [],
   "arranque": "Si ganas un millón de dólares, esto te cambia todo."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 137,
+  "fecha": "2026-11-26T22:36",
+  "tema": "Cómo detectar carne adulterada o 'mechada' en el supermercado con la prueba del agua oxigenada",
+  "categoria": "curiosidades",
+  "estilo": "realista",
+  "titulo": "Nadie te dice que la carne mechada cambia con agua oxigenada",
+  "archivo": "salida/2026-11-26/curiosidades/como-detectar-carne-adulterada-o-mechada-en-el-supermercado- #137.mp4",
+  "automatico": true,
+  "nota": 78.0,
+  "drive": "2026-11-26/curiosidades/como-detectar-carne-adulterada-o-mechada-en-el-supermercado- #137.mp4",
+  "hashtags": [
+   "#carne",
+   "#supermercado",
+   "#consejos",
+   "#salud",
+   "#tips",
+   "#foodsafety",
+   "#carneadulterada"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Wallpaper» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Wallpaper.mp3",
+  "edicion": "poppins_caja",
+  "calidad": [],
+  "arranque": "Lo barato sale caro si no pruebas tu carne."
  }
 ]
