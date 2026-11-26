@@ -1943,3 +1943,16 @@ class TestCarpetaSinMayusculas(unittest.TestCase):
             self.assertTrue(remoto.endswith("/videos horizontales info"))  # la que tiene la lista
             self.assertEqual(horizontal._archivo_lista(remoto), "TEMAS.TXT")
         horizontal._CARPETA_REAL.clear()
+
+
+class TestFotoHorizontalEnVertical(unittest.TestCase):
+    def test_foto_ancha_completa_con_fondo_difuminado(self):
+        from PIL import Image
+        from fabrica import movimiento
+        c = Path(tempfile.mkdtemp())
+        Image.new("RGB", (1280, 720), (200, 30, 30)).save(c / "ancha.jpg")
+        Image.new("RGB", (1080, 1920), (30, 30, 200)).save(c / "alta.jpg")
+        self.assertTrue(movimiento.necesita_fondo(c / "ancha.jpg", 1080))
+        self.assertFalse(movimiento.necesita_fondo(c / "alta.jpg", 1080))
+        compuesta = imagenes.encuadrar(c / "ancha.jpg", "9:16")
+        self.assertEqual(Image.open(compuesta).size, (1080, 1920))

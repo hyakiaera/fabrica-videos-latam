@@ -60,6 +60,13 @@ def _proporcion(imagen: Path) -> float:
         return img.width / img.height
 
 
+def necesita_fondo(imagen, ancho_video: int) -> bool:
+    """Foto horizontal o cuadrada (más ancha que 0.85) o muy chica para llenar un video vertical."""
+    from PIL import Image
+    with Image.open(imagen) as img:
+        return img.width / img.height > 0.85 or img.width < ancho_video * 0.5
+
+
 def clip_de_barrido(imagen: Path, segundos: float, aspecto: str, salida: Path, a_la_derecha: bool) -> Path:
     """Foto ancha en video vertical: se muestra a pantalla completa y la cámara la recorre."""
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
@@ -75,7 +82,12 @@ def clip_de_imagen(imagen: Path, segundos: float, efecto: str, aspecto: str, sal
                    ritmo: str = "normal", primera: bool = False) -> Path:
     ancho, alto = TAMANOS.get(aspecto, TAMANOS["9:16"])
     try:
-        if _proporcion(imagen) > (ancho / alto) * 1.6:
+        if alto > ancho and "-encuadre" not in Path(imagen).stem and necesita_fondo(imagen, ancho):
+            # Video vertical con foto horizontal o chica: la foto completa al centro sobre una copia
+            # de ella misma agrandada y difuminada (antes se veía solo un pedazo, "descuadrada").
+            from fabrica import imagenes as _img
+            imagen = _img.encuadrar(Path(imagen), aspecto)
+        elif _proporcion(imagen) > (ancho / alto) * 1.6:
             return clip_de_barrido(imagen, segundos, aspecto, salida, efecto in ("derecha", "acercar", "subir"))
     except Exception:
         pass

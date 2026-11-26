@@ -277,7 +277,8 @@ def encuadrar(ruta: Path, aspecto: str, rellenar: bool = False) -> Path:
     else:
         cubre = max(ancho / img.width, alto / img.height)
         fondo = img.convert("RGB").resize((int(img.width * cubre) + 1, int(img.height * cubre) + 1))
-        fondo = fondo.crop((0, 0, ancho, alto)).filter(ImageFilter.GaussianBlur(40))
+        fx, fy = (fondo.width - ancho) // 2, (fondo.height - alto) // 2  # el centro, no la esquina
+        fondo = fondo.crop((fx, fy, fx + ancho, fy + alto)).filter(ImageFilter.GaussianBlur(40))
         fondo = Image.eval(fondo, lambda v: int(v * 0.55))
         escala = min(ancho * 0.94 / img.width, alto * 0.7 / img.height)
     img = img.resize((max(1, int(img.width * escala)), max(1, int(img.height * escala))))
