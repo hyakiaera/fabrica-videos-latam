@@ -454,13 +454,24 @@ class TestFotosWeb(unittest.TestCase):
         self.assertEqual(r, [("https://diario.com/foto.jpg", "Diario", "https://diario.com/nota")])
         self.assertEqual(get.call_args_list[1].args[0], "https://diario.com/nota")
 
-    def test_foto_ancha_usa_barrido(self):
+    def test_foto_ancha_en_vertical_va_completa_con_fondo(self):
         from PIL import Image
         from fabrica import movimiento
         carpeta = Path(tempfile.mkdtemp())
         Image.new("RGB", (1600, 800), (10, 120, 200)).save(carpeta / "ancha.jpg")
-        with mock.patch.object(movimiento, "clip_de_barrido", return_value=carpeta / "b.mp4") as barrido:
+        with mock.patch.object(movimiento, "clip_de_barrido", return_value=carpeta / "b.mp4") as barrido, \
+             mock.patch.object(imagenes, "encuadrar", wraps=imagenes.encuadrar) as encuadre:
             movimiento.clip_de_imagen(carpeta / "ancha.jpg", 2, "acercar", "9:16", carpeta / "c.mp4")
+        barrido.assert_not_called()
+        encuadre.assert_called_once()
+
+    def test_panoramica_en_horizontal_usa_barrido(self):
+        from PIL import Image
+        from fabrica import movimiento
+        carpeta = Path(tempfile.mkdtemp())
+        Image.new("RGB", (4000, 800), (10, 120, 200)).save(carpeta / "pano.jpg")
+        with mock.patch.object(movimiento, "clip_de_barrido", return_value=carpeta / "b.mp4") as barrido:
+            movimiento.clip_de_imagen(carpeta / "pano.jpg", 2, "acercar", "16:9", carpeta / "c.mp4")
         barrido.assert_called_once()
 
     def test_preparar_real_no_achica_fotos(self):
