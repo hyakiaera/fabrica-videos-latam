@@ -2732,5 +2732,32 @@
   "edicion": "poppins_caja",
   "calidad": [],
   "arranque": "Deja de buscar talento común."
+ },
+ {
+  "mezcla": "finanzas",
+  "numero": 134,
+  "fecha": "2026-11-26T01:53",
+  "tema": "El desplome del memecoin de Trump tras su nueva y polémica cena",
+  "categoria": "economia",
+  "estilo": "caricatura",
+  "titulo": "Cae 35% el volumen del memecoin de Trump tras su tercera cena polémic",
+  "archivo": "salida/2026-11-26/economia/el-desplome-del-memecoin-de-trump-tras-su-nueva-y-polemica-c #134.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-26/economia/el-desplome-del-memecoin-de-trump-tras-su-nueva-y-polemica-c #134.mp4",
+  "hashtags": [
+   "#Trump",
+   "#Memecoin",
+   "#Criptomonedas",
+   "#Economia",
+   "#Finanzas",
+   "#Crypto"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output011.mp3",
+  "edicion": "celeste",
+  "calidad": [],
+  "arranque": "Perdió la mitad de su brillo."
  }
 ]
