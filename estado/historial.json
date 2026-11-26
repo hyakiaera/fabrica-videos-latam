@@ -2705,5 +2705,32 @@
   "edicion": "anton_amarillo",
   "calidad": [],
   "arranque": "Deja de arriesgar tu progreso en GTA 6."
+ },
+ {
+  "mezcla": "",
+  "numero": 133,
+  "fecha": "2026-11-26T01:35",
+  "tema": "HISTORIA DEL MAGICO GONZALES (FUTBOLISTA SALVADORENO, Y JUGADOR DEL CADIS DE ESPANA)",
+  "categoria": "documental",
+  "estilo": "realista",
+  "titulo": "El Mágico González: El genio salvadoreño que enamoró a Cádiz",
+  "archivo": "salida/videos horizontales/2026-11-26/historia-del-magico-gonzales-futbolista-salvadoreno-y-jugado #133.mp4",
+  "automatico": false,
+  "nota": null,
+  "drive": "videos horizontales/2026-11-26/historia-del-magico-gonzales-futbolista-salvadoreno-y-jugado #133.mp4",
+  "hashtags": [
+   "#MagicoGonzalez",
+   "#Futbol",
+   "#Cadis",
+   "#ElSalvador",
+   "#LeyendasDelFutbol",
+   "#Maradona"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output004.mp3",
+  "edicion": "poppins_caja",
+  "calidad": [],
+  "arranque": "Deja de buscar talento común."
  }
 ]
