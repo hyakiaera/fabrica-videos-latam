@@ -2787,5 +2787,33 @@
   "edicion": "caja_negra",
   "calidad": [],
   "arranque": "Y justo ahí, la oficina entera decidió desaparecer."
+ },
+ {
+  "mezcla": "general",
+  "numero": 136,
+  "fecha": "2026-11-26T13:59",
+  "tema": "Migrante gana un millón en la lotería y termina detenido por ICE",
+  "categoria": "mundo",
+  "estilo": "anime",
+  "titulo": "¡Ganó la lotería de Massachusetts y terminó detenido por ICE!",
+  "archivo": "salida/2026-11-26/mundo/migrante-gana-un-millon-en-la-loteria-y-termina-detenido-por #136.mp4",
+  "automatico": true,
+  "nota": 82.8,
+  "drive": "2026-11-26/mundo/migrante-gana-un-millon-en-la-loteria-y-termina-detenido-por #136.mp4",
+  "hashtags": [
+   "#lotería",
+   "#massachusetts",
+   "#migrantes",
+   "#ice",
+   "#noticias",
+   "#lottery",
+   "#news"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Monkeys Spinning Monkeys» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Monkeys Spinning Monkeys.mp3",
+  "edicion": "verde_neon",
+  "calidad": [],
+  "arranque": "Si ganas un millón de dólares, esto te cambia todo."
  }
 ]
