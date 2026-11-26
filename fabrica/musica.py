@@ -60,7 +60,47 @@ def libre(tono: str, destino: Path) -> Path | None:
     return local
 
 
-CANCIONES_MPT = Path(__file__).resolve().parent.parent / "resource" / "songs"
+CANCIONES_MPT = Path(__file__).resolve().parent.parent / "resource" / "songs"  # NO se usan: licencia desconocida
+# (una de ellas, "Relaxing Peaceful Piano" de Praded, tiene reclamo de derechos en YouTube)
+
+# Biblioteca libre extra: Kevin MacLeod (incompetech.com), licencia CC BY 4.0 → se puede monetizar
+# poniendo el crédito (se agrega solo). Se baja una vez en GitHub y se guarda.
+CATALOGO_LIBRE = [
+    ("Fluffing a Duck", "alegre"), ("Sneaky Snitch", "alegre"), ("Monkeys Spinning Monkeys", "alegre"),
+    ("Hyperfun", "alegre"), ("Carefree", "alegre"), ("Investigations", "tension"), ("Hitman", "tension"),
+    ("Cipher", "tension"), ("Volatile Reaction", "epica"), ("Heroic Age", "epica"), ("Inspired", "motivacion"),
+    ("Wallpaper", "neutral"), ("Easy Lemon", "neutral"), ("Thinking Music", "neutral"),
+    ("Local Forecast - Elevator", "neutral"), ("Dreamer", "triste"), ("Long Note Two", "triste"),
+]
+EXTRA = Path(__file__).resolve().parent.parent / "storage" / "musica_libre"
+URL_INCOMPETECH = "https://incompetech.com/music/royalty-free/mp3-royaltyfree/{}.mp3"
+
+
+def _credito_macleod(titulo: str) -> str:
+    return (f"Música: «{titulo}» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: "
+            "https://creativecommons.org/licenses/by/4.0/")
+
+
+def biblioteca_extra() -> list[tuple[Path, list[str], str]]:
+    """Las canciones libres extra (las baja la primera vez; si no se puede, no pasa nada)."""
+    import requests
+    from urllib.parse import quote
+    EXTRA.mkdir(parents=True, exist_ok=True)
+    salida = []
+    for titulo, animo in CATALOGO_LIBRE:
+        archivo = EXTRA / f"{titulo}.mp3"
+        if not archivo.exists():
+            try:
+                r = requests.get(URL_INCOMPETECH.format(quote(titulo)), timeout=60,
+                                 headers={"User-Agent": "FabricaVideos/1.0"})
+                if r.ok and r.headers.get("content-type", "").startswith(("audio", "application/octet")) \
+                        and len(r.content) > 200_000:
+                    archivo.write_bytes(r.content)
+            except Exception:
+                pass
+        if archivo.exists():
+            salida.append((archivo, [animo], _credito_macleod(titulo)))
+    return salida
 
 
 def _recientes(cuantas: int = 4) -> list[str]:
@@ -76,7 +116,7 @@ def _recientes(cuantas: int = 4) -> list[str]:
 
 
 def variada(tono: str, destino: Path) -> Path | None:
-    """De la biblioteca fija y gratis (la música que traía MoneyPrinterTurbo + la libre CC BY),
+    """De la biblioteca fija y LIBRE (Kevin MacLeod, CC BY: se puede monetizar con el crédito),
     una canción que NO haya sonado en los últimos videos. Nunca se genera música nueva."""
     recientes = set(_recientes())
     libres = []
@@ -86,8 +126,12 @@ def variada(tono: str, destino: Path) -> Path | None:
             f = l.split("\t")
             if l.strip() and not l.startswith("#") and len(f) >= 3 and (LIBRE / f[0]).exists():
                 libres.append((LIBRE / f[0], f[1].split(","), f[2].strip()))
-    mpt = [(c, [], "") for c in sorted(CANCIONES_MPT.glob("*.mp3"))]
-    todas = [c for c in libres + mpt if c[0].name not in recientes] or libres + mpt
+    try:
+        libres += biblioteca_extra()
+    except Exception:
+        pass
+    # Solo música con licencia comprobada (nunca las canciones del programa base).
+    todas = [c for c in libres if c[0].name not in recientes] or libres
     if not todas:
         return None
     animo = animo_de(tono)

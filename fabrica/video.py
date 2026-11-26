@@ -75,6 +75,11 @@ def armar(cfg: dict, datos: dict, estilo: Estilo, imagenes: list, trabajo: Path)
     except Exception as e:
         logger.warning(f"Música: no se pudo elegir por tono ({e})")
         cancion = None
+    if not cancion:
+        # Sin música segura, el video sale SIN música: nunca una al azar de las del programa base
+        # (no tienen licencia clara y YouTube las reclama).
+        params["bgm_type"] = ""
+        datos["musica_usada"] = "ninguna (no había música libre disponible)"
     if cancion and v.get("musica", "random"):
         params["bgm_file"] = str(cancion)
         datos["musica_usada"] = cancion.name.removeprefix("fabrica-")

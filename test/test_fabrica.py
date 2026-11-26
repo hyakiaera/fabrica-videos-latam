@@ -1473,7 +1473,7 @@ class TestMusicaLibre(unittest.TestCase):
     def test_la_libre_lleva_su_credito(self):
         from fabrica import musica
         c = Path(tempfile.mkdtemp())
-        with mock.patch.object(musica, "CANCIONES_MPT", c / "nada"), \
+        with mock.patch.object(musica, "biblioteca_extra", return_value=[]), \
              mock.patch.object(musica, "_recientes", return_value=["curioso.mp3"]):
             cancion = musica.variada("misterio", c)
         self.assertEqual(cancion.name, "fabrica-misterio.mp3")
@@ -1482,11 +1482,19 @@ class TestMusicaLibre(unittest.TestCase):
 
     def test_no_repite_las_ultimas(self):
         from fabrica import musica
-        todas = [p.name for p in musica.CANCIONES_MPT.glob("*.mp3")] + ["curioso.mp3", "misterio.mp3"]
-        dejar = todas[0]
-        with mock.patch.object(musica, "_recientes", return_value=todas[1:]):
+        with mock.patch.object(musica, "_recientes", return_value=["curioso.mp3"]), \
+             mock.patch.object(musica, "biblioteca_extra", return_value=[]):
             cancion = musica.variada("alegre", Path(tempfile.mkdtemp()))
-        self.assertEqual(cancion.name, f"fabrica-{dejar}")
+        self.assertEqual(cancion.name, "fabrica-misterio.mp3")
+
+    def test_nunca_las_canciones_sin_licencia_del_programa_base(self):
+        from fabrica import musica
+        sin_licencia = {p.name for p in musica.CANCIONES_MPT.glob("*.mp3")}
+        with mock.patch.object(musica, "biblioteca_extra", return_value=[]):
+            for _ in range(15):
+                cancion = musica.variada("alegre", Path(tempfile.mkdtemp()))
+                self.assertNotIn(cancion.name.removeprefix("fabrica-"), sin_licencia)
+                self.assertIn("CC BY", musica.CREDITO["texto"])
 
     def test_el_credito_va_en_la_publicacion_y_la_ficha(self):
         datos = {"titulo": "T", "guion": "g", "hashtags": ["#a"], "descripcion": "", "credito_musica": "Música: X (CC BY 4.0)"}

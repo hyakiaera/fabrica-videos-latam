@@ -84,6 +84,12 @@ jobs:
           pip install -q -U yt-dlp trafilatura gdown edge-tts num2words kaggle
           pip install -q --no-deps gTTS  # voz de respaldo (sin cambiar otras librerías)
 
+      - name: Recordar la música libre (Kevin MacLeod, CC BY)
+        uses: actions/cache@v4
+        with:
+          path: storage/musica_libre
+          key: musica-libre-v1
+
       - name: Recordar los datos de mapas (Natural Earth)
         uses: actions/cache@v4
         with:
