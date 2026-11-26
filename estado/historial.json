@@ -2759,5 +2759,33 @@
   "edicion": "celeste",
   "calidad": [],
   "arranque": "Perdió la mitad de su brillo."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 135,
+  "fecha": "2026-11-26T04:12",
+  "tema": "Fiebre por GTA 6 desata ola de ausentismo laboral y advertencias de pareja",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "Oficinas vacías y matrimonios en riesgo por GTA 6",
+  "archivo": "salida/2026-11-26/gaming/fiebre-por-gta-6-desata-ola-de-ausentismo-laboral-y-adverten #135.mp4",
+  "automatico": true,
+  "nota": 76.0,
+  "drive": "2026-11-26/gaming/fiebre-por-gta-6-desata-ola-de-ausentismo-laboral-y-adverten #135.mp4",
+  "hashtags": [
+   "#GTA6",
+   "#GrandTheftAuto",
+   "#Gaming",
+   "#Videojuegos",
+   "#Noticias",
+   "#EEUU",
+   "#Tendencias"
+  ],
+  "publicado": false,
+  "credito_musica": "",
+  "musica": "output000.mp3",
+  "edicion": "caja_negra",
+  "calidad": [],
+  "arranque": "Y justo ahí, la oficina entera decidió desaparecer."
  }
 ]
