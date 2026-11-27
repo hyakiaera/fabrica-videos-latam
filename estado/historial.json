@@ -2898,5 +2898,32 @@
   "edicion": "caja_negra",
   "calidad": [],
   "arranque": "Si buscas GTA 6 en tu PC, esto te importa."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 140,
+  "fecha": "2026-11-27T13:55",
+  "tema": "¡Alarma gamer! Reportan consolas dañadas y graves errores con GTA 6",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Peligro gamer! ¿Tu consola sobrevivirá a GTA 6?",
+  "archivo": "salida/2026-11-27/gaming/alarma-gamer-reportan-consolas-danadas-y-graves-errores-con- #140.mp4",
+  "automatico": true,
+  "nota": 82.0,
+  "drive": "2026-11-27/gaming/alarma-gamer-reportan-consolas-danadas-y-graves-errores-con- #140.mp4",
+  "hashtags": [
+   "#gta6",
+   "#gaming",
+   "#ps5",
+   "#xbox",
+   "#noticias",
+   "#gamer"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Hitman» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Hitman.mp3",
+  "edicion": "celeste",
+  "calidad": [],
+  "arranque": "GTA 6 cambia la seguridad de tu consola."
  }
 ]
