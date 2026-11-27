@@ -2870,5 +2870,33 @@
   "edicion": "caja_roja",
   "calidad": [],
   "arranque": "Nadie te dice que comprar regalos a última hora te sale carísimo."
+ },
+ {
+  "mezcla": "gta",
+  "numero": 139,
+  "fecha": "2026-11-27T04:13",
+  "tema": "Estafas con ports falsos de GTA 6 para PC y malware",
+  "categoria": "gaming",
+  "estilo": "videojuego",
+  "titulo": "¡Cuidado con GTA 6! Port falso y malware en PC",
+  "archivo": "salida/2026-11-27/gaming/estafas-con-ports-falsos-de-gta-6-para-pc-y-malware #139.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-27/gaming/estafas-con-ports-falsos-de-gta-6-para-pc-y-malware #139.mp4",
+  "hashtags": [
+   "#gta6",
+   "#malware",
+   "#gaming",
+   "#pcgaming",
+   "#estafas",
+   "#gamer",
+   "#noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Thinking Music» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Thinking Music.mp3",
+  "edicion": "caja_negra",
+  "calidad": [],
+  "arranque": "Si buscas GTA 6 en tu PC, esto te importa."
  }
 ]
