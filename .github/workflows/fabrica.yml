@@ -7,6 +7,7 @@ on:
     # Sábado y domingo: 7am, 11am, 3pm, 7pm y 10pm (5 videos)
     - cron: "5 13 * * *"      # 7am todos los días
     - cron: "5 16 * * *"      # 10am todos los días: video largo HORIZONTAL (tu lista "videos horizontales info")
+    - cron: "35 19 * * *"     # 1:35pm todos los días: ANUNCIO de la mueblería (carpeta "muebleria anuncios")
     - cron: "5 4 * * *"       # 10pm todos los días (en UTC ya es el día siguiente)
     - cron: "5 18 * * 1-5"    # 12pm lunes a viernes
     - cron: "5 22 * * 1-5"    # 4pm lunes a viernes
@@ -206,6 +207,13 @@ jobs:
             if [ -n "$IN_MODELO_LINK" ]; then ARGS+=(--modelo-voz-link "$IN_MODELO_LINK"); fi
           else
             ARGS+=(--voz "$IN_VOZ" --clonar-voz no)
+          fi
+          # Anuncio de la mueblería: la ronda de la 1:35pm, o a mano escribiendo "anuncio" en Tema.
+          if [ "$CRON" = "35 19 * * *" ] || [ "$(echo "$IN_TEMA" | tr '[:upper:]' '[:lower:]' | xargs)" = "anuncio" ]; then
+            SAL_A="descargar,drive"
+            if [[ ",$PUB," == *,anuncios,* ]] || [ "$PUB" = "si" ]; then SAL_A="$SAL_A,publicar"; fi
+            python -m fabrica "${ARGS[@]}" --anuncio --salidas "$SAL_A"
+            exit $?
           fi
           # Video largo horizontal: la ronda de las 10am, o a mano escribiendo "horizontal" en Tema.
           if [ "$CRON" = "5 16 * * *" ] || [ "$(echo "$IN_TEMA" | tr '[:upper:]' '[:lower:]' | xargs)" = "horizontal" ]; then

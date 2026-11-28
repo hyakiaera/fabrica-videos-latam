@@ -130,6 +130,14 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
     from fabrica import avatar
     crudo = avatar.agregar(cfg, crudo, datos, _slug(tema.get("categoria", "general")), trabajo, numero)
     final = video.poner_logo(cfg, crudo, trabajo / f"{nombre}.mp4", titulo=datos.get("titulo", ""))
+    if tema.get("formato") == "anuncio":
+        # Anuncio de la mueblería: su logo grande al inicio y al final, y la dirección todo el video.
+        from fabrica import anuncios, efectos
+        try:
+            final = anuncios.marcar_video(final, trabajo / f"{nombre}-anuncio.mp4", tema["anuncio"]["direccion"],
+                                          anuncios.logo_de(fotos_propias), efectos.duracion(final))
+        except Exception as e:
+            logger.warning(f"Anuncio: no se pudo poner el logo y la dirección ({e})")
     from fabrica import calidad
     conteo["_escenas"] = sum(1 for e in datos.get("escenas", []) if not e.get("grafica") and not e.get("mapa"))
     conteo["_graficas"] = sum(1 for e in datos.get("escenas", []) if e.get("grafica") or e.get("mapa"))
@@ -156,7 +164,9 @@ def hacer_video(cfg: dict, tema: dict, opciones_salida: set[str]) -> Path:
             logger.warning(f"No se pudieron guardar las imágenes generadas: {e}")
 
     horizontal = tema.get("formato") == "horizontal"
-    ruta_relativa = f"videos horizontales/{hoy}" if horizontal else f"{hoy}/{_slug(tema['categoria'])}"
+    ruta_relativa = (f"videos horizontales/{hoy}" if horizontal else
+                     f"anuncios muebleria/{hoy}" if tema.get("formato") == "anuncio" else
+                     f"{hoy}/{_slug(tema['categoria'])}")
     if horizontal:
         from fabrica import efectos, horizontal as hz
         capitulos = hz.capitulos_en_descripcion(datos, efectos.duracion(final))
@@ -227,6 +237,22 @@ def variar_estilos(temas: list[dict], historial: list[dict], ultimos: int = 3) -
             logger.info(f"Estilo: '{t['estilo']}' ya salió en los últimos videos; esta vez '{nuevo}'")
             t["estilo"] = nuevo
         usados.append(t.get("estilo", ""))
+
+
+def video_anuncio(cfg: dict, args) -> int:
+    """El anuncio del día de la mueblería: tu lista de promociones (o uno automático)."""
+    from fabrica import anuncios
+    opciones = {o.strip() for o in (args.salidas or "descargar").split(",") if o.strip()} | {"descargar"}
+    ajustes = anuncios.preparar_cfg(cfg)
+    trabajo = config.RAIZ / "storage" / "fabrica" / "anuncio"
+    tema = anuncios.tema_del_dia(ajustes, _historial(), trabajo)
+    try:
+        hacer_video(ajustes, tema, opciones)
+    except Exception as e:
+        logger.exception(f"Falló el anuncio '{tema['tema']}': {e}")
+        return 1
+    anuncios.tachar(ajustes, tema, trabajo)
+    return 0
 
 
 def video_horizontal(cfg: dict, args) -> int:
@@ -333,6 +359,8 @@ def main(argv=None) -> int:
     p.add_argument("--modelo-voz-link", help="link a tu modelo de voz (.pth/.index o .zip) o su nombre en StudioVoz")
     p.add_argument("--avatar", help="no, intro y cierre, esquina, dividida o mixto")
     p.add_argument("--probar-logo", action="store_true", help="crear imagen de prueba del logo y salir")
+    p.add_argument("--anuncio", action="store_true",
+                   help="hacer el anuncio del día de la mueblería (carpeta 'muebleria anuncios')")
     p.add_argument("--horizontal", action="store_true",
                    help="hacer el video largo horizontal del día (tu lista 'videos horizontales info')")
     p.add_argument("--publicar-mejor", action="store_true",
@@ -386,6 +414,8 @@ def main(argv=None) -> int:
         return 0
     if args.horizontal:
         return video_horizontal(cfg, args)
+    if args.anuncio:
+        return video_anuncio(cfg, args)
     while True:
         codigo = una_ronda(cfg, args)
         if args.publicar_mejor:

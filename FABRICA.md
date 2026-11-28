@@ -342,7 +342,7 @@ rayas largas). La nota del gancho sale en la ficha `.txt`.
 
 ## 17. Campaña GTA 6 (automática, con fecha de fin)
 
-- **2 videos de GTA al día** (del 13 al 30 de noviembre de 2026), repartidos entre las rondas.
+- (Terminada el 27 de noviembre: se volvió a la mezcla normal.) **2 videos de GTA al día**, repartidos entre las rondas.
 - **19 de noviembre (lanzamiento): todos los videos del día son de GTA 6**, con lo que está
   pasando en ese momento (reseñas, ventas, récords, problemas, reacciones, primeros secretos).
 - Temas: noticias de lo más reciente (buscadas en cada ronda), trucos, datos curiosos,
@@ -398,6 +398,30 @@ descripción con **capítulos (00:00, 01:12...)** y **3 Shorts verticales** saca
   Ojo con el límite de Upload-Post.
 - Antes de publicar cualquier video, una **revisión automática** (pantalla negra, sin audio, muy
   corto, sin imágenes) evita que salga uno malo; la ficha dice por qué no se publicó.
+
+## 19. Anuncio diario de la mueblería (vertical)
+
+**Todos los días a la 1:35pm** sale un anuncio vertical de ~40 segundos.
+
+En Drive: `Fabrica de Videos › muebleria anuncios ›`
+- **`promociones.txt`** (o cualquier `.txt`): datos del negocio arriba (opcional) y promociones numeradas:
+  ```
+  nombre: Mueblería ...
+  telefono: (713) 000-0000
+  horario: lunes a sábado 10am a 7pm
+  1. 20% de descuento en salas nuevas este fin de semana
+  2. Recámaras usadas desde $299
+  ```
+  Hace la primera sin ✔ y la tacha. Si no queda ninguna, hace un anuncio automático
+  (muebles nuevos y usados) **sin inventar precios**.
+- **`fotos/`**: tus fotos y videos de muebles (los videos sin audio) y tu **logo** (un archivo con
+  "logo" en el nombre, mejor PNG con fondo transparente).
+
+El anuncio lleva: guion de ofertas súper llamativo, tus fotos y videos, **tu logo grande al inicio y al
+final**, y **la dirección (14109 S Post Oak Rd, Houston, TX 77045) en una franja roja todo el video**.
+No lleva la marca DESVERGUEOFFICIAL. Se guarda en Drive en `anuncios muebleria/fecha`.
+- A mano: Run workflow → Tema: `anuncio`.
+- Publicarlo solo: agrega `anuncios` a PUBLICAR (ojo: se publica en las redes de DESVERGUE).
 
 ## Recomendaciones
 

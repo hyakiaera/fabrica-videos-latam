@@ -1169,6 +1169,7 @@ class TestClipsReales(unittest.TestCase):
             return ruta
 
         escenas = [{"imagen": "ambulance", "busqueda_stock": "ambulance"}, {"imagen": "road night"}]
+        fotos_web._USADAS = {}  # el registro de clips ya usados empieza vacío en esta prueba
         with mock.patch.object(fotos_web, "clips_stock", return_value=[("http://v/1.mp4", "http://v/1.jpg", "Video: x")]), \
              mock.patch.object(fotos_web, "_bajar", side_effect=bajar), \
              mock.patch.object(ia, "elegir_imagenes", return_value=[0]), \
@@ -1179,7 +1180,7 @@ class TestClipsReales(unittest.TestCase):
             rutas, creditos, conteo = imagenes.para_escenas(
                 {"imagenes": {"clips_proporcion": 1, "fotos_web": False}}, escenas,
                 estilos.obtener("realista"), "9:16", c)
-        self.assertEqual(conteo["clips"], 2 if rutas[1] else 1)
+        self.assertEqual(conteo["clips"], 1)  # el mismo clip nunca se usa dos veces
         self.assertTrue(str(rutas[0]).endswith(".mp4"))
         salida = movimiento.clip_de_video(rutas[0], 3.0, "9:16", c / "out.mp4")
         from fabrica import efectos
@@ -1967,3 +1968,56 @@ class TestFotoHorizontalEnVertical(unittest.TestCase):
         self.assertFalse(movimiento.necesita_fondo(c / "alta.jpg", 1080))
         compuesta = imagenes.encuadrar(c / "ancha.jpg", "9:16")
         self.assertEqual(Image.open(compuesta).size, (1080, 1920))
+
+
+class TestAnunciosMuebleria(unittest.TestCase):
+    TXT = ("nombre: Mueblería La Económica\n"
+           "telefono: (713) 555-0101\n"
+           "1. 20% de descuento en salas nuevas\n"
+           "2. Recámaras usadas desde $299\n")
+
+    def test_lee_datos_y_promociones(self):
+        from fabrica import anuncios
+        negocio, promos = anuncios.leer(self.TXT)
+        self.assertEqual(negocio["nombre"], "Mueblería La Económica")
+        self.assertEqual(negocio["telefono"], "(713) 555-0101")
+        self.assertEqual([p["numero"] for p in promos], [1, 2])
+
+    def test_tema_con_direccion_obligatoria(self):
+        from fabrica import anuncios
+        with mock.patch.object(anuncios, "_remoto", return_value=None):
+            tema = anuncios.tema_del_dia({}, [], Path(tempfile.mkdtemp()))
+        self.assertTrue(tema["es_negocio"])
+        self.assertIn("14109 S Post Oak Rd", tema["obligatorio"])
+        self.assertEqual(tema["formato"], "anuncio")
+
+    def test_sin_marca_desvergue_y_vertical(self):
+        from fabrica import anuncios
+        c = anuncios.preparar_cfg({"logo": {"texto": "DESVERGUEOFFICIAL"}})
+        self.assertFalse(c["logo"]["activo"])
+        self.assertFalse(c["logo"]["cierre_activo"])
+        self.assertEqual(c["video"]["aspecto"], "9:16")
+
+    def test_logo_y_direccion_en_el_video(self):
+        import subprocess
+        import imageio_ffmpeg
+        from PIL import Image
+        from fabrica import anuncios
+        c = Path(tempfile.mkdtemp())
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        subprocess.run([ff, "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=gray:s=1080x1920:d=8", "-f", "lavfi",
+                        "-i", "sine=d=8", "-shortest", "-pix_fmt", "yuv420p", str(c / "v.mp4")], check=True)
+        Image.new("RGBA", (600, 200), (0, 200, 0, 255)).save(c / "logo.png")
+        self.assertEqual(anuncios.logo_de({"fotos/mi logo.png": (c / "logo.png", ""), "fotos/sala.jpg": (c / "x.jpg", "")}),
+                         c / "logo.png")
+        salida = anuncios.marcar_video(c / "v.mp4", c / "s.mp4", anuncios.DIRECCION, c / "logo.png", 8)
+
+        def pixel(t, x, y):
+            subprocess.run([ff, "-v", "error", "-y", "-ss", str(t), "-i", str(salida), "-frames:v", "1", str(c / "f.png")],
+                           check=True)
+            return Image.open(c / "f.png").convert("RGB").getpixel((x, y))
+
+        self.assertGreater(pixel(1, 540, 768)[1], 150)   # logo verde al inicio
+        self.assertLess(pixel(4, 540, 768)[1], 150)      # en medio no está
+        self.assertGreater(pixel(7.5, 540, 960)[1], 150)  # vuelve al final
+        self.assertGreater(pixel(4, 540, 1700)[0], 150)  # la franja roja de la dirección, todo el video

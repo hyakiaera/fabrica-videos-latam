@@ -22,7 +22,7 @@ CAMPANAS = [
         "nombre": "gta",
         "categoria": "gaming",
         "desde": "2026-11-13",
-        "hasta": "2026-11-30",
+        "hasta": "2026-11-27",  # terminada antes: se volvió a la mezcla normal (pedido del 28/11)
         "por_dia": 2,
         "dias": {"2026-11-19": 5},          # lanzamiento: todos los videos del día
         "lanzamiento": "2026-11-19",
