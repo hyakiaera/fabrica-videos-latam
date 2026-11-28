@@ -2980,5 +2980,33 @@
   "edicion": "clasico",
   "calidad": [],
   "arranque": "La advertencia real: Un imprevisto cambia el mes que viene."
+ },
+ {
+  "mezcla": "curiosidades",
+  "numero": 143,
+  "fecha": "2026-11-28T03:56",
+  "tema": "Cómo calcular el aguinaldo exacto en México y evitar que tu patrón te robe",
+  "categoria": "curiosidades",
+  "estilo": "pizarra",
+  "titulo": "Aguinaldo 2026: ¿Te pueden robar esta lana?",
+  "archivo": "salida/2026-11-28/curiosidades/como-calcular-el-aguinaldo-exacto-en-mexico-y-evitar-que-tu- #143.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-28/curiosidades/como-calcular-el-aguinaldo-exacto-en-mexico-y-evitar-que-tu- #143.mp4",
+  "hashtags": [
+   "#aguinaldo",
+   "#mexico",
+   "#finanzas",
+   "#trabajo",
+   "#leyfederaldeltrabajo",
+   "#dinero",
+   "#noticias"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Easy Lemon» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Easy Lemon.mp3",
+  "edicion": "",
+  "calidad": [],
+  "arranque": "Si trabajas en México y esperas diciembre, esto te importa."
  }
 ]
