@@ -3008,5 +3008,32 @@
   "edicion": "",
   "calidad": [],
   "arranque": "Si trabajas en México y esperas diciembre, esto te importa."
+ },
+ {
+  "mezcla": "entretenimiento",
+  "numero": 144,
+  "fecha": "2026-11-28T13:02",
+  "tema": "Las tendencias de maquillaje que dominarán este año y te quitarán años de encima",
+  "categoria": "entretenimiento",
+  "estilo": "realista",
+  "titulo": "Maquillaje que rejuvenece: tonos burdeos y colorete alto",
+  "archivo": "salida/2026-11-28/entretenimiento/las-tendencias-de-maquillaje-que-dominaran-este-ano-y-te-qui #144.mp4",
+  "automatico": true,
+  "nota": 72.0,
+  "drive": "2026-11-28/entretenimiento/las-tendencias-de-maquillaje-que-dominaran-este-ano-y-te-qui #144.mp4",
+  "hashtags": [
+   "#maquillaje",
+   "#tendencias",
+   "#belleza",
+   "#rejuvenecer",
+   "#makeup",
+   "#tips"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Local Forecast - Elevator» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Local Forecast - Elevator.mp3",
+  "edicion": "caja_negra",
+  "calidad": [],
+  "arranque": "Si buscas quitarte años de encima con solo cambiar tu rutina de maquillaje, esto te importa."
  }
 ]
