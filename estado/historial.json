@@ -2953,5 +2953,32 @@
   "edicion": "verde_neon",
   "calidad": [],
   "arranque": "La promoción Trae tu canasta termina pronto."
+ },
+ {
+  "mezcla": "",
+  "numero": 142,
+  "fecha": "2026-11-28T01:24",
+  "tema": "ESTAS HORRANDO LO SUFICIENTE HOY EN DIA, QUE PASA SI TIENES UNA EMERGENCIA (AHORRO,DEUDAS,DINERO BAJO EL COLCHO, NEGOCIO,DEUDA)",
+  "categoria": "documental",
+  "estilo": "cinematografico",
+  "titulo": "Ahorros y emergencias: ¿estás preparado hoy?",
+  "archivo": "salida/videos horizontales/2026-11-28/estas-horrando-lo-suficiente-hoy-en-dia-que-pasa-si-tienes-u #142.mp4",
+  "automatico": false,
+  "nota": null,
+  "drive": "videos horizontales/2026-11-28/estas-horrando-lo-suficiente-hoy-en-dia-que-pasa-si-tienes-u #142.mp4",
+  "hashtags": [
+   "#finanzas",
+   "#ahorro",
+   "#dinero",
+   "#deudas",
+   "#emergency",
+   "#money"
+  ],
+  "publicado": false,
+  "credito_musica": "Música: «Sneaky Snitch» de Kevin MacLeod (incompetech.com), licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "musica": "Sneaky Snitch.mp3",
+  "edicion": "clasico",
+  "calidad": [],
+  "arranque": "La advertencia real: Un imprevisto cambia el mes que viene."
  }
 ]
